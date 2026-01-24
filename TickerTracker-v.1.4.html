@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Stock Tracker + Drive</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              background: '#1a1a2e',
+              surface: '#16213e',
+              primary: '#0f3460',
+              accent: '#e94560',
+              'accent-blue': '#667eea',
+              'accent-purple': '#764ba2',
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.3s ease-out',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            }
+          },
+        },
+      }
+    </script>
+
+    <!-- Import Map (Original Working Version) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://aistudiocdn.com/react@^19.2.1",
+        "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.1/client",
+        "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+        "react/": "https://aistudiocdn.com/react@^19.2.1/"
+      }
+    }
+    </script>
+    
+    <!-- Babel for JSX compilation in browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    
+    <style>
+      body {
+        background-color: #1a1a2e;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(26, 26, 46, 0.5);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 4px;
+      }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Line, ComposedChart } from 'recharts';
+        import { GoogleGenAI } from "@google/genai";
+
+        // --- CONSTANTS ---
+        const AI_OPTIONS = [
+          'Gemini', 'IA Studio', 'GPT', 'Claude', 'Kimi', 
+          'Perplexity', 'DeepSeek', 'Copilot', 'Grok', 'Qwen'
+        ];
+
+        const AI_ICONS = {
+          'Gemini': '💎', 'IA Studio': '🎨', 'GPT': '🧠', 'Claude': '🤖',
+          'Kimi': '🌙', 'Perplexity': '🔮', 'DeepSeek': '🔍', 'Copilot': '✈️',
+          'Grok': '⚡', 'Qwen': '🐉'
+        };
+
+        const CORS_PROXIES = [
+          'https://api.allorigins.win/raw?url=',
+          'https://corsproxy.io/?',
+          'https://api.codetabs.com/v1/proxy?quest='
+        ];
+
+        // --- SERVICES ---
+
+        // Finnhub & Yahoo Service
+        let currentProxyIndex = 0;
+        const symbolCache = {};
+        const priceCache = {};
+
+        const searchTicker = async (query, apiKey) => {
+          if (!apiKey) throw new Error("API Key mancante");
+          
+          const cacheKey = `search_${query.toUpperCase()}`;
+          if (symbolCache[cacheKey] && (Date.now() - symbolCache[cacheKey].timestamp < 300000)) {
+            return symbolCache[cacheKey].data;
+          }
+
+          try {
+            const response = await fetch(`https://finnhub.io/api/v1/search?q=${encodeURIComponent(query)}&token=${apiKey}`);
+            const data = await response.json();
+            
+            if (data.error) throw new Error(data.error);
+            
+            const results = data.result || [];
+            symbolCache[cacheKey] = { data: results, timestamp: Date.now() };
+            return results;
+          } catch (error) {
+            throw new Error(error.message || "Errore durante la ricerca");
+          }
+        };
+
+        const getStockPrice = async (ticker) => {
+          const cacheKey = `price_${ticker}_${Math.floor(Date.now() / 60000)}`;
+          if (priceCache[cacheKey]) return priceCache[cacheKey].data;
+
+          const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=5d`;
+
+          for (let i = 0; i < CORS_PROXIES.length; i++) {
+            const proxyIndex = (currentProxyIndex + i) % CORS_PROXIES.length;
+            const proxyUrl = CORS_PROXIES[proxyIndex] + encodeURIComponent(yahooUrl);
+
+            try {
+              const response = await fetch(proxyUrl, { headers: { 'Accept': 'application/json' } });
+              if (!response.ok) continue;
+
+              const data = await response.json();
+              if (data.chart && data.chart.result && data.chart.result[0]) {
+                const result = data.chart.result[0];
+                const meta = result.meta;
+                const quotes = result.indicators.quote[0];
+
+                const currentPrice = meta.regularMarketPrice || meta.previousClose;
+                
+                const price = {
+                  current: currentPrice,
+                  dayHigh: meta.regularMarketDayHigh || currentPrice,
+                  dayLow: meta.regularMarketDayLow || currentPrice,
+                  previousClose: meta.previousClose || meta.regularMarketPrice,
+                  open: meta.regularMarketOpen || currentPrice
+                };
+
+                if (!price.current) throw new Error("Prezzo invalido");
+
+                currentProxyIndex = proxyIndex;
+                priceCache[cacheKey] = { data: price, timestamp: Date.now() };
+                return price;
+              }
+            } catch (error) {
+              console.warn(`Proxy ${proxyIndex} failed for ${ticker}`);
+              continue;
+            }
+          }
+          throw new Error(`Impossibile ottenere prezzo per ${ticker}.`);
+        };
+
+        // Gemini Service
+        const generateFinancialAnalysis = async (apiKey, history, estimates, message) => {
+          if (!apiKey) throw new Error("API Key Gemini mancante");
+
+          const ai = new GoogleGenAI({ apiKey });
+          
+          // Construct portfolio context
+          const portfolioSummary = estimates.map(e => ({
+            ticker: e.ticker,
+            aiModel: e.aiName,
+            entryPrice: e.startPrice,
+            currentPrice: e.currentPrice,
+            pnlPercent: e.profitLossPercent,
+            status: e.status
+          }));
+
+          const systemInstruction = `
+            Sei un esperto assistente finanziario integrato in un'app di tracciamento stock chiamata "AI Stock Tracker".
+            Il tuo compito è aiutare l'utente ad analizzare il suo portafoglio di stime generate da varie AI.
+            
+            Ecco i dati attuali del portafoglio utente:
+            ${JSON.stringify(portfolioSummary, null, 2)}
+            
+            Regole:
+            1. Rispondi in italiano.
+            2. Sii conciso e professionale, ma amichevole.
+            3. Usa i dati forniti per dare risposte specifiche sulle performance.
+            4. Se l'utente chiede consigli finanziari generici, ricorda che non sei un consulente finanziario certificato.
+            5. Analizza le performance dei diversi modelli AI (es. "Gemini sta performando meglio di GPT?").
+          `;
+
+          try {
+            // Using 'gemini-2.5-flash' to avoid 429 Quota Exceeded errors on free tiers
+            const chat = ai.chats.create({
+              model: 'gemini-2.5-flash',
+              config: {
+                systemInstruction: systemInstruction,
+              },
+              history: history.map(h => ({
+                role: h.role,
+                parts: [{ text: h.text }]
+              }))
+            });
+
+            const response = await chat.sendMessage({ message });
+            return response.text || "Mi dispiace, non ho potuto generare una risposta.";
+          } catch (error) {
+            console.error("Gemini API Error:", error);
+            if (error.message.includes('429')) {
+                 throw new Error("Quota superata (Errore 429). Stai facendo troppe richieste o il piano gratuito è esaurito per oggi. Riprova più tardi.");
+            }
+            throw new Error(error.message || "Errore durante la comunicazione con Gemini");
+          }
+        };
+
+        // --- COMPONENTS ---
+
+        // 1. Update Status Modal
+        const UpdateStatusModal = ({ isOpen, progress, results, onClose, isFinished }) => {
+          const scrollRef = useRef(null);
+
+          useEffect(() => {
+            if (scrollRef.current) {
+              scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            }
+          }, [results]);
+
+          if (!isOpen) return null;
+
+          const percentage = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
+
+          return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+              <div className="bg-surface border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                
+                <div className="p-6 bg-gradient-to-r from-primary to-surface border-b border-white/10">
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    {isFinished ? 'Aggiornamento Completato' : 'Aggiornamento Prezzi in Corso...'}
+                  </h3>
+                  
+                  <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden mb-2">
+                    <div 
+                      className="bg-gradient-to-r from-accent-blue to-accent-purple h-full transition-all duration-500 ease-out"
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-400">
+                    <span>{progress.current} di {progress.total} ticker</span>
+                    <span>{percentage}%</span>
+                  </div>
+                </div>
+
+                <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2 bg-black/20 min-h-[200px]">
+                  {results.map((res, idx) => (
+                    <div key={idx} className={`flex items-center gap-3 p-3 rounded-lg border ${
+                      res.status === 'success' 
+                        ? 'bg-emerald-500/10 border-emerald-500/20' 
+                        : res.status === 'warning'
+                        ? 'bg-yellow-500/10 border-yellow-500/20'
+                        : 'bg-red-500/10 border-red-500/20'
+                    } animate-fade-in`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        res.status === 'success' ? 'bg-emerald-500/20 text-emerald-400' : res.status === 'warning' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'
+                      }`}>
+                        {res.status === 'success' ? '✓' : res.status === 'warning' ? '!' : '✕'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-bold text-white">{res.ticker}</span>
+                          <span className="text-xs text-gray-400">{res.time}</span>
+                        </div>
+                        <p className={`text-sm truncate ${res.status === 'success' ? 'text-emerald-300' : res.status === 'warning' ? 'text-yellow-300' : 'text-red-300'}`}>
+                          {res.message}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {!isFinished && (
+                    <div className="text-center py-4 text-gray-500 italic animate-pulse">
+                      Elaborazione {progress.currentTicker}...
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 border-t border-white/10 bg-surface flex justify-end">
+                  <button 
+                    onClick={onClose}
+                    disabled={!isFinished}
+                    className={`px-6 py-2 rounded-lg font-bold transition-all ${
+                      isFinished 
+                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg hover:-translate-y-0.5 cursor-pointer' 
+                        : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {isFinished ? 'Chiudi' : 'Attendere...'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        // 2. Estimate Form
+        const EstimateForm = ({ onAdd, onRemove, onLog, finnhubKey, isOnline, switchTab, estimates }) => {
+          const getLastVersion = () => {
+             if (!estimates || estimates.length === 0) return '1';
+             const maxVersion = Math.max(...estimates.map(e => e.version));
+             return String(maxVersion);
+          };
+
+          const [formData, setFormData] = useState({
+            aiName: '', 
+            duration: '60', 
+            profitTarget: '10', 
+            stopLoss: '10', 
+            amount: '100', 
+            version: getLastVersion()
+          });
+
+          useEffect(() => {
+             setFormData(prev => ({ ...prev, version: getLastVersion() }));
+          }, [estimates]);
+          
+          const [searchQuery, setSearchQuery] = useState('');
+          const [searchResults, setSearchResults] = useState([]);
+          const [isSearching, setIsSearching] = useState(false);
+          const [selectedTicker, setSelectedTicker] = useState(null);
+          const [showResults, setShowResults] = useState(false);
+          const [loadingPrice, setLoadingPrice] = useState(false);
+          const [lastEstimate, setLastEstimate] = useState(null);
+
+          useEffect(() => {
+            const timer = setTimeout(async () => {
+              if (searchQuery.length >= 2 && !selectedTicker && isOnline) {
+                setIsSearching(true);
+                try {
+                  const results = await searchTicker(searchQuery, finnhubKey);
+                  setSearchResults(results.slice(0, 10));
+                  setShowResults(true);
+                } catch (e) {
+                  onLog(`Errore ricerca: ${e.message}`, 'error');
+                } finally {
+                  setIsSearching(false);
+                }
+              } else {
+                setSearchResults([]);
+              }
+            }, 500);
+            return () => clearTimeout(timer);
+          }, [searchQuery, finnhubKey, selectedTicker, isOnline]);
+
+          const handleSelectTicker = (result) => {
+            setSelectedTicker(result);
+            setSearchQuery(result.symbol);
+            setShowResults(false);
+          };
+
+          const handleSubmit = async (e) => {
+            e.preventDefault();
+            if (!selectedTicker) { alert('Seleziona un ticker'); return; }
+
+            setLoadingPrice(true);
+            try {
+              const priceData = await getStockPrice(selectedTicker.symbol);
+              
+              const stopLossValue = -Math.abs(parseFloat(formData.stopLoss));
+
+              const newEstimate = {
+                id: Date.now(),
+                aiName: formData.aiName,
+                ticker: selectedTicker.symbol,
+                startDate: new Date().toISOString(),
+                duration: parseInt(formData.duration),
+                profitTarget: parseFloat(formData.profitTarget),
+                stopLoss: stopLossValue,
+                amount: parseFloat(formData.amount),
+                version: parseInt(formData.version),
+                startPrice: priceData.current,
+                currentPrice: priceData.current,
+                highPrice: priceData.current,
+                lowPrice: priceData.current,
+                status: 'active',
+                endDate: null,
+                endPrice: null,
+                profitLoss: 0,
+                profitLossPercent: 0,
+                lastUpdate: new Date().toISOString(),
+                exitReason: null
+              };
+
+              onAdd(newEstimate);
+              setLastEstimate(newEstimate);
+              
+              setFormData({ 
+                aiName: '', 
+                duration: '60', 
+                profitTarget: '10', 
+                stopLoss: '10', 
+                amount: '100', 
+                version: getLastVersion() 
+              });
+              setSelectedTicker(null);
+              setSearchQuery('');
+              onLog(`Nuova stima aggiunta per ${newEstimate.ticker}`, 'success');
+
+            } catch (error) {
+              onLog(`Errore creazione: ${error.message}`, 'error');
+              alert(`Errore: ${error.message}`);
+            } finally {
+              setLoadingPrice(false);
+            }
+          };
+
+          const handleUndo = () => {
+             if (lastEstimate && confirm("Sei sicuro di voler eliminare la stima appena inserita?")) {
+               onRemove(lastEstimate.id, true);
+               setLastEstimate(null);
+               onLog('Inserimento annullato', 'warning');
+             }
+          };
+
+          return (
+            <div className="space-y-6 animate-fade-in">
+              {!isOnline && (
+                <div className="bg-red-500/20 border-l-4 border-red-500 p-4 rounded text-red-200">
+                  <p className="font-bold">⚠️ API Key mancante</p>
+                  <p>Configura la Finnhub API Key nelle impostazioni.</p>
+                </div>
+              )}
+
+              <div className="bg-surface/50 p-6 rounded-2xl border border-white/10 shadow-xl backdrop-blur-sm">
+                <h2 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-accent-blue to-accent-purple">
+                  Inserisci Nuova Stima
+                </h2>
+
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="flex flex-col">
+                    <label className="text-gray-400 text-sm font-semibold mb-2">Modello IA</label>
+                    <select required className="bg-background border border-gray-700 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none"
+                      value={formData.aiName} onChange={(e) => setFormData({...formData, aiName: e.target.value})}>
+                      <option value="">Seleziona IA...</option>
+                      {AI_OPTIONS.map(ai => <option key={ai} value={ai}>{ai}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col relative z-50">
+                    <label className="text-gray-400 text-sm font-semibold mb-2">Cerca Ticker</label>
+                    <div className="relative">
+                      <input type="text" placeholder={isOnline ? "Es. AAPL..." : "Offline"} disabled={!isOnline}
+                        className="w-full bg-background border border-gray-700 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none"
+                        value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); if(selectedTicker && e.target.value !== selectedTicker.symbol) setSelectedTicker(null); }}
+                      />
+                      {isSearching && <div className="absolute right-3 top-3 animate-spin h-5 w-5 border-2 border-accent-blue rounded-full border-t-transparent"></div>}
+                    </div>
+                    {showResults && searchResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-gray-700 rounded-lg shadow-2xl max-h-60 overflow-y-auto z-[100]">
+                        {searchResults.map(result => (
+                          <div key={result.symbol} className="p-3 hover:bg-accent-blue/20 cursor-pointer border-b border-gray-800" onClick={() => handleSelectTicker(result)}>
+                            <div className="font-bold text-white flex justify-between">{result.symbol} <span className="text-xs bg-accent-blue px-2 py-0.5 rounded">{result.type}</span></div>
+                            <div className="text-xs text-gray-400">{result.description}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className="text-gray-400 text-sm font-semibold mb-2">Durata (Giorni)</label>
+                    <input type="number" min="1" required className="bg-background border border-gray-700 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none"
+                      value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-gray-400 text-sm font-semibold mb-2">Target Profitto (%)</label>
+                    <input type="number" step="0.1" min="0.1" required className="bg-background border border-gray-700 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none"
+                      value={formData.profitTarget} onChange={e => setFormData({...formData, profitTarget: e.target.value})} />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-gray-400 text-sm font-semibold mb-2">Stop Loss (%)</label>
+                    <input type="number" step="0.1" min="0.1" required placeholder="Es: 10" className="bg-background border border-gray-700 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none"
+                      value={formData.stopLoss} onChange={e => setFormData({...formData, stopLoss: e.target.value})} />
+                    <span className="text-xs text-gray-500 mt-1">Inserisci valore positivo (es. 10 per -10%)</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-gray-400 text-sm font-semibold mb-2">Importo (€)</label>
+                    <input type="number" min="1" step="0.01" required className="bg-background border border-gray-700 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none"
+                      value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-gray-400 text-sm font-semibold mb-2">Versione Modello</label>
+                    <input type="number" min="1" required className="bg-background border border-gray-700 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none"
+                      value={formData.version} onChange={e => setFormData({...formData, version: e.target.value})} />
+                  </div>
+
+                  <div className="md:col-span-2 lg:col-span-3 pt-4">
+                    <button type="submit" disabled={loadingPrice || !isOnline}
+                      className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transform transition hover:-translate-y-1 hover:shadow-2xl flex justify-center items-center gap-2
+                        ${loadingPrice || !isOnline ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-emerald-500 to-emerald-700 text-white'}`}>
+                      {loadingPrice ? <div className="animate-spin h-5 w-5 border-2 border-white rounded-full border-t-transparent"></div> : '🚀 Conferma Inserimento'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {lastEstimate && (
+                <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-emerald-500/50 rounded-2xl p-6 shadow-lg shadow-emerald-500/10 animate-fade-in mt-6">
+                  <div className="flex items-center justify-between mb-4 border-b border-gray-700 pb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl bg-emerald-500/20 p-2 rounded-lg">✅</span>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">Stima Inserita con Successo</h3>
+                        <p className="text-sm text-gray-400">Riepilogo dati operazione</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                       <span className="text-4xl">{AI_ICONS[lastEstimate.aiName]}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="bg-background/50 p-3 rounded-lg">
+                      <span className="text-gray-500 block">Ticker</span>
+                      <span className="text-lg font-bold text-emerald-400">{lastEstimate.ticker}</span>
+                    </div>
+                    
+                    <div className="bg-background/50 p-3 rounded-lg">
+                      <span className="text-gray-500 block">Prezzo Ingresso</span>
+                      <span className="text-lg font-bold text-white">${lastEstimate.startPrice.toFixed(2)}</span>
+                    </div>
+
+                    <div className="bg-background/50 p-3 rounded-lg">
+                      <span className="text-gray-500 block">Importo</span>
+                      <span className="text-lg font-bold text-white">€{lastEstimate.amount.toFixed(2)}</span>
+                    </div>
+
+                    <div className="bg-background/50 p-3 rounded-lg">
+                      <span className="text-gray-500 block">Versione</span>
+                      <span className="text-lg font-bold text-purple-400">v{lastEstimate.version}</span>
+                    </div>
+
+                    <div className="bg-background/50 p-3 rounded-lg">
+                      <span className="text-gray-500 block">Data Inserimento</span>
+                      <span className="font-semibold text-gray-300">{new Date(lastEstimate.startDate).toLocaleDateString()}</span>
+                    </div>
+
+                    <div className="bg-background/50 p-3 rounded-lg">
+                      <span className="text-gray-500 block">Scadenza Prevista</span>
+                      <span className="font-semibold text-gray-300">
+                        {(() => {
+                          const d = new Date(lastEstimate.startDate);
+                          d.setDate(d.getDate() + lastEstimate.duration);
+                          return d.toLocaleDateString();
+                        })()}
+                      </span>
+                    </div>
+
+                    <div className="bg-background/50 p-3 rounded-lg border border-emerald-500/30">
+                      <span className="text-gray-500 block">Target Profit</span>
+                      <span className="font-bold text-emerald-400">+{lastEstimate.profitTarget}%</span>
+                    </div>
+
+                    <div className="bg-background/50 p-3 rounded-lg border border-red-500/30">
+                      <span className="text-gray-500 block">Stop Loss</span>
+                      <span className="font-bold text-red-400">{lastEstimate.stopLoss}%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 flex gap-6 justify-center items-center">
+                    <button onClick={() => switchTab('estimates')} className="text-emerald-400 hover:text-emerald-300 underline text-sm font-semibold">
+                      Visualizza in "Stime Attive" &rarr;
+                    </button>
+                    <button onClick={handleUndo} className="text-red-400 hover:text-red-300 underline text-sm flex items-center gap-1 font-semibold">
+                      Elimina subito 🗑️
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        };
+
+        // 3. Estimate List (UPDATED WITH FILTERS)
+        const EstimateList = ({ estimates, onUpdateEstimate, onRemove, onLog }) => {
+          const [expandedGroups, setExpandedGroups] = useState({});
+          const [isAllExpanded, setIsAllExpanded] = useState(true);
+
+          // --- FILTER STATE ---
+          const initialFilters = {
+            ticker: '',
+            dateFrom: '',
+            dateTo: '',
+            status: 'all',
+            varOp: 'gt', // 'gt' or 'lt'
+            varVal: '',
+            pnlOp: 'gt',
+            pnlVal: ''
+          };
+          const [filters, setFilters] = useState(initialFilters);
+
+          // --- MODAL STATE ---
+          const [showUpdateModal, setShowUpdateModal] = useState(false);
+          const [updateProgress, setUpdateProgress] = useState({ current: 0, total: 0, currentTicker: '' });
+          const [updateResults, setUpdateResults] = useState([]);
+          const [isUpdateFinished, setIsUpdateFinished] = useState(false);
+
+          // --- FILTERING LOGIC ---
+          const filteredEstimates = estimates.filter(est => {
+            // Ticker Filter
+            if (filters.ticker && !est.ticker.toLowerCase().includes(filters.ticker.toLowerCase())) return false;
+            
+            // Status Filter
+            if (filters.status !== 'all') {
+                if (filters.status !== est.status) return false;
+            }
+
+            // Date Range Filter
+            const estDate = new Date(est.startDate);
+            if (filters.dateFrom) {
+                const fromDate = new Date(filters.dateFrom);
+                if (estDate < fromDate) return false;
+            }
+            if (filters.dateTo) {
+                const toDate = new Date(filters.dateTo);
+                toDate.setHours(23, 59, 59, 999);
+                if (estDate > toDate) return false;
+            }
+
+            // Var % Filter
+            if (filters.varVal !== '') {
+                const val = parseFloat(filters.varVal);
+                if (!isNaN(val)) {
+                    if (filters.varOp === 'gt' && est.profitLossPercent <= val) return false;
+                    if (filters.varOp === 'lt' && est.profitLossPercent >= val) return false;
+                }
+            }
+
+            // P&L Filter
+            if (filters.pnlVal !== '') {
+                const val = parseFloat(filters.pnlVal);
+                if (!isNaN(val)) {
+                    if (filters.pnlOp === 'gt' && est.profitLoss <= val) return false;
+                    if (filters.pnlOp === 'lt' && est.profitLoss >= val) return false;
+                }
+            }
+            return true;
+          });
+
+          // Grouping based on FILTERED results
+          const grouped = filteredEstimates.reduce((acc, est) => {
+            if (!acc[est.aiName]) acc[est.aiName] = [];
+            acc[est.aiName].push(est);
+            return acc;
+          }, {});
+
+          const toggleGroup = (ai) => {
+            setExpandedGroups(prev => ({
+              ...prev,
+              [ai]: prev[ai] === undefined ? !isAllExpanded : !prev[ai]
+            }));
+          };
+
+          const toggleAll = () => {
+            const newState = !isAllExpanded;
+            setIsAllExpanded(newState);
+            setExpandedGroups({});
+          };
+
+          const resetFilters = () => setFilters(initialFilters);
+
+          const updatePrices = async () => {
+            // Update works on ALL active estimates, not just filtered ones, to ensure consistency
+            const activeEstimates = estimates.filter(e => e.status === 'active');
+            
+            // 1. Identify Unique Tickers
+            const uniqueTickers = Array.from(new Set(activeEstimates.map(e => e.ticker)));
+            
+            // Init Modal
+            setShowUpdateModal(true);
+            setUpdateResults([]);
+            setIsUpdateFinished(false);
+            setUpdateProgress({ current: 0, total: uniqueTickers.length, currentTicker: '' });
+
+            if (activeEstimates.length === 0) {
+               setUpdateResults([{ status: 'warning', ticker: 'Sistema', message: 'Nessuna stima attiva da aggiornare.', time: new Date().toLocaleTimeString() }]);
+               setIsUpdateFinished(true);
+               return;
+            }
+
+            let processedCount = 0;
+            
+            // 2. Iterate Unique Tickers
+            for (const ticker of uniqueTickers) {
+              setUpdateProgress(prev => ({ ...prev, current: processedCount + 1, currentTicker: ticker }));
+              
+              try {
+                // Single API Call
+                const price = await getStockPrice(ticker);
+                
+                // Find all matching estimates (Global list)
+                const estimatesForTicker = activeEstimates.filter(e => e.ticker === ticker);
+                
+                for (const est of estimatesForTicker) {
+                    const updated = { ...est };
+                    updated.currentPrice = price.current;
+                    updated.highPrice = Math.max(est.highPrice, price.dayHigh || price.current);
+                    updated.lowPrice = Math.min(est.lowPrice, price.dayLow || price.current);
+                    updated.lastUpdate = new Date().toISOString();
+                    
+                    const changePercent = ((price.current - est.startPrice) / est.startPrice) * 100;
+                    updated.profitLossPercent = changePercent;
+                    updated.profitLoss = (est.amount * changePercent) / 100;
+                    
+                    const daysPassed = Math.floor((Date.now() - new Date(est.startDate).getTime()) / 86400000);
+                    const highChange = ((updated.highPrice - est.startPrice) / est.startPrice) * 100;
+                    const lowChange = ((updated.lowPrice - est.startPrice) / est.startPrice) * 100;
+
+                    let exitMsg = '';
+                    if (highChange >= est.profitTarget) {
+                      updated.status = 'completed-positive';
+                      updated.endDate = new Date().toISOString();
+                      updated.exitReason = 'target';
+                      updated.endPrice = est.startPrice * (1 + est.profitTarget / 100);
+                      updated.profitLoss = (est.amount * est.profitTarget) / 100;
+                      updated.profitLossPercent = est.profitTarget;
+                      exitMsg = 'TARGET';
+                    } else if (lowChange <= est.stopLoss) {
+                      updated.status = 'completed-negative';
+                      updated.endDate = new Date().toISOString();
+                      updated.exitReason = 'stoploss';
+                      const actualLossPercent = Math.min(est.stopLoss, lowChange);
+                      updated.endPrice = est.startPrice * (1 + actualLossPercent / 100);
+                      updated.profitLoss = (est.amount * actualLossPercent) / 100;
+                      updated.profitLossPercent = actualLossPercent;
+                      exitMsg = 'STOP';
+                    } else if (daysPassed >= est.duration) {
+                      updated.status = 'completed-negative';
+                      updated.endDate = new Date().toISOString();
+                      updated.exitReason = 'timeout';
+                      updated.endPrice = price.current;
+                      exitMsg = 'TIMEOUT';
+                    }
+
+                    onUpdateEstimate(updated);
+                    if (exitMsg) onLog(`${exitMsg} ${est.ticker} (v${est.version})`, exitMsg === 'TARGET' ? 'success' : 'warning');
+                }
+                
+                // Add Summary Result
+                setUpdateResults(prev => [...prev, {
+                   status: 'success',
+                   ticker: ticker,
+                   message: `Aggiornato: $${price.current.toFixed(2)} (${estimatesForTicker.length} stime)`,
+                   time: new Date().toLocaleTimeString()
+                }]);
+
+              } catch (e) {
+                console.error(e);
+                setUpdateResults(prev => [...prev, {
+                   status: 'error',
+                   ticker: ticker,
+                   message: e.message || "Errore sconosciuto",
+                   time: new Date().toLocaleTimeString()
+                }]);
+              }
+
+              processedCount++;
+              await new Promise(r => setTimeout(r, 300)); 
+            }
+            
+            setIsUpdateFinished(true);
+            onLog(`Aggiornamento completato: ${processedCount} ticker processati`, 'info');
+          };
+
+          const exportCSV = () => {
+            const headers = ['IA','Ticker','Start','End','Duration','Start Price','Current Price','PL %','Target','Stop','Amount','PL EUR','Status','Version'];
+            // Export only filtered estimates
+            const rows = filteredEstimates.map(e => [
+              e.aiName, e.ticker, new Date(e.startDate).toLocaleDateString(), e.endDate ? new Date(e.endDate).toLocaleDateString() : '-',
+              e.duration, e.startPrice.toFixed(2), e.currentPrice.toFixed(2), e.profitLossPercent.toFixed(2),
+              e.profitTarget, e.stopLoss, e.amount, e.profitLoss.toFixed(2), e.status, e.version
+            ]);
+            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "estimates_filtered.csv");
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+          };
+
+          return (
+            <div className="space-y-4 animate-fade-in">
+              <UpdateStatusModal 
+                isOpen={showUpdateModal}
+                progress={updateProgress}
+                results={updateResults}
+                isFinished={isUpdateFinished}
+                onClose={() => setShowUpdateModal(false)}
+              />
+
+              {/* --- FILTERS UI --- */}
+              <div className="bg-surface/50 p-4 rounded-xl border border-white/5 mb-6">
+                  <div className="flex justify-between items-center mb-3">
+                      <h3 className="font-bold text-gray-300 flex items-center gap-2">🔍 Filtri Avanzati</h3>
+                      <button onClick={resetFilters} className="text-xs text-accent hover:text-white underline">Resetta Filtri</button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 text-sm">
+                      <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Ticker</label>
+                          <input type="text" placeholder="Es. AAPL" className="bg-black/30 border border-gray-700 rounded p-2 text-white" 
+                             value={filters.ticker} onChange={e => setFilters({...filters, ticker: e.target.value})} />
+                      </div>
+                      <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Dal</label>
+                          <input type="date" className="bg-black/30 border border-gray-700 rounded p-2 text-white" 
+                             value={filters.dateFrom} onChange={e => setFilters({...filters, dateFrom: e.target.value})} />
+                      </div>
+                      <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Al</label>
+                          <input type="date" className="bg-black/30 border border-gray-700 rounded p-2 text-white" 
+                             value={filters.dateTo} onChange={e => setFilters({...filters, dateTo: e.target.value})} />
+                      </div>
+                      <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Status</label>
+                          <select className="bg-black/30 border border-gray-700 rounded p-2 text-white"
+                             value={filters.status} onChange={e => setFilters({...filters, status: e.target.value})}>
+                              <option value="all">Tutti</option>
+                              <option value="active">In Corso (Active)</option>
+                              <option value="completed-positive">Chiusi in Profitto</option>
+                              <option value="completed-negative">Chiusi in Perdita</option>
+                          </select>
+                      </div>
+                      <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Var %</label>
+                          <div className="flex">
+                              <select className="bg-black/30 border border-gray-700 rounded-l p-2 text-white w-12"
+                                 value={filters.varOp} onChange={e => setFilters({...filters, varOp: e.target.value})}>
+                                  <option value="gt">&gt;</option>
+                                  <option value="lt">&lt;</option>
+                              </select>
+                              <input type="number" placeholder="%" className="bg-black/30 border border-l-0 border-gray-700 rounded-r p-2 text-white w-full"
+                                 value={filters.varVal} onChange={e => setFilters({...filters, varVal: e.target.value})} />
+                          </div>
+                      </div>
+                      <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">P&L (€)</label>
+                          <div className="flex">
+                              <select className="bg-black/30 border border-gray-700 rounded-l p-2 text-white w-12"
+                                 value={filters.pnlOp} onChange={e => setFilters({...filters, pnlOp: e.target.value})}>
+                                  <option value="gt">&gt;</option>
+                                  <option value="lt">&lt;</option>
+                              </select>
+                              <input type="number" placeholder="€" className="bg-black/30 border border-l-0 border-gray-700 rounded-r p-2 text-white w-full"
+                                 value={filters.pnlVal} onChange={e => setFilters({...filters, pnlVal: e.target.value})} />
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3 mb-6">
+                <button onClick={updatePrices} className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 shadow-lg transition-transform hover:-translate-y-0.5 font-bold flex items-center gap-2">
+                  🔄 Aggiorna Prezzi (Tutti)
+                </button>
+                <button onClick={exportCSV} className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 shadow-lg">📥 Esporta CSV (Filtrati)</button>
+                <button onClick={toggleAll} className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 shadow-lg">
+                  {isAllExpanded ? '📂 Chiudi Gruppi' : '📂 Espandi Gruppi'}
+                </button>
+              </div>
+
+              {Object.keys(grouped).length === 0 && (
+                <div className="text-center p-12 text-gray-500 bg-surface/30 rounded-xl">
+                  <div className="text-6xl mb-4">📊</div>
+                  <p className="text-xl">Nessuna stima trovata con i filtri attuali</p>
+                  <button onClick={resetFilters} className="mt-4 text-accent hover:underline">Resetta Filtri</button>
+                </div>
+              )}
+
+              {Object.entries(grouped).map(([aiName, groupEstimates]) => {
+                const isOpen = expandedGroups[aiName] !== undefined ? expandedGroups[aiName] : isAllExpanded;
+                const totalPL = groupEstimates.reduce((s, e) => s + e.profitLoss, 0);
+                const activeCount = groupEstimates.filter(e => e.status === 'active').length;
+
+                return (
+                  <div key={aiName} className="bg-surface/60 rounded-xl overflow-hidden border border-white/5 transition-all duration-300 hover:border-accent-blue/30">
+                    <div className="p-4 bg-gradient-to-r from-primary/80 to-surface cursor-pointer flex items-center justify-between" onClick={() => toggleGroup(aiName)}>
+                      <div className="flex items-center gap-4">
+                        <span className="text-2xl w-10 h-10 flex items-center justify-center bg-background rounded-lg shadow-inner">{AI_ICONS[aiName] || '🤖'}</span>
+                        <span className="text-xl font-bold text-white">{aiName}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {activeCount > 0 && <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full border border-emerald-500/20">🟢 {activeCount} attive</span>}
+                        <span className={`px-4 py-1 rounded-full text-sm font-bold border ${totalPL >= 0 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                          €{totalPL >= 0 ? '+' : ''}{totalPL.toFixed(2)}
+                        </span>
+                        <span className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>▼</span>
+                      </div>
+                    </div>
+
+                    {isOpen && (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead className="bg-black/20 text-gray-400 text-xs uppercase">
+                            <tr>
+                              <th className="p-3">Ticker</th>
+                              <th className="p-3">Start Date</th>
+                              <th className="p-3">End Date</th>
+                              <th className="p-3">Price</th>
+                              <th className="p-3">Var %</th>
+                              <th className="p-3">Limits</th>
+                              <th className="p-3">P&L</th>
+                              <th className="p-3">Status</th>
+                              <th className="p-3">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5 text-sm">
+                            {groupEstimates.map(est => {
+                              const isProfit = est.profitLossPercent >= 0;
+                              // Calculate End Date
+                              const endDate = new Date(est.startDate);
+                              endDate.setDate(endDate.getDate() + est.duration);
+                              
+                              return (
+                                <tr key={est.id} className="hover:bg-white/5 transition-colors">
+                                  <td className="p-3 font-bold text-white">{est.ticker} <span className="text-xs font-normal text-gray-500">v{est.version}</span></td>
+                                  <td className="p-3 text-gray-400">
+                                    {new Date(est.startDate).toLocaleDateString()}
+                                  </td>
+                                  <td className="p-3 text-gray-400">
+                                    <div className="text-white">{endDate.toLocaleDateString()}</div>
+                                    <div className="text-xs">
+                                      {est.status === 'active' 
+                                        ? `${Math.max(0, est.duration - Math.floor((Date.now() - new Date(est.startDate).getTime())/86400000))}g left`
+                                        : 'Closed'}
+                                    </div>
+                                  </td>
+                                  <td className="p-3"><div className="text-gray-400">${est.startPrice.toFixed(2)}</div><div className="text-white font-mono">${est.currentPrice.toFixed(2)}</div></td>
+                                  <td className={`p-3 font-bold ${isProfit ? 'text-emerald-400' : 'text-red-400'}`}>{isProfit ? '+' : ''}{est.profitLossPercent.toFixed(2)}%</td>
+                                  <td className="p-3 text-xs"><div className="text-emerald-400">TP: +{est.profitTarget}%</div><div className="text-red-400">SL: {est.stopLoss}%</div></td>
+                                  <td className={`p-3 font-bold ${est.profitLoss >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>€{est.profitLoss >= 0 ? '+' : ''}{est.profitLoss.toFixed(2)}</td>
+                                  <td className="p-3"><span className={`px-2 py-1 rounded text-xs border ${est.status === 'active' ? 'border-blue-500/30 text-blue-400' : est.status === 'completed-positive' ? 'border-emerald-500/30 text-emerald-400' : 'border-red-500/30 text-red-400'}`}>{est.status === 'active' ? 'Active' : est.exitReason?.toUpperCase()}</span></td>
+                                  <td className="p-3"><button onClick={() => onRemove(est.id)} className="text-gray-500 hover:text-red-400">🗑️</button></td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        };
+
+        // 4. Stats
+        const Stats = ({ estimates }) => {
+          const stats = {};
+          const aiNames = Array.from(new Set(estimates.map(e => e.aiName)));
+          
+          aiNames.forEach(ai => {
+            const ests = estimates.filter(e => e.aiName === ai);
+            const positive = ests.filter(e => e.status === 'completed-positive').length;
+            const negStop = ests.filter(e => e.exitReason === 'stoploss').length;
+            const negTime = ests.filter(e => e.exitReason === 'timeout').length;
+            const closed = positive + negStop + negTime;
+            // Include ALL P&L (Active + Closed)
+            const totalProfit = ests.reduce((sum, e) => sum + e.profitLoss, 0);
+            const invested = ests.reduce((sum, e) => sum + e.amount, 0);
+
+            stats[ai] = {
+              total: ests.length,
+              active: ests.filter(e => e.status === 'active').length,
+              positive, negStop, negTime,
+              totalProfit,
+              successRate: closed > 0 ? (positive / closed * 100) : 0,
+              avgReturn: invested > 0 ? (totalProfit / invested * 100) : 0
+            };
+          });
+
+          const chartData = Object.entries(stats).map(([name, s]) => ({
+            name, profit: parseFloat(s.totalProfit.toFixed(2)), success: parseFloat(s.successRate.toFixed(1))
+          }));
+
+          return (
+            <div className="space-y-8 animate-fade-in">
+              <div className="bg-surface/50 p-6 rounded-2xl border border-white/5 h-80">
+                <h3 className="text-gray-400 mb-4 font-bold">Performance Overview (Live + Closed)</h3>
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                    <XAxis dataKey="name" stroke="#8888aa" />
+                    <YAxis yAxisId="left" stroke="#8888aa" />
+                    <YAxis yAxisId="right" orientation="right" stroke="#667eea" unit="%" />
+                    <Tooltip contentStyle={{ backgroundColor: '#16213e', borderColor: '#ffffff20' }} itemStyle={{ color: '#667eea' }} />
+                    <Bar yAxisId="left" dataKey="profit" name="P&L" radius={[4, 4, 0, 0]}>
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.profit >= 0 ? '#00b09b' : '#ea1e63'} fillOpacity={0.6} />
+                      ))}
+                    </Bar>
+                    <Line yAxisId="right" type="monotone" dataKey="success" name="Success Rate" stroke="#667eea" strokeWidth={3} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Object.entries(stats).map(([ai, s]) => (
+                  <div key={ai} className="bg-surface p-6 rounded-2xl border border-white/5 hover:transform hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3"><span className="text-3xl">{AI_ICONS[ai] || '🤖'}</span><h3 className="font-bold text-xl">{ai}</h3></div>
+                      <div className={`text-xl font-bold ${s.totalProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{s.totalProfit >= 0 ? '+' : ''}€{s.totalProfit.toFixed(2)}</div>
+                    </div>
+                    <div className="space-y-2 text-sm text-gray-400">
+                      <div className="flex justify-between"><span>Total/Active</span><span className="text-white">{s.total} / {s.active}</span></div>
+                      <div className="flex justify-between"><span>Target/Stop</span><span className="text-emerald-400">{s.positive}</span> / <span className="text-red-400">{s.negStop}</span></div>
+                      <div className="flex justify-between"><span>ROI (Live)</span><span className={`${s.avgReturn >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold`}>{s.avgReturn >= 0 ? '+' : ''}{s.avgReturn.toFixed(2)}%</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        };
+
+        // 5. Logs
+        const Logs = ({ logs, onClear, onDownload }) => (
+          <div className="animate-fade-in">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">System Logs</h2>
+              <div className="flex gap-2">
+                 <button onClick={onDownload} className="bg-blue-600/20 text-blue-400 px-4 py-2 rounded-lg hover:bg-blue-600/30">📥 Scarica Log</button>
+                 <button onClick={onClear} className="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/30">Clear Logs</button>
+              </div>
+            </div>
+            <div className="bg-black/40 rounded-xl p-4 h-[600px] overflow-y-auto font-mono text-sm border border-white/10">
+              {logs.slice().reverse().map((log, idx) => (
+                <div key={idx} className={`mb-2 p-2 rounded border-l-4 ${log.type === 'error' ? 'border-red-500 bg-red-500/10 text-red-200' : log.type === 'success' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-200' : 'border-blue-500 bg-blue-500/10 text-blue-200'}`}>
+                  <span className="opacity-50 mr-3">[{new Date(log.timestamp).toLocaleTimeString()}]</span>{log.message}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+        // 6. Chatbot (UPDATED for Persistence)
+        const Chatbot = ({ geminiKey, estimates, messages, setMessages, onClear }) => {
+          const [input, setInput] = useState('');
+          const [isLoading, setIsLoading] = useState(false);
+          const scrollRef = useRef(null);
+
+          useEffect(() => {
+            if (scrollRef.current) {
+              scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            }
+          }, [messages]);
+
+          const handleSend = async (e) => {
+            e.preventDefault();
+            if (!input.trim() || !geminiKey) return;
+
+            const userText = input;
+            const userMessage = { role: 'user', text: userText, timestamp: new Date().toISOString() };
+            // Update parent state
+            const newMessages = [...messages, userMessage];
+            setMessages(newMessages);
+            setInput('');
+            setIsLoading(true);
+
+            try {
+              // Prepare history: Map to { role, text } objects
+              const history = newMessages.map(m => ({ role: m.role, text: m.text }));
+              
+              const responseText = await generateFinancialAnalysis(geminiKey, history, estimates, userText);
+              
+              const botMessage = { role: 'model', text: responseText, timestamp: new Date().toISOString() };
+              setMessages([...newMessages, botMessage]);
+            } catch (error) {
+              const errorMsg = { 
+                role: 'model', 
+                text: `Errore: ${error.message || 'Si è verificato un errore.'}`, 
+                timestamp: new Date().toISOString() 
+              };
+              setMessages([...newMessages, errorMsg]);
+            } finally {
+              setIsLoading(false);
+            }
+          };
+
+          if (!geminiKey) {
+            return (
+              <div className="flex flex-col items-center justify-center h-[50vh] text-center space-y-4 animate-fade-in">
+                <div className="text-6xl">🤖</div>
+                <h2 className="text-2xl font-bold text-gray-200">Chatbot Non Configurato</h2>
+                <p className="text-gray-400 max-w-md">Per utilizzare l'assistente finanziario, devi inserire una API Key di Google Gemini nelle impostazioni.</p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="flex flex-col h-[75vh] bg-surface/50 rounded-2xl border border-white/10 overflow-hidden animate-fade-in shadow-xl">
+              <div className="p-4 bg-gradient-to-r from-accent-blue/20 to-accent-purple/20 border-b border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <span className="text-2xl">💬</span>
+                    <div>
+                    <h3 className="font-bold text-white">Assistente Portafoglio</h3>
+                    <p className="text-xs text-gray-400">Powered by Gemini 2.5 Flash</p>
+                    </div>
+                </div>
+                <button 
+                  onClick={onClear}
+                  className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors flex items-center gap-2 text-sm"
+                  title="Pulisci Chat"
+                >
+                  🗑️ Pulisci Chat
+                </button>
+              </div>
+
+              <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed ${
+                      msg.role === 'user' 
+                        ? 'bg-accent-blue text-white rounded-tr-none' 
+                        : 'bg-white/10 text-gray-200 rounded-tl-none border border-white/5'
+                    }`}>
+                      {msg.text.split('\n').map((line, i) => (
+                        <p key={i} className="mb-1 last:mb-0">{line}</p>
+                      ))}
+                      <div className="text-[10px] opacity-50 text-right mt-1">
+                        {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-white/10 p-3 rounded-2xl rounded-tl-none flex gap-2 items-center">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <form onSubmit={handleSend} className="p-4 bg-surface border-t border-white/10 flex gap-3">
+                <input 
+                  type="text" 
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Chiedi un'analisi sul tuo portafoglio..." 
+                  className="flex-1 bg-black/30 border border-gray-600 rounded-xl p-3 text-white focus:border-accent-blue focus:outline-none transition-colors"
+                />
+                <button 
+                  type="submit" 
+                  disabled={isLoading || !input.trim()}
+                  className={`p-3 rounded-xl bg-accent-blue text-white transition-transform hover:-translate-y-0.5 ${
+                    (isLoading || !input.trim()) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent-blue/80'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                  </svg>
+                </button>
+              </form>
+            </div>
+          );
+        };
+
+        // 7. Settings (UPDATED WITH DRIVE)
+        const Settings = ({ 
+          finnhubKey, setFinnhubKey, geminiKey, setGeminiKey, onSaveKey, 
+          downloadBackup, handleRestore, handleClearData, getAppData, onDriveRestore, onLog 
+        }) => {
+          // --- Drive State ---
+          const [gasUrl, setGasUrl] = useState(localStorage.getItem('gasUrl') || '');
+          const [isLoadingDrive, setIsLoadingDrive] = useState(false);
+          const [backupList, setBackupList] = useState([]);
+          const [showBackupList, setShowBackupList] = useState(false);
+
+          const saveGasUrl = () => {
+             localStorage.setItem('gasUrl', gasUrl);
+             onLog('URL Google Apps Script salvato', 'success');
+          };
+
+          const handleSaveToDrive = async () => {
+            if (!gasUrl) return alert("Inserisci prima l'URL del Google Apps Script.");
+            setIsLoadingDrive(true);
+            try {
+              const appData = getAppData();
+              // Note: GAS web apps often have CORS issues. 
+              // If your script returns JSON, ensure it outputs ContentService.createTextOutput(JSON.stringify(...)).setMimeType(...) 
+              // and the user permissions are set to 'Anyone'.
+              const response = await fetch(gasUrl, {
+                method: 'POST',
+                body: JSON.stringify(appData)
+              });
+              const result = await response.json();
+              if (result.status === 'success') {
+                onLog(`✅ Backup salvato su Drive: ${result.filename}`, 'success');
+              } else {
+                throw new Error(result.message || 'Errore sconosciuto');
+              }
+            } catch (error) {
+              console.error(error);
+              onLog('❌ Errore salvataggio su Drive: ' + error.message, 'error');
+            } finally {
+              setIsLoadingDrive(false);
+            }
+          };
+
+          const handleRestoreLatest = async () => {
+            if (!gasUrl) return alert("URL GAS mancante");
+            setIsLoadingDrive(true);
+            try {
+              const response = await fetch(`${gasUrl}?action=latest`);
+              const data = await response.json();
+              if (data.status === 'error') throw new Error(data.message);
+              onDriveRestore(data);
+              onLog('✅ Ultimo backup ripristinato da Drive', 'success');
+            } catch (error) {
+              onLog('❌ Errore ripristino Drive: ' + error.message, 'error');
+            } finally {
+              setIsLoadingDrive(false);
+            }
+          };
+
+          const fetchBackupList = async () => {
+            if (!gasUrl) return alert("URL GAS mancante");
+            setIsLoadingDrive(true);
+            try {
+              const response = await fetch(`${gasUrl}?action=list`);
+              const result = await response.json();
+              if (result.status === 'error') throw new Error(result.message);
+              setBackupList(result.files || []);
+              setShowBackupList(true);
+            } catch (error) {
+              onLog('❌ Errore caricamento lista: ' + error.message, 'error');
+            } finally {
+              setIsLoadingDrive(false);
+            }
+          };
+
+          const restoreSelectedDriveBackup = async (fileId) => {
+            setIsLoadingDrive(true);
+            setShowBackupList(false);
+            try {
+              const response = await fetch(`${gasUrl}?action=download&fileId=${fileId}`);
+              const data = await response.json();
+              onDriveRestore(data);
+              onLog('✅ Backup specifico ripristinato da Drive', 'success');
+            } catch (error) {
+              onLog('❌ Errore ripristino: ' + error.message, 'error');
+            } finally {
+              setIsLoadingDrive(false);
+            }
+          };
+
+          return (
+            <div className="max-w-xl mx-auto space-y-8 animate-fade-in bg-surface p-6 rounded-xl border border-white/10">
+              <h2 className="text-xl font-bold mb-4">⚙️ Configurazione & Dati</h2>
+              
+              {/* API Keys */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-400 mb-2 font-semibold">Finnhub API Key (Dati Mercato)</label>
+                  <div className="flex gap-2">
+                      <input type="text" value={finnhubKey} onChange={(e) => setFinnhubKey(e.target.value)} className="flex-1 bg-black/30 border border-gray-600 rounded p-3 text-white focus:border-accent-blue focus:outline-none" placeholder="Inserisci Key..." />
+                      <button onClick={() => onSaveKey('finnhub')} className="px-6 bg-emerald-600 hover:bg-emerald-500 rounded font-bold transition-colors">Salva</button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Necessaria per la ricerca ticker e aggiornamento prezzi.</p>
+                </div>
+                <div>
+                  <label className="block text-gray-400 mb-2 font-semibold">Gemini API Key (Chatbot AI)</label>
+                  <div className="flex gap-2">
+                      <input type="password" value={geminiKey} onChange={(e) => setGeminiKey(e.target.value)} className="flex-1 bg-black/30 border border-gray-600 rounded p-3 text-white focus:border-accent-blue focus:outline-none" placeholder="Inserisci Key..." />
+                      <button onClick={() => onSaveKey('gemini')} className="px-6 bg-purple-600 hover:bg-purple-500 rounded font-bold transition-colors">Salva</button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Necessaria per utilizzare l'assistente finanziario.</p>
+                </div>
+              </div>
+
+              {/* Google Drive Integration */}
+              <div className="border-t border-white/10 pt-6 mt-6">
+                <h3 className="text-lg font-bold mb-3 flex items-center gap-2"><span>☁️</span> Google Drive Cloud</h3>
+                
+                <div className="mb-4">
+                    <label className="block text-gray-400 text-xs mb-1">Google Apps Script Web App URL</label>
+                    <div className="flex gap-2">
+                        <input type="text" value={gasUrl} onChange={(e) => setGasUrl(e.target.value)} className="flex-1 bg-black/30 border border-gray-600 rounded p-2 text-sm text-white focus:border-accent-blue" placeholder="https://script.google.com/macros/s/..." />
+                        <button onClick={saveGasUrl} className="px-3 bg-gray-700 hover:bg-gray-600 rounded text-sm">Salva URL</button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button onClick={handleSaveToDrive} disabled={isLoadingDrive} className="bg-accent-blue/20 hover:bg-accent-blue/30 text-accent-blue border border-accent-blue/50 py-2 rounded-lg font-semibold transition-all flex justify-center items-center gap-2">
+                        {isLoadingDrive ? <span className="animate-spin">⏳</span> : '💾 Salva su Drive'}
+                    </button>
+                    <button onClick={handleRestoreLatest} disabled={isLoadingDrive} className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/50 py-2 rounded-lg font-semibold transition-all flex justify-center items-center gap-2">
+                        {isLoadingDrive ? <span className="animate-spin">⏳</span> : '📥 Ripristina Last'}
+                    </button>
+                    <button onClick={fetchBackupList} disabled={isLoadingDrive} className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/50 py-2 rounded-lg font-semibold transition-all flex justify-center items-center gap-2">
+                        {isLoadingDrive ? <span className="animate-spin">⏳</span> : '📋 Lista File'}
+                    </button>
+                </div>
+
+                {/* Backup List Modal/Area */}
+                {showBackupList && (
+                    <div className="mt-4 bg-black/40 p-3 rounded-lg border border-gray-600 max-h-48 overflow-y-auto animate-fade-in">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-bold text-gray-300">Seleziona Backup:</span>
+                            <button onClick={() => setShowBackupList(false)} className="text-xs text-red-400 hover:underline">Chiudi</button>
+                        </div>
+                        {backupList.length === 0 ? (
+                            <div className="text-gray-500 text-sm text-center">Nessun backup trovato.</div>
+                        ) : (
+                            <div className="space-y-1">
+                                {backupList.map(file => (
+                                    <div key={file.id} className="flex justify-between items-center p-2 hover:bg-white/5 rounded transition-colors cursor-pointer group" onClick={() => restoreSelectedDriveBackup(file.id)}>
+                                        <div className="text-sm">
+                                            <div className="font-medium text-gray-200">{file.name}</div>
+                                            <div className="text-xs text-gray-500">{new Date(file.date).toLocaleString()}</div>
+                                        </div>
+                                        <span className="text-xs bg-emerald-600 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity">Ripristina</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+              </div>
+
+              <div className="border-t border-white/10 pt-4 flex flex-col gap-3">
+                 <button onClick={downloadBackup} className="bg-blue-600 hover:bg-blue-500 py-3 rounded font-bold shadow-lg transition-transform hover:-translate-y-0.5">Scarica Backup Locale (.json)</button>
+                 <label className="block w-full text-center bg-gray-600 hover:bg-gray-500 py-3 rounded font-bold cursor-pointer shadow-lg transition-transform hover:-translate-y-0.5">Ripristina Backup Locale <input type="file" className="hidden" accept=".json" onChange={handleRestore} /></label>
+                 <button onClick={handleClearData} className="bg-red-600 hover:bg-red-500 py-3 rounded font-bold mt-4 shadow-lg transition-transform hover:-translate-y-0.5">RESET COMPLETO</button>
+              </div>
+            </div>
+          );
+        };
+
+        // --- APP COMPONENT ---
+        const App = () => {
+          const [activeTab, setActiveTab] = useState('input');
+          const [estimates, setEstimates] = useState([]);
+          const [logs, setLogs] = useState([]);
+          const [finnhubKey, setFinnhubKey] = useState('');
+          const [geminiKey, setGeminiKey] = useState('');
+          // Chat state managed here for persistence
+          const [chatMessages, setChatMessages] = useState([
+            { role: 'model', text: 'Ciao! Sono il tuo assistente finanziario AI. Posso analizzare il tuo portafoglio attuale. Chiedimi pure!', timestamp: new Date().toISOString() }
+          ]);
+
+          // Load data from localStorage on mount
+          useEffect(() => {
+            const savedEstimates = localStorage.getItem('estimates');
+            const savedLogs = localStorage.getItem('logs');
+            const savedKey = localStorage.getItem('finnhubApiKey');
+            const savedGeminiKey = localStorage.getItem('geminiApiKey');
+            const savedChat = localStorage.getItem('chatMessages');
+            
+            if (savedEstimates) setEstimates(JSON.parse(savedEstimates));
+            if (savedLogs) setLogs(JSON.parse(savedLogs));
+            if (savedKey) setFinnhubKey(savedKey);
+            if (savedGeminiKey) setGeminiKey(savedGeminiKey);
+            if (savedChat) setChatMessages(JSON.parse(savedChat));
+          }, []);
+
+          // Persist data
+          useEffect(() => { localStorage.setItem('estimates', JSON.stringify(estimates)); }, [estimates]);
+          useEffect(() => { localStorage.setItem('logs', JSON.stringify(logs)); }, [logs]);
+          useEffect(() => { localStorage.setItem('chatMessages', JSON.stringify(chatMessages)); }, [chatMessages]);
+
+          const addLog = (message, type) => setLogs(prev => [...prev.slice(-499), { timestamp: new Date().toISOString(), message, type }]);
+          const handleAddEstimate = (est) => setEstimates(prev => [...prev, est]);
+          const handleUpdateEstimate = (updated) => setEstimates(prev => prev.map(e => e.id === updated.id ? updated : e));
+          
+          const handleRemoveEstimate = (id, skipConfirm = false) => { 
+            if (skipConfirm || confirm('Sei sicuro di voler eliminare questa stima?')) {
+               setEstimates(prev => prev.filter(e => e.id !== id)); 
+               addLog('Stima rimossa manualmente', 'warning');
+            }
+          };
+
+          const handleClearChat = () => {
+             if (confirm("Sei sicuro di voler cancellare tutta la conversazione?")) {
+                 setChatMessages([{ role: 'model', text: 'Ciao! Sono il tuo assistente finanziario AI. Posso analizzare il tuo portafoglio attuale. Chiedimi pure!', timestamp: new Date().toISOString() }]);
+             }
+          };
+
+          const handleSaveKey = (type) => { 
+            if (type === 'finnhub') {
+                localStorage.setItem('finnhubApiKey', finnhubKey); 
+                addLog('API Key Finnhub salvata', 'success'); 
+            } else if (type === 'gemini') {
+                localStorage.setItem('geminiApiKey', geminiKey);
+                addLog('API Key Gemini salvata', 'success');
+            }
+          };
+
+          const handleClearData = () => { if (confirm('CANCELLARE TUTTO?')) { setEstimates([]); setLogs([]); localStorage.clear(); location.reload(); } };
+          
+          const handleDownloadLogs = () => {
+             const text = logs.map(l => `[${new Date(l.timestamp).toLocaleString()}] [${l.type.toUpperCase()}] ${l.message}`).join('\n');
+             const blob = new Blob([text], { type: 'text/plain' });
+             const url = URL.createObjectURL(blob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = `logs_${Date.now()}.txt`;
+             a.click();
+             addLog('Log scaricati manualmente', 'info');
+          };
+
+          // Updated Backup Function (Helper for Drive)
+          const getAppData = () => {
+            return {
+                version: '3.1',
+                timestamp: new Date().toISOString(),
+                estimates,
+                logs,
+                chatMessages,
+                config: {
+                    finnhubKey,
+                    geminiKey,
+                    gasUrl: localStorage.getItem('gasUrl') || ''
+                }
+            };
+          };
+
+          const downloadBackup = () => {
+            const blob = new Blob([JSON.stringify(getAppData(), null, 2)], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup_full.json'; a.click();
+            addLog('Backup completo scaricato', 'success');
+          };
+
+          const applyRestoredData = (data) => {
+            try {
+                if(data.estimates) setEstimates(data.estimates);
+                if(data.logs) setLogs(data.logs);
+                if(data.chatMessages) setChatMessages(data.chatMessages);
+                if(data.config) {
+                    if(data.config.finnhubKey) {
+                        setFinnhubKey(data.config.finnhubKey);
+                        localStorage.setItem('finnhubApiKey', data.config.finnhubKey);
+                    }
+                    if(data.config.geminiKey) {
+                        setGeminiKey(data.config.geminiKey);
+                        localStorage.setItem('geminiApiKey', data.config.geminiKey);
+                    }
+                    if(data.config.gasUrl) {
+                        localStorage.setItem('gasUrl', data.config.gasUrl);
+                    }
+                }
+                return true;
+            } catch(e) { 
+                console.error(e);
+                return false; 
+            }
+          };
+
+          const handleRestore = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              try {
+                const data = JSON.parse(ev.target.result);
+                if(applyRestoredData(data)) {
+                   addLog('Restore completo effettuato con successo', 'success');
+                } else {
+                   addLog('Errore struttura dati backup', 'error');
+                }
+              } catch(e) { 
+                  alert('Errore nel file di backup'); 
+                  addLog('Errore durante il restore', 'error');
+              }
+            };
+            reader.readAsText(file);
+          };
+
+          // Callback for Drive Restore
+          const onDriveRestore = (data) => {
+              if (applyRestoredData(data)) {
+                  addLog('Restore da Cloud effettuato con successo', 'success');
+                  alert('✅ Dati ripristinati da Google Drive!');
+              } else {
+                  addLog('Errore durante il restore da Cloud', 'error');
+              }
+          };
+
+          const btnClass = "px-6 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-0.5";
+          const activeTabClass = "bg-gradient-to-r from-accent-blue to-accent-purple text-white shadow-lg shadow-accent-blue/30";
+          const inactiveTabClass = "text-gray-400 hover:text-white hover:bg-white/5";
+
+          return (
+            <div className="min-h-screen bg-background text-gray-200 pb-20">
+              <header className="pt-8 pb-6 px-4 text-center">
+                <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent-blue via-accent-purple to-accent mb-2">AI Stock Tracker</h1>
+                <p className="text-gray-500">Monitoraggio performance modelli predittivi</p>
+              </header>
+
+              <div className="container mx-auto px-4 mb-8">
+                <div className="flex flex-wrap justify-center gap-2 border-b border-gray-800 pb-4">
+                  {['input', 'estimates', 'stats', 'chat', 'logs', 'settings'].map(tab => (
+                    <button key={tab} onClick={() => setActiveTab(tab)} className={`${btnClass} ${activeTab === tab ? activeTabClass : inactiveTabClass}`}>
+                      {tab === 'input' ? '📊 Inserimento' : 
+                       tab === 'estimates' ? '📈 Stime Attive' : 
+                       tab === 'stats' ? '📉 Stats' : 
+                       tab === 'chat' ? '💬 Chat AI' : 
+                       tab === 'logs' ? '📝 Log' : 
+                       '⚙️ Setup'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <main className="container mx-auto px-4 max-w-6xl">
+                <div className={activeTab === 'input' ? 'block' : 'hidden'}>
+                  <EstimateForm onAdd={handleAddEstimate} onRemove={handleRemoveEstimate} onLog={addLog} finnhubKey={finnhubKey} isOnline={!!finnhubKey} switchTab={setActiveTab} estimates={estimates} />
+                </div>
+                <div className={activeTab === 'estimates' ? 'block' : 'hidden'}>
+                  <EstimateList estimates={estimates} onUpdateEstimate={handleUpdateEstimate} onRemove={handleRemoveEstimate} onLog={addLog} />
+                </div>
+                <div className={activeTab === 'stats' ? 'block' : 'hidden'}>
+                  <Stats estimates={estimates} />
+                </div>
+                <div className={activeTab === 'chat' ? 'block' : 'hidden'}>
+                  <Chatbot geminiKey={geminiKey} estimates={estimates} messages={chatMessages} setMessages={setChatMessages} onClear={handleClearChat} />
+                </div>
+                <div className={activeTab === 'logs' ? 'block' : 'hidden'}>
+                  <Logs logs={logs} onClear={() => setLogs([])} onDownload={handleDownloadLogs} />
+                </div>
+                <div className={activeTab === 'settings' ? 'block' : 'hidden'}>
+                  <Settings 
+                    finnhubKey={finnhubKey} 
+                    setFinnhubKey={setFinnhubKey} 
+                    geminiKey={geminiKey}
+                    setGeminiKey={setGeminiKey}
+                    onSaveKey={handleSaveKey}
+                    downloadBackup={downloadBackup}
+                    handleRestore={handleRestore}
+                    handleClearData={handleClearData}
+                    getAppData={getAppData}
+                    onDriveRestore={onDriveRestore}
+                    onLog={addLog}
+                  />
+                </div>
+              </main>
+            </div>
+          );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

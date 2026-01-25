@@ -17,13 +17,133 @@
 
 ---
 
+## 📊 Progress Tracker
+
+**Legenda**: ✅ Completato | 🚧 In Corso | ⏸️ Bloccato | ⬜ Da Fare
+
+### MVP - Ambiente Locale Single-User (45 task)
+
+#### Sezione 1: Setup & Fondamenta (0/8)
+- [ ] **TASK 1.1** - Setup Struttura Layer Backend
+- [ ] **TASK 1.2** - Definizione Modello Risposta API Standard
+- [ ] **TASK 1.3** - Creazione Value Object Money Backend
+- [ ] **TASK 1.4** - Creazione Value Object Percentage Backend
+- [ ] **TASK 1.5** - Creazione Value Object PriceTarget Backend
+- [ ] **TASK 1.6** - Configurazione Ambienti con Pydantic Settings
+- [ ] **TASK 1.7** - Middleware Sicurezza Base & Healthcheck
+- [ ] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
+
+#### Sezione 2: Backend Core & Data (0/19)
+- [ ] **TASK 2.1** - Setup Progetto Python con Poetry/uv
+- [ ] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
+- [ ] **TASK 2.3** - Definizione Modello SQLAlchemy - Ticker
+- [ ] **TASK 2.4** - Definizione Modello SQLAlchemy - Estimate
+- [ ] **TASK 2.5** - Definizione Modello SQLAlchemy - EstimateEvent
+- [ ] **TASK 2.6** - Definizione Modello SQLAlchemy - MarketData
+- [ ] **TASK 2.10** - Setup Alembic per Migrazioni Database
+- [ ] **TASK 2.11** - Creazione Materialized View EstimateSummaryView
+- [ ] **TASK 2.12** - Creazione Repository Estimate
+- [ ] **TASK 2.13** - Creazione Repository MarketData
+- [ ] **TASK 2.14** - Creazione Service EstimateService
+- [ ] **TASK 2.15** - Creazione Service EstimateHistoryService
+- [ ] **TASK 2.16** - Creazione API Router Estimates
+- [ ] **TASK 2.17** - Creazione API Router Market Data
+- [ ] **TASK 2.18** - Definizione MarketDataProvider Astratto
+- [ ] **TASK 2.19** - Caching & Backoff per MarketDataProvider
+- [ ] **TASK 2.20** - Implementazione Google Drive Client
+- [ ] **TASK 2.21** - Implementazione CSV Parser Legacy
+- [ ] **TASK 2.22** - Implementazione Sync Service
+- [ ] **TASK 2.23** - Test Retrocompatibilità Backup/History Legacy
+- [ ] **TASK 2.24** - Setup Background Worker APScheduler
+
+#### Sezione 4: Frontend Setup & Features (0/13)
+- [ ] **TASK 4.1** - Setup Progetto Frontend (Vite + React 19)
+- [ ] **TASK 4.2** - Creazione Struttura Feature Modules
+- [ ] **TASK 4.3** - Setup API Client Centralizzato
+- [ ] **TASK 4.4** - Definizione Types e API Response Models
+- [ ] **TASK 4.5** - Creazione Componenti UI Shared
+- [ ] **TASK 4.6** - Implementazione EstimateList Component
+- [ ] **TASK 4.7** - Implementazione EstimateDetail Component
+- [ ] **TASK 4.8** - Implementazione CreateEstimateForm Component
+- [ ] **TASK 4.9** - Implementazione TickerSearch Component
+- [ ] **TASK 4.10** - Implementazione CloseEstimateModal Component
+- [ ] **TASK 4.11** - Implementazione PortfolioDashboard Component
+- [ ] **TASK 4.12** - Implementazione PerformanceChart Component
+- [ ] **TASK 4.16** - Setup React Router e Layout
+
+#### Sezione 5: Testing & CI/CD Base (0/5)
+- [ ] **TASK 5.1** - Setup Test Framework Backend
+- [ ] **TASK 5.2** - Scrivere Unit Test per Value Objects
+- [ ] **TASK 5.3** - Scrivere Unit Test per EstimateService
+- [ ] **TASK 5.4** - Scrivere Integration Test per API Estimates
+- [ ] **TASK 5.6** - Setup Test Framework Frontend
+
+---
+
+### Fase 2 - Produzione Multi-User (19 task)
+
+#### Sezione 2: Auth & Advanced Backend (0/5)
+- [ ] **TASK 2.7** - Definizione Modello SQLAlchemy - User e Role RBAC
+- [ ] **TASK 2.8** - Definizione Modello SQLAlchemy - SyncJob
+- [ ] **TASK 2.9** - Definizione Modello SQLAlchemy - AiModelRun
+- [ ] **TASK 2.25** - Implementazione Pattern Outbox per Eventi
+- [ ] **TASK 2.26** - Creazione API Router Analytics *(da definire)*
+- [ ] **TASK 2.27** - Implementazione AI Prompt Service *(da definire)*
+
+#### Sezione 3: Sicurezza & Observability (0/11)
+- [ ] **TASK 3.1** - Implementazione Security Middleware
+- [ ] **TASK 3.2** - Implementazione Rate Limiting
+- [ ] **TASK 3.3** - Implementazione Input Validation Avanzata
+- [ ] **TASK 3.4** - Implementazione Encryption at Rest
+- [ ] **TASK 3.5** - Setup Structured Logging con Correlation ID
+- [ ] **TASK 3.6** - Implementazione Metriche Prometheus
+- [ ] **TASK 3.7** - Implementazione Health Checks Completi
+- [ ] **TASK 3.8** - Implementazione Data Quality Monitor
+- [ ] **TASK 3.9** - Implementazione Data Lineage Tracking
+- [ ] **TASK 3.10** - Setup OpenTelemetry Tracing *(da definire)*
+- [ ] **TASK 3.11** - Implementazione Circuit Breaker *(da definire)*
+- [ ] **TASK 5.12** - Implementazione Feature Flags *(in backend/AGENTS.md)*
+- [ ] **TASK 5.13** - Implementazione Backup Automatico Database *(in backend/AGENTS.md)*
+
+#### Sezione 4: Frontend Advanced (0/3)
+- [ ] **TASK 4.13** - Implementazione MarketDataChart Component
+- [ ] **TASK 4.14** - Implementazione TickerWatchlist Component
+- [ ] **TASK 4.15** - Implementazione ChatAI Component (Gemini)
+
+#### Sezione 5: Testing & CI/CD Completo (0/9)
+- [ ] **TASK 5.5** - Implementare Property-Based Testing per P&L
+- [ ] **TASK 5.7** - Scrivere Component Test per EstimateForm
+- [ ] **TASK 5.8** - Setup E2E Test con Playwright
+- [ ] **TASK 5.9** - Implementare Chaos Testing
+- [ ] **TASK 5.10** - Configurare CI Pipeline (GitHub Actions)
+- [ ] **TASK 5.11** - Configurare CD Pipeline (Deploy)
+- [ ] **TASK 5.15** - Creare Runbook Operativo
+- [ ] **TASK 5.16** - Documentare API con OpenAPI
+- [ ] **TASK 5.17** - Creare Script Migrazione Dati v2.4 → v3.0
+
+#### Docker & Deployment (0/2)
+- [ ] **TASK 3.12** - Setup Docker Compose Produzione *(in Docker/AGENTS.md)*
+- [ ] **TASK 5.14** - Creare Dockerfile Multi-Stage *(in Docker/AGENTS.md)*
+
+---
+
+### 📈 Statistiche Progresso
+
+| Categoria | Completati | Totali | Percentuale |
+|-----------|------------|--------|-------------|
+| **MVP** | 0 | 45 | 0% |
+| **Fase 2** | 0 | 19 | 0% |
+| **TOTALE** | **0** | **64** | **0%** |
+
+---
+
 ## Struttura Repository
 
 ```
 Standalone-app-v1/
 ├── AGENTS.md (questo file)
 ├── backend/
-│   ├── AGENTS.md → 21 task backend (MVP + Fase 2)
+│   ├── AGENTS.md → 33 task backend (MVP + Fase 2)
 │   ├── src/
 │   │   ├── estimates/
 │   │   ├── market_data/
@@ -34,7 +154,7 @@ Standalone-app-v1/
 │   └── tests/
 │
 ├── frontend/
-│   ├── AGENTS.md → 16 task frontend (MVP + Fase 2)
+│   ├── AGENTS.md → 17 task frontend (MVP + Fase 2)
 │   ├── src/
 │   │   ├── features/
 │   │   ├── shared/
@@ -42,10 +162,10 @@ Standalone-app-v1/
 │   └── tests/
 │
 ├── Docker/
-│   └── AGENTS.md → Setup Docker/Compose
+│   └── AGENTS.md → 3 task Docker
 │
 └── Docs/
-    └── AGENTS.md → Testing, CI/CD, Docs
+    └── AGENTS.md → 14 task CI/CD & Docs
 ```
 
 ---
@@ -107,8 +227,8 @@ Standalone-app-v1/
 ### 🐍 [Backend/AGENTS.md](./backend/AGENTS.md)
 **Scope**: Python/FastAPI, Domain Logic, Database, API, Sync Drive
 - Sezione 1: Linee guida trasversali (7 task)
-- Sezione 2: Backend & Data (27 task)
-- Sezione 3: Sicurezza & Observability (11 task - Fase 2)
+- Sezione 2: Backend & Data (26 task)
+- Sezione 3: Sicurezza & Observability (13 task - Fase 2)
 
 **Regole Backend**:
 - Usa Decimal per money, mai float
@@ -257,6 +377,7 @@ Sezione 4 (Frontend):
 4. **Testa dopo ogni step significativo**
 5. **Verifica acceptance criteria** prima di marcare done
 6. **Committa con messaggio descrittivo** referenziando task ID
+7. **Aggiorna Progress Tracker** marcando task completato
 
 ### Se Incontri Blocchi
 - **Chiedi chiarimenti** se requisito ambiguo

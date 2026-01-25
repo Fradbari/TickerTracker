@@ -30,12 +30,12 @@ Dipendenze: -
 
 **Microstep:**
 
-1. Creare cartella `backend/src/` come root del codice sorgente
-2. Creare sottocartelle per ogni bounded context: `estimates/`, `market_data/`, `sync/`, `analytics/`, `shared/`
+1. Creare cartella [`backend/src/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src) come root del codice sorgente
+2. Creare sottocartelle per ogni bounded context: [`estimates/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/estimates), [`market_data/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/market_data), [`sync/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/sync), [`analytics/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/analytics), [`shared/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/shared)
 3. Per ogni bounded context, creare le sottocartelle: `api/`, `schemas/`, `domain/`, `services/`, `repositories/`
-4. Creare cartella `backend/src/infra/` con sottocartelle: `yahoo/`, `drive/`, `cache/`, `logging/`, `security/`
+4. Creare cartella [`backend/src/infra/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/infra) con sottocartelle: `yahoo/`, `drive/`, `cache/`, `logging/`, `security/`
 5. Creare file `__init__.py` in ogni cartella
-6. Creare file `README.md` in `backend/src/` che documenta la convenzione di layering
+6. Creare file [`backend/src/README.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/README.md) che documenta la convenzione di layering
 
 **Acceptance Criteria:**
 
@@ -65,7 +65,7 @@ Dipendenze: TASK 1.1
 
 **Microstep:**
 
-1. Creare file `backend/src/shared/schemas/api_response.py`
+1. Creare file [`backend/src/shared/schemas/api_response.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/schemas/api_response.py)
 2. Definire schema `ApiResponse` con campi: `success` (bool), `data` (generic/nullable), `error` (nullable), `trace_id` (UUID string)
 3. Definire schema `ApiError` con campi: `code` (string), `message` (string), `details` (optional dict)
 4. Creare funzioni helper: `success_response(data, trace_id)`, `error_response(code, message, details, trace_id)`
@@ -100,7 +100,7 @@ Dipendenze: TASK 1.1
 
 **Microstep:**
 
-1. Creare file `backend/src/shared/domain/value_objects/money.py`
+1. Creare file [`backend/src/shared/domain/value_objects/money.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/domain/value_objects/money.py)
 2. Definire dataclass frozen `Money` con campi: `amount` (Decimal), `currency` (str, default "USD")
 3. Implementare `__post_init__` per convertire input non-Decimal in Decimal
 4. Implementare metodi: `__add__`, `__sub__`, `__mul__` (con Decimal/int), `__neg__`
@@ -139,7 +139,7 @@ Dipendenze: TASK 1.3
 
 **Microstep:**
 
-1. Creare file `backend/src/shared/domain/value_objects/percentage.py`
+1. Creare file [`backend/src/shared/domain/value_objects/percentage.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/domain/value_objects/percentage.py)
 2. Definire dataclass frozen `Percentage` con campo: `value` (Decimal)
 3. Implementare `__post_init__` per conversione a Decimal
 4. Implementare class method `from_basis_points(bps: int)`
@@ -177,7 +177,7 @@ Dipendenze: TASK 1.3, TASK 1.4
 
 **Microstep:**
 
-1. Creare file `backend/src/shared/domain/value_objects/price_target.py`
+1. Creare file [`backend/src/shared/domain/value_objects/price_target.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/domain/value_objects/price_target.py)
 2. Definire dataclass frozen `PriceTarget` con campi: `entry_price` (Money), `stop_loss` (Money), `take_profit` (Money), `direction` (Literal["LONG", "SHORT"])
 3. Implementare `__post_init__` con validazioni:
    - Per LONG: stop_loss < entry_price < take_profit
@@ -216,7 +216,7 @@ Dipendenze: TASK 1.1
 
 **Microstep:**
 
-1. Creare file `backend/src/shared/infra/config.py`
+1. Creare file [`backend/src/shared/infra/config.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/infra/config.py)
 2. Definire classe `Settings` che eredita da `BaseSettings`
 3. Definire campi per ogni ambiente: `ENVIRONMENT` (local/staging/prod), `DEBUG`, `LOG_LEVEL`
 4. Definire campi database: `DATABASE_URL` (SecretStr)
@@ -225,7 +225,7 @@ Dipendenze: TASK 1.1
 7. Definire campi sicurezza: `ENCRYPTION_KEY` (SecretStr), `JWT_SECRET` (SecretStr)
 8. Configurare `model_config` con `env_file='.env'`, `case_sensitive=False`
 9. Creare funzione `get_settings()` con cache (lru_cache)
-10. Creare file `.env.example` con tutti i campi documentati
+10. Creare file [`.env.example`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.env.example) con tutti i campi documentati
 
 **Acceptance Criteria:**
 
@@ -256,13 +256,13 @@ Dipendenze: TASK 1.6
 
 **Microstep:**
 
-1. Creare file `backend/src/shared/infra/security_middleware.py`
+1. Creare file [`backend/src/shared/infra/security_middleware.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/infra/security_middleware.py)
 2. Implementare un middleware FastAPI che:
    - Aggiunge header di sicurezza minimi (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection)
    - Configura CORS per l'origin del frontend (es. http://localhost:3000)
    - Implementa un rate limit molto semplice in memoria per IP (es. max 60 richieste/minuto), disattivabile via config
-3. Registrare il middleware in main.py dell'app FastAPI
-4. Creare router `backend/src/shared/api/health_routes.py` con:
+3. Registrare il middleware in [`backend/src/main.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/main.py) dell'app FastAPI
+4. Creare router [`backend/src/shared/api/health_routes.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/api/health_routes.py) con:
    - GET /health che ritorna {status: "ok"}
    - GET /health/db che prova una query SELECT 1
 5. Documentare nel README come usare /health per verificare che il container backend sia up
@@ -308,7 +308,7 @@ Dipendenze: TASK 1.6
 
 **Microstep:**
 
-1. Creare file `backend/src/infra/database.py`
+1. Creare file [`backend/src/infra/database.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/infra/database.py)
 2. Importare Settings per DATABASE_URL
 3. Creare engine con pool_size=10, max_overflow=5, pool_pre_ping=True
 4. Configurare sessionmaker con expire_on_commit=False
@@ -346,7 +346,7 @@ Dipendenze: TASK 2.1
 
 **Microstep:**
 
-1. Creare file `backend/src/estimates/domain/estimate.py`
+1. Creare file [`backend/src/estimates/domain/estimate.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/estimates/domain/estimate.py)
 2. Definire dataclass `Estimate` con campi: id, ticker, direction, entry_price, stop_loss, take_profit, created_at, closed_at (optional), status
 3. Implementare metodo `calculate_pnl(exit_price: Money) -> Money`
 4. Implementare metodo `calculate_pnl_percentage(exit_price: Money) -> Percentage`
@@ -373,7 +373,7 @@ Dipendenze: TASK 2.1
 
 ---
 
-[... il resto del file continua identico fino a TASK 3.11 ...]
+[... il resto del file continua identico fino a TASK 5.12 ...]
 
 ---
 
@@ -388,13 +388,13 @@ Dipendenze: TASK 2.1
 
 **Microstep:**
 
-1. Creare file `backend/src/infra/feature_flags/service.py`
+1. Creare file [`backend/src/infra/feature_flags/service.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/infra/feature_flags/service.py)
 2. Definire Enum `FeatureFlag` con flag iniziali: NEW_DASHBOARD_UI, AI_RECOMMENDATIONS, DRIVE_SYNC_V2
 3. Implementare classe `FeatureFlagService` con storage Redis
 4. Implementare metodo `is_enabled(flag, user_id)` → check globale, poi percentage rollout, poi whitelist
 5. Implementare metodo `enable_flag(flag, percentage)`
 6. Implementare metodo `disable_flag(flag)`
-7. Creare endpoint admin POST `/api/admin/feature-flags` per gestione
+7. Creare endpoint admin POST [`/api/admin/feature-flags`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/api/admin_routes.py) per gestione
 8. Creare dependency FastAPI per inject service
 
 **Acceptance Criteria:**
@@ -426,7 +426,7 @@ Dipendenze: TASK 2.20
 
 **Microstep:**
 
-1. Creare file `backend/scripts/backup.py`
+1. Creare file [`backend/scripts/backup.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/scripts/backup.py)
 2. Implementare funzione `create_full_backup()`:
    - Esegui `pg_dump` con compressione
    - Cifra output con Fernet (chiave da settings)

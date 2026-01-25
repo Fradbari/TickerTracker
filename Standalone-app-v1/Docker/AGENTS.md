@@ -11,36 +11,23 @@ Dipendenze: TASK 2.1
 
 **Microstep:**
 
-1\. Creare file `docker-compose.yml` nella root del progetto
-
-2\. Definire servizio `db` con immagine postgres:16
-
-3\. Configurare variabili ambiente: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
-
-4\. Configurare volume persistente per dati PostgreSQL
-
-5\. Configurare healthcheck per PostgreSQL
-
-6\. Definire servizio `redis` con immagine redis:7-alpine
-
-7\. Configurare volume persistente per Redis
-
-8\. Configurare healthcheck per Redis
-
-9\. Definire network condivisa tra servizi
-
-10\. Creare file `docker-compose.override.yml` per configurazioni locali (porte esposte)
+1. Creare file [`docker-compose.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docker-compose.yml) nella root del progetto
+2. Definire servizio `db` con immagine postgres:16
+3. Configurare variabili ambiente: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+4. Configurare volume persistente per dati PostgreSQL
+5. Configurare healthcheck per PostgreSQL
+6. Definire servizio `redis` con immagine redis:7-alpine
+7. Configurare volume persistente per Redis
+8. Configurare healthcheck per Redis
+9. Definire network condivisa tra servizi
+10. Creare file [`docker-compose.override.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docker-compose.override.yml) per configurazioni locali (porte esposte)
 
 **Acceptance Criteria:**
 
 - [ ] `docker compose up -d` avvia entrambi i servizi
-
 - [ ] PostgreSQL accessibile su localhost:5432
-
 - [ ] Redis accessibile su localhost:6379
-
 - [ ] Healthcheck passa per entrambi i servizi
-
 - [ ] Dati persistono dopo restart container
 
 ---
@@ -65,21 +52,21 @@ Preparare un ambiente locale "one‑command" con Docker Compose per DB, backend 
 
 **Microstep:**
 
-- Creare file docker-compose.yml nella root del progetto.
+- Creare file [`docker-compose.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docker-compose.yml) nella root del progetto.
 - Definire servizio db (PostgreSQL 16) con:
   - volume per i dati,
-  - variabili d'ambiente (DB name, user, password) lette da .env.
+  - variabili d'ambiente (DB name, user, password) lette da [`.env`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.env.example).
 - Definire servizio backend che:
-  - builda da ./backend (Dockerfile semplice con Python + requirements),
+  - builda da [`./backend`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend) ([`Dockerfile`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/Dockerfile) semplice con Python + requirements),
   - espone la porta 8000,
   - dipende da db,
   - usa variabili d'ambiente per DATABASE_URL e altre config base.
 - Definire servizio frontend che:
-  - builda da ./frontend (Vite build),
+  - builda da [`./frontend`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend) (Vite build),
   - serve i file statici con un Nginx minimale o con npm run dev in dev,
   - espone la porta 3000.
-- Creare file .env.example con valori di esempio per DB e configurazione minima.
-- Aggiornare il README principale con una sezione "Avvio rapido" che spiega:
+- Creare file [`.env.example`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.env.example) con valori di esempio per DB e configurazione minima.
+- Aggiornare il [`README`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/README.md) principale con una sezione "Avvio rapido" che spiega:
   - cp .env.example .env,
   - docker compose up --build,
   - URL di accesso (es. <http://localhost:3000>).
@@ -113,34 +100,22 @@ Dipendenze: -
 
 **Microstep:**
 
-1\. Creare file `docker-compose.prod.yml`
-
-2\. Definire servizio `db`: PostgreSQL 16 con volume persistente
-
-3\. Definire servizio `redis`: Redis 7 con volume persistente
-
-4\. Definire servizio `backend`: immagine custom, env vars da file .env, healthcheck
-
-5\. Definire servizio `frontend`: Nginx con build statico, proxy pass a backend
-
-6\. Definire servizio `scheduler`: stesso backend ma comando diverso per worker
-
-7\. Configurare network interna tra servizi
-
-8\. Configurare resource limits per ogni servizio
-
-9\. Creare file `.env.prod.example` con variabili richieste
+1. Creare file [`docker-compose.prod.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docker-compose.prod.yml)
+2. Definire servizio `db`: PostgreSQL 16 con volume persistente
+3. Definire servizio `redis`: Redis 7 con volume persistente
+4. Definire servizio `backend`: immagine custom, env vars da file .env, healthcheck
+5. Definire servizio `frontend`: Nginx con build statico, proxy pass a backend
+6. Definire servizio `scheduler`: stesso backend ma comando diverso per worker
+7. Configurare network interna tra servizi
+8. Configurare resource limits per ogni servizio
+9. Creare file [`.env.prod.example`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.env.prod.example) con variabili richieste
 
 **Acceptance Criteria:**
 
 - [ ] `docker compose -f docker-compose.prod.yml up` avvia tutto
-
 - [ ] Servizi comunicano internamente
-
 - [ ] Solo frontend esposto all'esterno
-
 - [ ] Healthcheck funzionanti
-
 - [ ] Dati persistono tra restart
 
 ---

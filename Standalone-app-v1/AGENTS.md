@@ -42,7 +42,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 **Legenda**: ✅ Completato | 🚧 In Corso | ⏸️ Bloccato | ⬜ Da Fare
 
-### MVP - Ambiente Locale Single-User (45 task)
+### MVP - Ambiente Locale Single-User (46 task)
 
 #### Sezione 1: Setup & Fondamenta (0/8)
 - [ ] **TASK 1.1** - Setup Struttura Layer Backend
@@ -55,13 +55,13 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [ ] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
 
 #### Sezione 2: Backend Core & Data (0/20)
-- [ ] **TASK 2.0** - Setup Progetto Python con Poetry/uv
-- [ ] **TASK 2.1** - Setup SQLAlchemy e Database Connection Pool
+- [ ] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
 - [ ] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
-- [ ] **TASK 2.3** - Definizione Modello SQLAlchemy - Ticker
-- [ ] **TASK 2.4** - Definizione Modello SQLAlchemy - Estimate
-- [ ] **TASK 2.5** - Definizione Modello SQLAlchemy - EstimateEvent
-- [ ] **TASK 2.6** - Definizione Modello SQLAlchemy - MarketData
+- [ ] **TASK 2.3** - Setup SQLAlchemy e Database Connection Pool
+- [ ] **TASK 2.4** - Definizione Modello SQLAlchemy - Ticker
+- [ ] **TASK 2.5** - Definizione Modello SQLAlchemy - Estimate
+- [ ] **TASK 2.6** - Definizione Modello SQLAlchemy - EstimateEvent
+- [ ] **TASK 2.7** - Definizione Modello SQLAlchemy - MarketData
 - [ ] **TASK 2.10** - Setup Alembic per Migrazioni Database
 - [ ] **TASK 2.11** - Creazione Materialized View EstimateSummaryView
 - [ ] **TASK 2.12** - Creazione Repository Estimate
@@ -104,13 +104,13 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 ### Fase 2 - Produzione Multi-User (19 task)
 
-#### Sezione 2: Auth & Advanced Backend (0/5)
-- [ ] **TASK 2.7** - Definizione Modello SQLAlchemy - User e Role RBAC
-- [ ] **TASK 2.8** - Definizione Modello SQLAlchemy - SyncJob
-- [ ] **TASK 2.9** - Definizione Modello SQLAlchemy - AiModelRun
-- [ ] **TASK 2.25** - Implementazione Pattern Outbox per Eventi
-- [ ] **TASK 2.26** - Creazione API Router Analytics *(da definire)*
-- [ ] **TASK 2.27** - Implementazione AI Prompt Service *(da definire)*
+#### Sezione 2: Auth & Advanced Backend (0/6)
+- [ ] **TASK 2.8** - Definizione Modello SQLAlchemy - User e Role RBAC
+- [ ] **TASK 2.9** - Definizione Modello SQLAlchemy - SyncJob
+- [ ] **TASK 2.25** - Definizione Modello SQLAlchemy - AiModelRun
+- [ ] **TASK 2.26** - Implementazione Pattern Outbox per Eventi
+- [ ] **TASK 2.27** - Creazione API Router Analytics *(da definire)*
+- [ ] **TASK 2.28** - Implementazione AI Prompt Service *(da definire)*
 
 #### Sezione 3: Sicurezza & Observability (0/11)
 - [ ] **TASK 3.1** - Implementazione Security Middleware
@@ -199,7 +199,7 @@ Standalone-app-v1/
 
 **Backend MVP**:
 - ✅ TASK 1.1-1.7: Setup base, value objects, config
-- ✅ TASK 2.0-2.6: Database, repositories, event store
+- ✅ TASK 2.1-2.7: Database, repositories, event store
 - ✅ TASK 2.10-2.16: API endpoints estimates (CRUD)
 - ✅ TASK 2.17-2.19: Market data & cache
 - ✅ TASK 2.20-2.24: Sync Google Drive & scheduler
@@ -225,8 +225,8 @@ Standalone-app-v1/
 **Obiettivo**: Deploy produzione con auth, osservabilità, sicurezza.
 
 **Backend Fase 2**:
-- TASK 2.7-2.9: User management, JWT auth, RBAC
-- TASK 2.25-2.27: Outbox pattern, analytics API
+- TASK 2.8-2.9, 2.25: User management, JWT auth, RBAC
+- TASK 2.26-2.28: Outbox pattern, analytics API, AI service
 - TASK 3.1-3.11: Sicurezza avanzata, metrics, backup
 
 **Frontend Fase 2**:
@@ -297,7 +297,7 @@ Standalone-app-v1/
 ```
 Backend Setup (1.1-1.7)
   ↓
-Backend Core (2.1-2.6) + Frontend Setup (4.1-4.5)
+Backend Core (2.1-2.7) + Frontend Setup (4.1-4.5)
   ↓
 Backend API (2.10-2.16) ↔ Frontend Features (4.6-4.12)
   ↓
@@ -317,7 +317,7 @@ Tests & Docs
 **Sezione 1**: tutti i task 1.1-1.8 (fondamenta)
 
 **Sezione 2**: 
-- Core: 2.0-2.6, 2.10
+- Core: 2.1-2.7, 2.10
 - API Estimates: 2.11-2.16
 - Market Data: 2.17-2.19
 - Sync Drive: 2.20-2.24
@@ -337,8 +337,8 @@ Tests & Docs
 ### Fase 2 (produzione multi-user):
 
 **Sezione 2**:
-- Auth: 2.7-2.9
-- Advanced: 2.25-2.27
+- Auth: 2.8-2.9, 2.25
+- Advanced: 2.26-2.28
 
 **Sezione 3**: Tutti i task 3.1-3.11 (sicurezza, metrics, backup)
 
@@ -360,20 +360,20 @@ Sezione 1 (Setup base):
 1.3 → 1.4 → 1.5
 1.6 → 1.7
 
-Sezione 2 (Backend):
-2.1 → 2.2 → 2.3 → 2.4 → 2.5
-2.1 → 2.6 → 2.10
-2.4 + 2.6 → 2.11 → 2.16
-2.4 + 2.10 → 2.12 → 2.14 → 2.16
-2.5 + 2.12 → 2.15
-2.6 + 2.10 → 2.13
-2.5 → 2.17 → 2.18 → 2.19
+Sezione 2 (Backend MVP):
+2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6
+2.3 → 2.7 → 2.10
+2.5 + 2.7 → 2.11 → 2.16
+2.5 + 2.10 → 2.12 → 2.14 → 2.16
+2.6 + 2.12 → 2.15
+2.7 + 2.10 → 2.13
+2.6 → 2.17 → 2.18 → 2.19
 2.1 → 2.20 → 2.21 → 2.22 → 2.23
-2.11 + 2.22 → 2.24 → 2.25
-2.12 → 2.26 → 2.27
+2.11 + 2.22 → 2.24 → 2.26
+2.12 → 2.27 → 2.28
 
 Sezione 2 (Auth - Fase 2):
-2.1 → 2.7 → 2.8, 2.9
+2.3 → 2.8 → 2.9, 2.25
 
 Sezione 3 (Sicurezza - Fase 2):
 Tutti paralleli dopo 2.20

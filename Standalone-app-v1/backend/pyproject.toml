@@ -1,0 +1,117 @@
+[tool.poetry]
+name = "tickertracker-backend"
+version = "3.0.0"
+description = "Trading estimates tracking system with DDD/CQRS/Event Sourcing"
+authors = ["Francesco Di Lecce <francesco@example.com>"]
+readme = "README.md"
+python = "^3.11"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+# Core FastAPI
+fastapi = "^0.109.0"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+pydantic = "^2.5.3"
+pydantic-settings = "^2.1.0"
+
+# Database & ORM
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.25"}
+asyncpg = "^0.29.0"
+alembic = "^1.13.1"
+
+# Cache & Messaging
+redis = "^5.0.1"
+
+# Market Data Providers
+yfinance = "^0.2.35"
+finnhub-python = {version = "^2.4.19", optional = true}
+
+# Google Drive Integration
+google-api-python-client = "^2.115.0"
+google-auth = "^2.27.0"
+google-auth-oauthlib = "^1.2.0"
+google-auth-httplib2 = "^0.2.0"
+
+# Security & Encryption
+cryptography = "^42.0.0"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+
+# Background Jobs & Scheduling
+apscheduler = "^3.10.4"
+
+# Observability (Fase 2)
+structlog = "^24.1.0"
+prometheus-client = "^0.19.0"
+
+# Rate Limiting (Fase 2)
+slowapi = "^0.1.9"
+
+# Utilities
+python-multipart = "^0.0.6"
+cachetools = "^5.3.2"
+python-dotenv = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+# Testing
+pytest = "^7.4.4"
+pytest-asyncio = "^0.23.3"
+pytest-cov = "^4.1.0"
+httpx = "^0.26.0"
+faker = "^22.0.0"
+
+# Code Quality
+ruff = "^0.1.14"
+mypy = "^1.8.0"
+black = "^24.1.1"
+
+[tool.poetry.extras]
+finnhub = ["finnhub-python"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "B", "C4", "UP"]
+ignore = ["E501", "B008"]
+exclude = ["migrations", "alembic"]
+
+[tool.ruff.isort]
+known-first-party = ["src"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+exclude = ["alembic/", "tests/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",  
+    "e2e: End-to-end tests",
+    "slow: Slow running tests",
+    "chaos: Chaos engineering tests"
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*", "*/migrations/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

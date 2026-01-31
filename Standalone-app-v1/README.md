@@ -186,24 +186,25 @@ npm run test           # Vitest
 
 ## 📊 Roadmap
 
-### ✅ Phase 1: Foundation & API Structure (3/46 task completati ✨)
+### ✅ Phase 1: Foundation & API Structure (4/8 task completati ✨)
 
-| Task | Descrizione | Status |
-|------|-----------|--------|
-| 1.1 | Setup Struttura Layer Backend | ✅ COMPLETATO |
-| 1.2 | Modello Risposta API Standard | ✅ COMPLETATO |
-| 1.3 | Value Object Money | ✅ COMPLETATO (36 test passanti) |
+| Task | Descrizione | Status | Tests |
+|------|-----------|--------|-------|
+| 1.1 | Setup Struttura Layer Backend | ✅ COMPLETATO | - |
+| 1.2 | Modello Risposta API Standard | ✅ COMPLETATO | - |
+| 1.3 | Value Object Money | ✅ COMPLETATO | 36 ✓ |
+| 1.4 | Value Object Percentage | ✅ COMPLETATO | 39 ✓ |
 
 ### ✅ MVP - Ambiente Locale Single-User (46 task)
 
 **Obiettivo:** App funzionante localmente per 1 utente, senza autenticazione.
 
-- Sezione 1: Setup & Fondamenta (8 task) - **3/8 completati**
+- Sezione 1: Setup & Fondamenta (8 task) - **4/8 completati**
 - Sezione 2: Backend Core & Data (20 task)
 - Sezione 4: Frontend Setup & Features (13 task)
 - Sezione 5: Testing & CI/CD Base (5 task)
 
-**Status:** 3/46 completati (6.5% ✨)
+**Status:** 4/46 completati (8.7% ✨)
 
 ### 🚧 Fase 2 - Produzione Multi-User (19 task)
 

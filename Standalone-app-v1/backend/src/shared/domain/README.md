@@ -93,6 +93,104 @@ python -m pytest tests/unit/shared/domain/test_money.py -v
 - ✅ Serializzazione/deserializzazione round-trip funziona
 - ✅ Test unitari coprono tutti i metodi
 
+---
+
+### `Percentage` - Gestione Percentuali
+
+**File**: `value_objects/percentage.py`
+
+#### Descrizione
+`Percentage` è un value object immutabile per gestire valori percentuali. Rappresenta le percentuali come frazioni decimali (es. 10% = 0.10).
+
+#### Caratteristiche Chiave
+
+- **Immutabile** (frozen dataclass): Una volta creato, non può essere modificato
+- **Decimal-based**: Usa sempre `Decimal` per precisione
+- **Conversione basis points**: Factory method `from_basis_points()` per convertire da bps
+- **Applicazione a Money**: Metodo `apply_to(money)` per calcolare percentuali su importi
+- **Moltiplicatore**: Metodo `as_multiplier()` per uso diretto in calcoli (es. 10% → 1.10)
+- **Aritmetica**: Somma/sottrazione tra percentuali
+
+#### Utilizzo
+
+```python
+from decimal import Decimal
+from src.shared.domain.value_objects import Percentage, Money
+
+# Creazione diretta (10% = 0.10)
+pct = Percentage(value=Decimal("0.10"))
+
+# Creazione da basis points (100 bps = 1% = 0.01)
+pct = Percentage.from_basis_points(1000)  # 10%
+
+# Applicare percentuale a Money
+money = Money(Decimal("100"), "USD")
+result = pct.apply_to(money)  # Money(Decimal("110"), "USD")
+
+# Usare come moltiplicatore
+multiplier = pct.as_multiplier()  # Decimal("1.10")
+adjusted = Decimal("100") * multiplier  # Decimal("110")
+
+# Aritmetica tra percentuali
+pct1 = Percentage(value=Decimal("0.10"))
+pct2 = Percentage(value=Decimal("0.05"))
+combined = pct1 + pct2  # Percentage(value=Decimal("0.15"))
+
+# Serializzazione
+data = pct.to_dict()  # {"value": "0.10"}
+restored = Percentage.from_dict(data)  # Percentage(value=Decimal("0.10"))
+
+# Stampa
+print(pct)  # "10.00%"
+print(repr(pct))  # Percentage(value=Decimal('0.10'))
+```
+
+#### Basis Points
+
+I basis points (bps) sono una unità standard in finanza:
+- 100 bps = 1% = 0.01
+- 50 bps = 0.5% = 0.005
+- 1 bps = 0.01% = 0.0001
+
+```python
+pct = Percentage.from_basis_points(250)  # 2.5%
+assert pct.value == Decimal("0.025")
+```
+
+#### Test Coverage
+
+**39 test unitari** in `tests/unit/shared/domain/test_percentage.py`:
+
+- ✅ Costruzione e validazione (6 test)
+- ✅ Conversione basis points (7 test)
+- ✅ Applicazione a Money (5 test)
+- ✅ Moltiplicatori (4 test)
+- ✅ Operazioni aritmetiche (5 test)
+- ✅ Serializzazione (5 test)
+- ✅ String representation (4 test)
+- ✅ Integration tests (3 test)
+
+Esegui i test:
+```bash
+python -m pytest tests/unit/shared/domain/test_percentage.py -v
+```
+
+#### Implementazione Accettata
+
+- ✅ Classe immutabile (frozen dataclass)
+- ✅ Conversione da basis points corretta (100 bps = 1%)
+- ✅ `apply_to` restituisce Money con importo corretto
+- ✅ `as_multiplier` per 10% restituisce Decimal("1.10")
+- ✅ Test unitari coprono tutti i metodi
+
+---
+
+## Summary Test Coverage
+
+**75 test passanti totali** ✨:
+- Money: 36 test
+- Percentage: 39 test
+
 ## Estensioni Future
 
 ### Prossimi Value Objects (Planned)

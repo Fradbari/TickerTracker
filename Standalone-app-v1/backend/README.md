@@ -149,7 +149,8 @@ backend/
 │   ├── shared/           # Codice condiviso (value objects, utils)
 │   │   ├── domain/       # Valore objects immutabili
 │   │   │   └── value_objects/
-│   │   │       └── money.py        # ✅ [1.3] Value Object Money
+│   │   │       ├── money.py            # ✅ [1.3] Value Object Money
+│   │   │       └── percentage.py       # ✅ [1.4] Value Object Percentage
 │   │   ├── api/          # Schema e utility API
 │   │   ├── schemas/      # Modelli Pydantic condivisi
 │   │   │   └── api_response.py     # ✅ [1.2] Risposta API standardizzata
@@ -160,7 +161,8 @@ backend/
 │   ├── unit/             # Unit tests
 │   │   └── shared/
 │   │       └── domain/
-│   │           └── test_money.py   # ✅ [1.3] 36 test passanti
+│   │           ├── test_money.py       # ✅ [1.3] 36 test passanti
+│   │           └── test_percentage.py  # ✅ [1.4] 39 test passanti
 │   ├── integration/      # Integration tests
 │   └── e2e/              # End-to-end tests
 ├── alembic/              # Migrazioni database
@@ -173,13 +175,14 @@ backend/
 
 ## Implementation Progress
 
-### Phase 1: Foundation & API Structure
+### Phase 1: Foundation & API Structure (4/8 task)
 
-| Task | Status | Details |
-|------|--------|---------|
-| 1.1 Setup Struttura Layer Backend | ✅ COMPLETATO | Struttura layering esplicito con DDD |
-| 1.2 Modello Risposta API Standard | ✅ COMPLETATO | ApiResponse generico + helper functions |
-| 1.3 Value Object Money | ✅ COMPLETATO | 36 unit tests, Decimal-safe, immutabile |
+| Task | Descrizione | Status | Tests |
+|------|-----------|--------|-------|
+| 1.1 | Setup Struttura Layer Backend | ✅ COMPLETATO | - |
+| 1.2 | Modello Risposta API Standard | ✅ COMPLETATO | - |
+| 1.3 | Value Object Money | ✅ COMPLETATO | 36 ✓ |
+| 1.4 | Value Object Percentage | ✅ COMPLETATO | 39 ✓ |
 
 ## Documentazione API
 

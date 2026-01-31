@@ -43,7 +43,9 @@ Standalone-app-v1/
 │   └── tests/          # Component e Unit tests
 ├── Docker/             # Configurazioni Docker e AGENTS specifici
 ├── Docs/               # Documentazione tecnica e test E2E/CI-CD
-└── AGENTS.md           # Guida principale per lo sviluppo atomico
+├── scripts/            # Tool di sviluppo e validazione
+├── AGENTS.md           # Guida principale per lo sviluppo atomico
+└── Piano-Operativo-v1.7.md  # Piano operativo completo
 ```
 
 ---
@@ -68,12 +70,14 @@ cp backend/.env.example backend/.env
 Avvia tutti i servizi (DB, Backend, Frontend):
 
 ```bash
-docker compose up --build
+docker compose -f docker-compose.base.yml -f docker-compose.dev.yml up --build
 ```
 
 L'applicazione sarà disponibile ai seguenti indirizzi:
 - **Frontend**: [http://localhost:3000](http://localhost:3000)
 - **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **PostgreSQL**: localhost:5432
+- **Redis**: localhost:6379
 
 ---
 
@@ -81,13 +85,195 @@ L'applicazione sarà disponibile ai seguenti indirizzi:
 
 Il progetto adotta un approccio **Atomic Development**. Ogni modifica deve essere tracciata tramite i file `AGENTS.md` presenti in ogni sezione.
 
+### Workflow di Sviluppo
+
 1. **Consulta `AGENTS.md`**: Leggi la roadmap dei task e le dipendenze prima di iniziare basandoti sugli ID (es. TASK 1.1).
+   - [AGENTS.md principale](./AGENTS.md) - Progress tracker globale
+   - [backend/AGENTS.md](./backend/AGENTS.md) - Task backend
+   - [frontend/AGENTS.md](./frontend/AGENTS.md) - Task frontend
+   - [Docker/AGENTS.md](./Docker/AGENTS.md) - Task Docker
+   - [Docs/AGENTS.md](./Docs/AGENTS.md) - Task testing e docs
+
 2. **Standard di Codifica**:
     - **Backend**: Usa sempre `Decimal` per valori monetari. Segui il layering api → services → repositories → domain.
     - **Frontend**: Usa `decimal.js` per i calcoli. Utilizza i componenti della cartella `shared/`.
+
 3. **Test prima di procedere**: Assicurati che ogni nuovo microstep passi i test unitari.
 
 ---
 
-## 📄 Licenza & Documentazione
-Per dettagli operativi, consulta il **Piano Operativo v1.3** e i file di documentazione nella cartella `Docs/`.
+## 🔧 Strumenti di Sviluppo
+
+### Validazione Dipendenze Task
+
+Prima di iniziare l'implementazione, verifica la coerenza del grafo dipendenze:
+
+```bash
+# Da root del progetto
+python scripts/validate_dependencies.py
+```
+
+**Output:**
+- ✅ Task totali e distribuzione per sezione
+- ✅ Rilevamento dipendenze circolari
+- ✅ Verifica task referenziati esistenti
+- ⚠️ Warning su gap numerazione
+- 🚀 Entry points (task senza dipendenze)
+
+**Quando eseguirlo:**
+- Prima di iniziare un nuovo task
+- Dopo modifiche agli AGENTS.md
+- Prima di un merge su branch principale
+
+### Setup Ambiente Locale (Poetry)
+
+Per sviluppo con IDE e hot-reload rapido:
+
+```bash
+# Backend
+cd backend/
+poetry install
+poetry shell
+
+# Avvia solo infrastruttura Docker
+docker compose -f docker-compose.base.yml up -d
+
+# Avvia backend locale
+uvicorn src.main:app --reload
+
+# Frontend (in altra shell)
+cd frontend/
+npm install
+npm run dev
+```
+
+### Linting & Type Checking
+
+```bash
+# Backend
+cd backend/
+ruff check .           # Linting
+mypy src/              # Type checking
+pytest tests/          # Run tests
+pytest --cov=src       # Con coverage
+
+# Frontend
+cd frontend/
+npm run lint           # ESLint
+npm run type-check     # TypeScript
+npm run test           # Vitest
+```
+
+---
+
+## 📚 Documentazione
+
+### Documentazione Tecnica
+
+- **[Piano Operativo v1.7](./Piano-Operativo-v1.7.md)** - Piano completo MVP e Fase 2
+- **[AGENTS.md](./AGENTS.md)** - Progress tracker e workflow
+- **Backend API Docs** - http://localhost:8000/docs (quando app è running)
+- **Runbook Operativo** - `Docs/runbook/` (Fase 2)
+
+### Guide Rapide
+
+- **Architecture**: Vedi sezione "Architettura" in [Piano-Operativo-v1.7.md](./Piano-Operativo-v1.7.md)
+- **Best Practices**: Consultare "Regole Globali di Sviluppo" in [AGENTS.md](./AGENTS.md)
+- **Task Dependencies**: Vedi "Grafo Dipendenze Completo" in [AGENTS.md](./AGENTS.md)
+- **Database Schema**: Vedi "Struttura Database" in [Piano-Operativo-v1.7.md](./Piano-Operativo-v1.7.md)
+
+---
+
+## 📊 Roadmap
+
+### ✅ MVP - Ambiente Locale Single-User (46 task)
+
+**Obiettivo:** App funzionante localmente per 1 utente, senza autenticazione.
+
+- Sezione 1: Setup & Fondamenta (8 task)
+- Sezione 2: Backend Core & Data (20 task)
+- Sezione 4: Frontend Setup & Features (13 task)
+- Sezione 5: Testing & CI/CD Base (5 task)
+
+**Status:** 0/46 completati (0%)
+
+### 🚧 Fase 2 - Produzione Multi-User (19 task)
+
+**Obiettivo:** Deploy produzione con auth, osservabilità, sicurezza.
+
+- Auth & Advanced Backend (6 task)
+- Sicurezza & Observability (11 task)
+- Frontend Advanced (3 task)
+- Testing & CI/CD Completo (9 task)
+- Docker & Deployment (2 task)
+
+**Status:** 0/19 completati (0%)
+
+---
+
+## 🤝 Contribuire
+
+### Workflow Git
+
+1. **Branch naming**: `feature/TASK-X.Y-description`
+2. **Commit convention**: 
+   ```
+   feat(TASK-X.Y): breve descrizione
+   
+   - Microstep 1 completato
+   - Microstep 2 completato
+   ```
+3. **Pull Request**: Includi task ID e checklist acceptance criteria
+4. **Code Review**: Almeno 1 approval richiesto
+5. **CI Green**: Tutti i test devono passare
+
+### Prima di Committare
+
+```bash
+# Valida dipendenze
+python scripts/validate_dependencies.py
+
+# Run tests
+cd backend && pytest
+cd frontend && npm run test
+
+# Lint check
+cd backend && ruff check .
+cd frontend && npm run lint
+```
+
+---
+
+## 🔒 Sicurezza
+
+### Reporting Vulnerabilities
+
+Per segnalare vulnerabilità di sicurezza, contattare privatamente il maintainer.
+
+### Security Checklist
+
+- ✅ Dependabot alerts enabled
+- ✅ Security scanning in CI (Trivy)
+- ✅ No secrets in code (use .env)
+- ✅ HTTPS enforcement
+- ✅ Input validation (Pydantic)
+
+---
+
+## 📞 Support & Community
+
+- **Issues**: [GitHub Issues](https://github.com/Fradbari/TickerTracker/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Fradbari/TickerTracker/discussions)
+- **Documentation**: Consulta i file AGENTS.md e Piano Operativo
+
+---
+
+## 📜 Licenza
+
+Questo progetto è rilasciato sotto licenza MIT. Vedi [LICENSE](../LICENSE) per dettagli.
+
+---
+
+**Versione:** 3.0  
+**Status:** In Sviluppo (MVP)  
+**Último aggiornamento:** 31 Gennaio 2026

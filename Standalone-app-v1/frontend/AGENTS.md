@@ -16,11 +16,11 @@ Questa sezione contiene SOLO task per il frontend React/TypeScript:
 
 # REGOLE FISSE PER LLM FRONTEND
 
-1. **Tutti i calcoli finanziari DEVONO usare decimal.js** ([`shared/utils/financial.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/utils/financial.ts) o [`shared/finance/decimalMoney.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/finance/decimalMoney.ts))
-2. **Tutte le chiamate API DEVONO passare da [`shared/api/client.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/api/client.ts)** (no fetch/axios sparso)
+1. **Tutti i calcoli finanziari DEVONO usare decimal.js** ([`shared/utils/financial.ts`](../src/shared/utils/financial.ts) o [`shared/finance/decimalMoney.ts`](../src/shared/finance/decimalMoney.ts))
+2. **Tutte le chiamate API DEVONO passare da [`shared/api/client.ts`](../src/shared/api/client.ts)** (no fetch/axios sparso)
 3. **Ogni feature è self-contained**: no import cross-feature diretti (solo via `shared/`)
-4. **Componenti riutilizzabili vanno in [`shared/components/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/shared/components)**
-5. **Hook riutilizzabili vanno in [`shared/hooks/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/shared/hooks)**
+4. **Componenti riutilizzabili vanno in [`shared/components/`](../src/shared/components)**
+5. **Hook riutilizzabili vanno in [`shared/hooks/`](../src/shared/hooks)**
 
 ---
 
@@ -40,7 +40,7 @@ Dipendenze: TASK 1.1
 **Microstep:**
 
 1. Installare dipendenza `decimal.js` nel progetto frontend
-2. Creare file [`frontend/src/shared/utils/decimal.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/utils/decimal.ts)
+2. Creare file [`frontend/src/shared/utils/decimal.ts`](../src/shared/utils/decimal.ts)
 3. Definire classe/type `MoneyValue` con proprietà: `amount` (Decimal), `currency` (string)
 4. Implementare funzioni factory: `createMoney(amount: string | number, currency?: string)`
 5. Implementare funzioni di calcolo: `add`, `subtract`, `multiply`, `divide` per MoneyValue
@@ -87,10 +87,10 @@ Dipendenze: -
 4. Installare dipendenze form: `react-hook-form`, `zod`, `@hookform/resolvers`
 5. Installare dipendenze charts: `recharts`
 6. Installare dipendenze utility: `decimal.js`, `date-fns`
-7. Configurare TailwindCSS (file [`tailwind.config.cjs`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/tailwind.config.cjs))
-8. Configurare path aliases in [`tsconfig.json`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/tsconfig.json) e [`vite.config.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/vite.config.ts)
-9. Creare struttura cartelle: [`features/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/features), [`shared/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/shared), [`app/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/app)
-10. Creare file [`README.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/README.md) con convenzioni
+7. Configurare TailwindCSS (file [`tailwind.config.cjs`](../tailwind.config.cjs))
+8. Configurare path aliases in [`tsconfig.json`](../tsconfig.json) e [`vite.config.ts`](../vite.config.ts)
+9. Creare struttura cartelle: [`features/`](../src/features), [`shared/`](../src/shared), [`app/`](../src/app)
+10. Creare file [`README.md`](../README.md) con convenzioni
 
 **Acceptance Criteria:**
 
@@ -121,12 +121,12 @@ Dipendenze: TASK 4.1
 
 **Microstep:**
 
-1. Creare cartella [`frontend/src/features/estimates/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/features/estimates) con sottocartelle: `components/`, `hooks/`, `api/`, `types/`
-2. Creare cartella [`frontend/src/features/portfolio/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/features/portfolio) con stessa struttura
-3. Creare cartella [`frontend/src/features/market-data/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/features/market-data) con stessa struttura
-4. Creare cartella [`frontend/src/features/chat-ai/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/features/chat-ai) con stessa struttura
-5. Creare cartella [`frontend/src/shared/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/shared) con sottocartelle: `components/`, `hooks/`, `utils/`, `types/`, `api/`
-6. Creare cartella [`frontend/src/app/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/app) con sottocartelle: `router/`, `layout/`, `providers/`
+1. Creare cartella [`frontend/src/features/estimates/`](../src/features/estimates) con sottocartelle: `components/`, `hooks/`, `api/`, `types/`
+2. Creare cartella [`frontend/src/features/portfolio/`](../src/features/portfolio) con stessa struttura
+3. Creare cartella [`frontend/src/features/market-data/`](../src/features/market-data) con stessa struttura
+4. Creare cartella [`frontend/src/features/chat-ai/`](../src/features/chat-ai) con stessa struttura
+5. Creare cartella [`frontend/src/shared/`](../src/shared) con sottocartelle: `components/`, `hooks/`, `utils/`, `types/`, `api/`
+6. Creare cartella [`frontend/src/app/`](../src/app) con sottocartelle: `router/`, `layout/`, `providers/`
 7. Creare file `index.ts` barrel exports in ogni feature
 8. Creare README in `shared/` che documenta regole riuso componenti
 
@@ -159,14 +159,14 @@ Dipendenze: TASK 4.2
 
 **Microstep:**
 
-1. Creare file [`frontend/src/shared/api/client.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/api/client.ts)
+1. Creare file [`frontend/src/shared/api/client.ts`](../src/shared/api/client.ts)
 2. Configurare axios instance con baseURL da env vars
 3. Implementare request interceptor: aggiunge JWT token da localStorage
 4. Implementare response interceptor: gestisce 401 (redirect login), 500 (toast error)
 5. Implementare funzioni wrapper: `apiGet`, `apiPost`, `apiPut`, `apiDelete`
 6. Implementare retry logic su errori 5xx (max 3 tentativi)
 7. Implementare timeout configurabile (default 30s)
-8. Creare file [`frontend/.env.example`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/.env.example) con `VITE_API_BASE_URL`
+8. Creare file [`frontend/.env.example`](../.env.example) con `VITE_API_BASE_URL`
 
 **Acceptance Criteria:**
 
@@ -197,10 +197,10 @@ Dipendenze: TASK 4.3
 
 **Microstep:**
 
-1. Creare file [`frontend/src/shared/types/api.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/types/api.ts)
+1. Creare file [`frontend/src/shared/types/api.ts`](../src/shared/types/api.ts)
 2. Definire type `ApiResponse<T>` che corrisponde al backend: `{success: boolean, data: T | null, error: ApiError | null, trace_id: string}`
 3. Definire type `ApiError`: `{code: string, message: string, details?: Record<string, any>}`
-4. Creare file [`frontend/src/shared/types/domain.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/types/domain.ts)
+4. Creare file [`frontend/src/shared/types/domain.ts`](../src/shared/types/domain.ts)
 5. Definire types: `Estimate`, `Money`, `PriceTarget`, `MarketData`, `Portfolio`
 6. Implementare type guards: `isEstimate(obj: unknown)`, `isMoney(obj: unknown)`
 7. Implementare validators Zod per form input
@@ -234,13 +234,13 @@ Dipendenze: TASK 4.4
 
 **Microstep:**
 
-1. Creare file [`frontend/src/shared/components/Button.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/components/Button.tsx): varianti primary/secondary/danger, sizes sm/md/lg
-2. Creare file [`frontend/src/shared/components/Input.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/components/Input.tsx): supporto error state, label, helper text
-3. Creare file [`frontend/src/shared/components/Card.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/components/Card.tsx): container con padding/shadow
-4. Creare file [`frontend/src/shared/components/Badge.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/components/Badge.tsx): status badge (open, closed, profit, loss)
-5. Creare file [`frontend/src/shared/components/Spinner.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/components/Spinner.tsx): loading indicator
-6. Creare file [`frontend/src/shared/components/Toast.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/components/Toast.tsx): notification system
-7. Creare file [`frontend/src/shared/components/Modal.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/components/Modal.tsx): dialog generico
+1. Creare file [`frontend/src/shared/components/Button.tsx`](../src/shared/components/Button.tsx): varianti primary/secondary/danger, sizes sm/md/lg
+2. Creare file [`frontend/src/shared/components/Input.tsx`](../src/shared/components/Input.tsx): supporto error state, label, helper text
+3. Creare file [`frontend/src/shared/components/Card.tsx`](../src/shared/components/Card.tsx): container con padding/shadow
+4. Creare file [`frontend/src/shared/components/Badge.tsx`](../src/shared/components/Badge.tsx): status badge (open, closed, profit, loss)
+5. Creare file [`frontend/src/shared/components/Spinner.tsx`](../src/shared/components/Spinner.tsx): loading indicator
+6. Creare file [`frontend/src/shared/components/Toast.tsx`](../src/shared/components/Toast.tsx): notification system
+7. Creare file [`frontend/src/shared/components/Modal.tsx`](../src/shared/components/Modal.tsx): dialog generico
 8. Implementare storybook per ogni componente (opzionale)
 
 **Acceptance Criteria:**
@@ -272,8 +272,8 @@ Dipendenze: TASK 4.5
 
 **Microstep:**
 
-1. Creare file [`frontend/src/features/estimates/components/EstimateList.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/estimates/components/EstimateList.tsx)
-2. Implementare fetching data con React Query: `useEstimates(filters)` in [`frontend/src/features/estimates/hooks/useEstimates.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/estimates/hooks/useEstimates.ts)
+1. Creare file [`frontend/src/features/estimates/components/EstimateList.tsx`](../src/features/estimates/components/EstimateList.tsx)
+2. Implementare fetching data con React Query: `useEstimates(filters)` in [`frontend/src/features/estimates/hooks/useEstimates.ts`](../src/features/estimates/hooks/useEstimates.ts)
 3. Implementare UI: tabella con colonne (Ticker, Direction, Entry Price, Current Price, PnL, Status)
 4. Implementare filtri: status (open/closed), ticker search
 5. Implementare ordinamento: click su header colonna
@@ -311,8 +311,8 @@ Dipendenze: TASK 4.6
 
 **Microstep:**
 
-1. Creare file [`frontend/src/features/estimates/components/EstimateDetail.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/estimates/components/EstimateDetail.tsx)
-2. Implementare fetching con React Query: `useEstimate(id)` in [`frontend/src/features/estimates/hooks/useEstimate.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/estimates/hooks/useEstimate.ts)
+1. Creare file [`frontend/src/features/estimates/components/EstimateDetail.tsx`](../src/features/estimates/components/EstimateDetail.tsx)
+2. Implementare fetching con React Query: `useEstimate(id)` in [`frontend/src/features/estimates/hooks/useEstimate.ts`](../src/features/estimates/hooks/useEstimate.ts)
 3. Implementare UI: sezione info (ticker, direction, entry, stop, target)
 4. Implementare sezione PnL: grafico price history, PnL realizzato/non realizzato
 5. Implementare azioni: Close Estimate button (se aperta)
@@ -350,12 +350,12 @@ Dipendenze: TASK 4.5
 
 **Microstep:**
 
-1. Creare file [`frontend/src/features/estimates/components/CreateEstimateForm.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/estimates/components/CreateEstimateForm.tsx)
+1. Creare file [`frontend/src/features/estimates/components/CreateEstimateForm.tsx`](../src/features/estimates/components/CreateEstimateForm.tsx)
 2. Usare React Hook Form per gestione stato form
 3. Implementare campi: Ticker (input text), Direction (radio LONG/SHORT), Stop Loss % (number), Take Profit % (number)
 4. Implementare validazione Zod: ticker formato, percentuali > 0
 5. Implementare preview: calcola prezzi target in tempo reale da % (fetch current price)
-6. Implementare submit: chiamata API POST /estimates tramite hook [`useCreateEstimate`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/estimates/hooks/useCreateEstimate.ts)
+6. Implementare submit: chiamata API POST /estimates tramite hook [`useCreateEstimate`](../src/features/estimates/hooks/useCreateEstimate.ts)
 7. Implementare feedback: success toast + redirect a lista
 8. Implementare error handling: mostra errori campo specifici
 
@@ -389,9 +389,9 @@ Dipendenze: TASK 4.8
 
 **Microstep:**
 
-1. Creare file [`frontend/src/shared/components/TickerSearch.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/components/TickerSearch.tsx)
+1. Creare file [`frontend/src/shared/components/TickerSearch.tsx`](../src/shared/components/TickerSearch.tsx)
 2. Implementare input con debounced search (300ms)
-3. Implementare fetch suggestions da backend: GET /api/tickers/search?q=... tramite hook [`useTickerSearch`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/shared/hooks/useTickerSearch.ts)
+3. Implementare fetch suggestions da backend: GET /api/tickers/search?q=... tramite hook [`useTickerSearch`](../src/shared/hooks/useTickerSearch.ts)
 4. Implementare dropdown risultati: mostra ticker + nome azienda
 5. Implementare selezione: click su risultato popola form
 6. Implementare keyboard navigation (arrow up/down, enter)
@@ -428,12 +428,12 @@ Dipendenze: TASK 4.7
 
 **Microstep:**
 
-1. Creare file [`frontend/src/features/estimates/components/CloseEstimateModal.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/estimates/components/CloseEstimateModal.tsx)
+1. Creare file [`frontend/src/features/estimates/components/CloseEstimateModal.tsx`](../src/features/estimates/components/CloseEstimateModal.tsx)
 2. Implementare Modal con titolo "Close Estimate"
 3. Implementare form: Exit Price (prefilled con current price), Reason (optional text)
 4. Implementare preview: calcola PnL finale, win/loss %
 5. Implementare azioni: Cancel, Confirm Close
-6. Implementare chiamata API: PUT /estimates/{id}/close tramite hook [`useCloseEstimate`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/estimates/hooks/useCloseEstimate.ts)
+6. Implementare chiamata API: PUT /estimates/{id}/close tramite hook [`useCloseEstimate`](../src/features/estimates/hooks/useCloseEstimate.ts)
 7. Implementare feedback: success toast, chiudi modal, refresh lista
 8. Implementare validazione: exit price > 0
 
@@ -467,8 +467,8 @@ Dipendenze: TASK 4.6
 
 **Microstep:**
 
-1. Creare file [`frontend/src/features/portfolio/components/PortfolioDashboard.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/portfolio/components/PortfolioDashboard.tsx)
-2. Implementare fetching stats con React Query: `usePortfolioStats()` in [`frontend/src/features/portfolio/hooks/usePortfolioStats.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/portfolio/hooks/usePortfolioStats.ts)
+1. Creare file [`frontend/src/features/portfolio/components/PortfolioDashboard.tsx`](../src/features/portfolio/components/PortfolioDashboard.tsx)
+2. Implementare fetching stats con React Query: `usePortfolioStats()` in [`frontend/src/features/portfolio/hooks/usePortfolioStats.ts`](../src/features/portfolio/hooks/usePortfolioStats.ts)
 3. Implementare sezione KPI cards: Total PnL, Win Rate, Avg RR Ratio, Open Positions
 4. Implementare sezione chart: PnL history (line chart 30d)
 5. Implementare sezione recenti: ultimi 5 estimates
@@ -506,7 +506,7 @@ Dipendenze: TASK 4.11
 
 **Microstep:**
 
-1. Creare file [`frontend/src/features/portfolio/components/PerformanceChart.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/portfolio/components/PerformanceChart.tsx)
+1. Creare file [`frontend/src/features/portfolio/components/PerformanceChart.tsx`](../src/features/portfolio/components/PerformanceChart.tsx)
 2. Usare Recharts per line chart
 3. Implementare asse X: date (range selezionabile: 7d, 30d, 1y, all)
 4. Implementare asse Y: cumulative PnL
@@ -545,9 +545,9 @@ Dipendenze: TASK 4.6
 
 **Microstep:**
 
-1. Creare file [`frontend/src/features/market-data/components/MarketDataChart.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/market-data/components/MarketDataChart.tsx)
+1. Creare file [`frontend/src/features/market-data/components/MarketDataChart.tsx`](../src/features/market-data/components/MarketDataChart.tsx)
 2. Usare Recharts per candlestick chart (o alternative library)
-3. Implementare fetching dati: GET /api/market-data/{ticker}/historical tramite hook [`useMarketData`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/market-data/hooks/useMarketData.ts)
+3. Implementare fetching dati: GET /api/market-data/{ticker}/historical tramite hook [`useMarketData`](../src/features/market-data/hooks/useMarketData.ts)
 4. Implementare asse X: date, asse Y: price
 5. Implementare tooltip: OHLCV values
 6. Implementare interval selector: daily, weekly, monthly
@@ -584,8 +584,8 @@ Dipendenze: TASK 4.13
 
 **Microstep:**
 
-1. Creare file [`frontend/src/features/market-data/components/TickerWatchlist.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/market-data/components/TickerWatchlist.tsx)
-2. Implementare lista ticker: visualizza ticker + current price + change % tramite hook [`useWatchlist`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/market-data/hooks/useWatchlist.ts)
+1. Creare file [`frontend/src/features/market-data/components/TickerWatchlist.tsx`](../src/features/market-data/components/TickerWatchlist.tsx)
+2. Implementare lista ticker: visualizza ticker + current price + change % tramite hook [`useWatchlist`](../src/features/market-data/hooks/useWatchlist.ts)
 3. Implementare add/remove ticker da watchlist
 4. Implementare persistent storage watchlist (localStorage)
 5. Implementare refresh automatico prezzi ogni 60s
@@ -623,9 +623,9 @@ Dipendenze: TASK 4.5
 
 **Microstep:**
 
-1. Creare file [`frontend/src/features/chat-ai/components/ChatAI.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/chat-ai/components/ChatAI.tsx)
+1. Creare file [`frontend/src/features/chat-ai/components/ChatAI.tsx`](../src/features/chat-ai/components/ChatAI.tsx)
 2. Implementare UI chat: message list + input field
-3. Implementare fetching: POST /api/chat/message tramite hook [`useChatAI`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/chat-ai/hooks/useChatAI.ts)
+3. Implementare fetching: POST /api/chat/message tramite hook [`useChatAI`](../src/features/chat-ai/hooks/useChatAI.ts)
 4. Implementare streaming response (SSE o WebSocket)
 5. Implementare context: passa portfolio data come context
 6. Implementare quick actions: "Analyze portfolio", "Suggest new estimates"
@@ -667,14 +667,14 @@ Dipendenze: TASK 4.6, TASK 4.11
 
 **Microstep:**
 
-1. Creare file [`frontend/src/app/router/routes.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/app/router/routes.tsx)
+1. Creare file [`frontend/src/app/router/routes.tsx`](../src/app/router/routes.tsx)
 2. Definire routes: `/` (dashboard), `/estimates` (lista), `/estimates/:id` (detail), `/estimates/new` (form)
-3. Creare file [`frontend/src/app/layout/AppLayout.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/app/layout/AppLayout.tsx)
+3. Creare file [`frontend/src/app/layout/AppLayout.tsx`](../src/app/layout/AppLayout.tsx)
 4. Implementare layout: sidebar navigation, header, main content area
 5. Implementare sidebar: links a Dashboard, Estimates, Market Data, Chat AI
 6. Implementare header: logo, user menu (logout)
 7. Implementare mobile menu (hamburger)
-8. Configurare Router in [`App.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/App.tsx)
+8. Configurare Router in [`App.tsx`](../src/App.tsx)
 
 **Acceptance Criteria:**
 

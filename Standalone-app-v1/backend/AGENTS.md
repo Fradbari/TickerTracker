@@ -17,7 +17,270 @@ Questa sezione contiene SOLO task per il backend Python/FastAPI:
 
 # SEZIONE 1: LINEE GUIDA TRASVERSALI (Backend)
 
-[... contenuto esistente della Sezione 1 rimane invariato ...]
+---
+
+ID: TASK 1.1
+Area: backend/structure
+Fase: MVP
+Dipendenze: -
+
+## TASK 1.1: Setup Struttura Layer Backend
+
+**Descrizione:** Creare la struttura di cartelle e file base per il layering esplicito del backend FastAPI.
+
+**Microstep:**
+
+1. Creare cartella [`backend/src/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src) come root del codice sorgente
+2. Creare sottocartelle per ogni bounded context: [`estimates/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/estimates), [`market_data/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/market_data), [`sync/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/sync), [`analytics/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/analytics), [`shared/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/shared)
+3. Per ogni bounded context, creare le sottocartelle: `api/`, `schemas/`, `domain/`, `services/`, `repositories/`
+4. Creare cartella [`backend/src/infra/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/infra) con sottocartelle: `yahoo/`, `drive/`, `cache/`, `logging/`, `security/`
+5. Creare file `__init__.py` in ogni cartella
+6. Creare file [`backend/src/README.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/README.md) che documenta la convenzione di layering
+
+**Acceptance Criteria:**
+
+- [ ] Struttura cartelle completa e navigabile
+- [ ] Ogni cartella ha un `__init__.py`
+- [ ] README documenta lo scopo di ogni layer (api, schemas, domain, services, repositories, infra)
+- [ ] Nessun file di logica ancora presente (solo struttura)
+
+---
+
+### Istruzioni per LLM
+- Non modificare file fuori da [backend/src/] se non strettamente necessario.
+- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
+- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
+- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
+---
+
+ID: TASK 1.2
+Area: backend/shared
+Fase: MVP
+Dipendenze: TASK 1.1
+
+## TASK 1.2: Definizione Modello Risposta API Standard
+
+**Descrizione:** Creare lo schema Pydantic per il modello di risposta API uniforme usato da tutti gli endpoint.
+
+**Microstep:**
+
+1. Creare file [`backend/src/shared/schemas/api_response.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/schemas/api_response.py)
+2. Definire schema `ApiResponse` con campi: `success` (bool), `data` (generic/nullable), `error` (nullable), `trace_id` (UUID string)
+3. Definire schema `ApiError` con campi: `code` (string), `message` (string), `details` (optional dict)
+4. Creare funzioni helper: `success_response(data, trace_id)`, `error_response(code, message, details, trace_id)`
+5. Documentare con docstring l'uso previsto
+
+**Acceptance Criteria:**
+
+- [ ] Schema `ApiResponse` è generico e accetta qualsiasi tipo di `data`
+- [ ] Schema `ApiError` è annidabile in `ApiResponse.error`
+- [ ] Funzioni helper producono risposte conformi allo schema
+- [ ] Tutti i campi hanno type hints corretti
+- [ ] Docstring spiega quando usare success vs error response
+
+---
+
+### Istruzioni per LLM
+- Non modificare file fuori da [backend/src/shared/schemas/api_response.py] se non strettamente necessario.
+- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
+- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
+- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
+---
+
+ID: TASK 1.3
+Area: backend/shared
+Fase: MVP
+Dipendenze: TASK 1.1
+
+## TASK 1.3: Creazione Value Object Money (Backend)
+
+**Descrizione:** Implementare il value object immutabile `Money` per gestire importi monetari con precisione decimale.
+
+**Microstep:**
+
+1. Creare file [`backend/src/shared/domain/value_objects/money.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/domain/value_objects/money.py)
+2. Definire dataclass frozen `Money` con campi: `amount` (Decimal), `currency` (str, default "USD")
+3. Implementare `__post_init__` per convertire input non-Decimal in Decimal
+4. Implementare metodi: `__add__`, `__sub__`, `__mul__` (con Decimal/int), `__neg__`
+5. Implementare metodo `round(places: int)` con ROUND_HALF_UP
+6. Implementare metodo `to_dict()` che restituisce `{"amount": str, "currency": str}`
+7. Implementare metodo class `from_dict(data: dict)`
+8. Aggiungere validazione: currency deve essere stringa 3 caratteri uppercase
+
+**Acceptance Criteria:**
+
+- [ ] Classe è immutabile (frozen dataclass)
+- [ ] Tutti i calcoli usano Decimal, mai float
+- [ ] Somma/sottrazione tra valute diverse solleva ValueError
+- [ ] Moltiplicazione accetta solo Decimal o int
+- [ ] Serializzazione/deserializzazione round-trip funziona
+- [ ] Test unitari coprono tutti i metodi
+
+---
+
+### Istruzioni per LLM
+- Non modificare file fuori da [backend/src/shared/domain/value_objects/money.py] se non strettamente necessario.
+- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
+- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
+- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
+---
+
+ID: TASK 1.4
+Area: backend/shared
+Fase: MVP
+Dipendenze: TASK 1.3
+
+## TASK 1.4: Creazione Value Object Percentage (Backend)
+
+**Descrizione:** Implementare il value object immutabile `Percentage` per gestire valori percentuali.
+
+**Microstep:**
+
+1. Creare file [`backend/src/shared/domain/value_objects/percentage.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/domain/value_objects/percentage.py)
+2. Definire dataclass frozen `Percentage` con campo: `value` (Decimal)
+3. Implementare `__post_init__` per conversione a Decimal
+4. Implementare class method `from_basis_points(bps: int)`
+5. Implementare metodo `apply_to(money: Money) -> Money`
+6. Implementare metodo `as_multiplier() -> Decimal` (restituisce 1 + value)
+7. Implementare metodi `__add__`, `__sub__` tra Percentage
+8. Implementare `to_dict()` e `from_dict()`
+
+**Acceptance Criteria:**
+
+- [ ] Classe è immutabile
+- [ ] Conversione da basis points corretta (100 bps = 1% = 0.01)
+- [ ] `apply_to` restituisce Money con importo corretto
+- [ ] `as_multiplier` per 10% restituisce Decimal("1.10")
+- [ ] Test unitari coprono tutti i metodi
+
+---
+
+### Istruzioni per LLM
+- Non modificare file fuori da [backend/src/shared/domain/value_objects/percentage.py] se non strettamente necessario.
+- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
+- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
+- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
+---
+
+ID: TASK 1.5
+Area: backend/shared
+Fase: MVP
+Dipendenze: TASK 1.3, TASK 1.4
+
+## TASK 1.5: Creazione Value Object PriceTarget (Backend)
+
+**Descrizione:** Implementare il value object `PriceTarget` che incapsula target, stop loss e take profit con validazioni.
+
+**Microstep:**
+
+1. Creare file [`backend/src/shared/domain/value_objects/price_target.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/domain/value_objects/price_target.py)
+2. Definire dataclass frozen `PriceTarget` con campi: `entry_price` (Money), `stop_loss` (Money), `take_profit` (Money), `direction` (Literal["LONG", "SHORT"])
+3. Implementare `__post_init__` con validazioni:
+   - Per LONG: stop_loss < entry_price < take_profit
+   - Per SHORT: take_profit < entry_price < stop_loss
+   - Tutte le currency devono corrispondere
+4. Implementare metodo `risk_reward_ratio() -> Decimal`
+5. Implementare metodo `is_target_hit(current_price: Money) -> bool`
+6. Implementare metodo `is_stop_hit(current_price: Money) -> bool`
+7. Implementare `to_dict()` e `from_dict()`
+
+**Acceptance Criteria:**
+
+- [ ] Validazione solleva ValueError per configurazioni invalide
+- [ ] Risk/reward ratio calcolato correttamente per entrambe le direzioni
+- [ ] Metodi is_target_hit e is_stop_hit funzionano per LONG e SHORT
+- [ ] Test unitari coprono scenari validi e invalidi
+
+---
+
+### Istruzioni per LLM
+- Non modificare file fuori da [backend/src/shared/domain/value_objects/price_target.py] se non strettamente necessario.
+- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
+- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
+- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
+---
+
+ID: TASK 1.6
+Area: backend/shared
+Fase: MVP
+Dipendenze: TASK 1.1
+
+## TASK 1.6: Configurazione Ambienti con Pydantic Settings
+
+**Descrizione:** Implementare sistema di configurazione multi-ambiente con pydantic-settings.
+
+**Microstep:**
+
+1. Creare file [`backend/src/shared/infra/config.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/infra/config.py)
+2. Definire classe `Settings` che eredita da `BaseSettings`
+3. Definire campi per ogni ambiente: `ENVIRONMENT` (local/staging/prod), `DEBUG`, `LOG_LEVEL`
+4. Definire campi database: `DATABASE_URL` (SecretStr)
+5. Definire campi API esterne: `YAHOO_CACHE_TTL`, `GEMINI_API_KEY` (SecretStr), `FINNHUB_API_KEY` (SecretStr, optional)
+6. Definire campi Drive: `GOOGLE_SERVICE_ACCOUNT_JSON` (SecretStr), `DRIVE_FOLDER_ID`
+7. Definire campi sicurezza: `ENCRYPTION_KEY` (SecretStr), `JWT_SECRET` (SecretStr)
+8. Configurare `model_config` con `env_file='.env'`, `case_sensitive=False`
+9. Creare funzione `get_settings()` con cache (lru_cache)
+10. Creare file [`.env.example`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.env.example) con tutti i campi documentati
+
+**Acceptance Criteria:**
+
+- [ ] Settings carica variabili da file .env
+- [ ] Tutti i secret usano tipo SecretStr
+- [ ] Valori di default sensati per development
+- [ ] `.env.example` documenta tutte le variabili richieste
+- [ ] `get_settings()` restituisce sempre la stessa istanza (cached)
+
+---
+
+### Istruzioni per LLM
+- Non modificare file fuori da [backend/src/shared/infra/config.py, .env.example] se non strettamente necessario.
+- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
+- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
+- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
+---
+
+ID: TASK 1.7
+Area: backend/shared
+Fase: MVP
+Dipendenze: TASK 1.6
+
+## TASK 1.7: Middleware Sicurezza Base & Healthcheck
+
+**Descrizione:** Aggiungere un middleware di sicurezza base (header, CORS, small rate limit) e endpoint di healthcheck per uso con Docker.
+
+**Microstep:**
+
+1. Creare file [`backend/src/shared/infra/security_middleware.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/infra/security_middleware.py)
+2. Implementare un middleware FastAPI che:
+   - Aggiunge header di sicurezza minimi (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection)
+   - Configura CORS per l'origin del frontend (es. http://localhost:3000)
+   - Implementa un rate limit molto semplice in memoria per IP (es. max 60 richieste/minuto), disattivabile via config
+3. Registrare il middleware in [`backend/src/main.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/main.py) dell'app FastAPI
+4. Creare router [`backend/src/shared/api/health_routes.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/api/health_routes.py) con:
+   - GET /health che ritorna {status: "ok"}
+   - GET /health/db che prova una query SELECT 1
+5. Documentare nel README come usare /health per verificare che il container backend sia up
+
+**Acceptance Criteria:**
+
+- [ ] Tutte le risposte includono i security header base
+- [ ] Il frontend può chiamare il backend senza problemi di CORS
+- [ ] /health e /health/db risultano verdi quando il DB è raggiungibile
+- [ ] Il rate limit può essere disabilitato via Settings per uso locale se non necessario
+
+---
+
+### Istruzioni per LLM
+- Non modificare file fuori da [backend/src/shared/infra/security_middleware.py, backend/src/shared/api/health_routes.py, backend/src/main.py] se non strettamente necessario.
+- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
+- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
+- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
 
 ---
 

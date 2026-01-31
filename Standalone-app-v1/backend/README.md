@@ -147,10 +147,20 @@ backend/
 │   ├── sync/             # Bounded Context: Sincronizzazione Drive
 │   ├── analytics/        # Bounded Context: Analytics e AI
 │   ├── shared/           # Codice condiviso (value objects, utils)
+│   │   ├── domain/       # Valore objects immutabili
+│   │   │   └── value_objects/
+│   │   │       └── money.py        # ✅ [1.3] Value Object Money
+│   │   ├── api/          # Schema e utility API
+│   │   ├── schemas/      # Modelli Pydantic condivisi
+│   │   │   └── api_response.py     # ✅ [1.2] Risposta API standardizzata
+│   │   └── services/     # Servizi condivisi
 │   ├── infra/            # Infrastruttura (database, cache, providers)
 │   └── main.py           # Entry point FastAPI
 ├── tests/                # Test
 │   ├── unit/             # Unit tests
+│   │   └── shared/
+│   │       └── domain/
+│   │           └── test_money.py   # ✅ [1.3] 36 test passanti
 │   ├── integration/      # Integration tests
 │   └── e2e/              # End-to-end tests
 ├── alembic/              # Migrazioni database
@@ -160,6 +170,16 @@ backend/
 ├── requirements-dev.txt  # Dipendenze development (pip)
 └── Makefile              # Comandi standardizzati
 ```
+
+## Implementation Progress
+
+### Phase 1: Foundation & API Structure
+
+| Task | Status | Details |
+|------|--------|---------|
+| 1.1 Setup Struttura Layer Backend | ✅ COMPLETATO | Struttura layering esplicito con DDD |
+| 1.2 Modello Risposta API Standard | ✅ COMPLETATO | ApiResponse generico + helper functions |
+| 1.3 Value Object Money | ✅ COMPLETATO | 36 unit tests, Decimal-safe, immutabile |
 
 ## Documentazione API
 

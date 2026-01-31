@@ -12,12 +12,12 @@ Dipendenze: -
 **Microstep:**
 
 1. Verificare dipendenze: pytest, pytest-asyncio, pytest-cov, httpx
-2. Creare file [`backend/tests/conftest.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/tests/conftest.py)
+2. Creare file [`backend/tests/conftest.py`](../backend/tests/conftest.py)
 3. Configurare fixture per database test (PostgreSQL in container o SQLite in-memory)
 4. Configurare fixture per client HTTP (TestClient async)
 5. Configurare fixture per mock services (Yahoo, Drive)
-6. Creare cartelle: [`tests/unit/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/tests/unit), [`tests/integration/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/tests/integration), [`tests/e2e/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/tests/e2e)
-7. Configurare [`pytest.ini`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/pytest.ini) con markers (unit, integration, e2e)
+6. Creare cartelle: [`tests/unit/`](../backend/tests/unit), [`tests/integration/`](../backend/tests/integration), [`tests/e2e/`](../backend/tests/e2e)
+7. Configurare [`pytest.ini`](../backend/pytest.ini) con markers (unit, integration, e2e)
 8. Configurare coverage minima 80%
 
 **Acceptance Criteria:**
@@ -46,16 +46,16 @@ Dipendenze: TASK 5.1
 
 **Microstep:**
 
-1. Creare file [`backend/tests/unit/shared/test_money.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/tests/unit/shared/test_money.py)
+1. Creare file [`backend/tests/unit/shared/test_money.py`](../backend/tests/unit/shared/test_money.py)
 2. Testare creazione Money con vari input (Decimal, int, float, string)
 3. Testare operazioni aritmetiche (add, sub, mul)
 4. Testare errore su currency mismatch
 5. Testare round con vari decimali
 6. Testare serializzazione/deserializzazione
-7. Creare file [`backend/tests/unit/shared/test_percentage.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/tests/unit/shared/test_percentage.py)
+7. Creare file [`backend/tests/unit/shared/test_percentage.py`](../backend/tests/unit/shared/test_percentage.py)
 8. Testare from_basis_points
 9. Testare apply_to Money
-10. Creare file [`backend/tests/unit/shared/test_price_target.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/tests/unit/shared/test_price_target.py)
+10. Creare file [`backend/tests/unit/shared/test_price_target.py`](../backend/tests/unit/shared/test_price_target.py)
 11. Testare validazioni LONG e SHORT
 12. Testare risk_reward_ratio
 
@@ -84,7 +84,7 @@ Dipendenze: TASK 5.1
 
 **Microstep:**
 
-1. Creare file [`backend/tests/unit/estimates/test_estimate_service.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/tests/unit/estimates/test_estimate_service.py)
+1. Creare file [`backend/tests/unit/estimates/test_estimate_service.py`](../backend/tests/unit/estimates/test_estimate_service.py)
 2. Creare mock per EstimateRepository, MarketDataProvider, EventPublisher
 3. Testare create_estimate: calcolo corretto target/stop da percentuali
 4. Testare create_estimate: recupero prezzo corrente
@@ -120,7 +120,7 @@ Dipendenze: TASK 5.1
 
 **Microstep:**
 
-1. Creare file [`backend/tests/integration/test_estimates_api.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/tests/integration/test_estimates_api.py)
+1. Creare file [`backend/tests/integration/test_estimates_api.py`](../backend/tests/integration/test_estimates_api.py)
 2. Setup: database test pulito, mock Yahoo provider
 3. Testare POST /api/estimates: creazione stima valida
 4. Testare POST /api/estimates: validazione input (ticker invalido, percentuali fuori range)
@@ -158,7 +158,7 @@ Dipendenze: TASK 5.1
 **Microstep:**
 
 1. Installare dipendenza `hypothesis`
-2. Creare file [`backend/tests/properties/test_pnl_calculations.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/tests/properties/test_pnl_calculations.py)
+2. Creare file [`backend/tests/properties/test_pnl_calculations.py`](../backend/tests/properties/test_pnl_calculations.py)
 3. Testare proprietà: P&L long = -P&L short (simmetria)
 4. Testare proprietà: P&L = 0 quando entry == exit
 5. Testare proprietà: P&L chain è additivo (entry->A->B = (entry->A) + (A->B))
@@ -192,10 +192,10 @@ Dipendenze: -
 **Microstep:**
 
 1. Installare dipendenze: vitest, @testing-library/react, @testing-library/jest-dom, msw
-2. Configurare [`vitest.config.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/vitest.config.ts)
-3. Configurare [`setupTests.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/setupTests.ts) con jest-dom matchers
+2. Configurare [`vitest.config.ts`](../frontend/vitest.config.ts)
+3. Configurare [`setupTests.ts`](../frontend/src/setupTests.ts) con jest-dom matchers
 4. Configurare MSW per mock API
-5. Creare cartelle: [`__tests__/unit/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/__tests__/unit), [`__tests__/components/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/__tests__/components), [`__tests__/integration/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend/src/__tests__/integration)
+5. Creare cartelle: [`__tests__/unit/`](../frontend/src/__tests__/unit), [`__tests__/components/`](../frontend/src/__tests__/components), [`__tests__/integration/`](../frontend/src/__tests__/integration)
 6. Creare helper per render con providers (QueryClient, Router, i18n)
 
 **Acceptance Criteria:**
@@ -224,7 +224,7 @@ Dipendenze: TASK 5.6
 
 **Microstep:**
 
-1. Creare file [`frontend/src/features/estimates/__tests__/EstimateForm.test.tsx`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/frontend/src/features/estimates/__tests__/EstimateForm.test.tsx)
+1. Creare file [`frontend/src/features/estimates/__tests__/EstimateForm.test.tsx`](../frontend/src/features/estimates/__tests__/EstimateForm.test.tsx)
 2. Testare render iniziale: tutti i campi presenti
 3. Testare validazione: errore se ticker vuoto
 4. Testare validazione: errore se percentuale fuori range
@@ -260,12 +260,12 @@ Dipendenze: TASK 5.1, TASK 5.6
 **Microstep:**
 
 1. Installare `@playwright/test`
-2. Configurare [`playwright.config.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/playwright.config.ts)
+2. Configurare [`playwright.config.ts`](../playwright.config.ts)
 3. Configurare webServer per avviare backend e frontend
-4. Creare file [`e2e/setup/global-setup.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/e2e/setup/global-setup.ts) per seed database test
-5. Creare test: flusso creazione stima end-to-end in [`e2e/estimates.spec.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/e2e/estimates.spec.ts)
-6. Creare test: flusso visualizzazione portfolio in [`e2e/portfolio.spec.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/e2e/portfolio.spec.ts)
-7. Creare test: flusso chat AI in [`e2e/chat.spec.ts`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/e2e/chat.spec.ts)
+4. Creare file [`e2e/setup/global-setup.ts`](../e2e/setup/global-setup.ts) per seed database test
+5. Creare test: flusso creazione stima end-to-end in [`e2e/estimates.spec.ts`](../e2e/estimates.spec.ts)
+6. Creare test: flusso visualizzazione portfolio in [`e2e/portfolio.spec.ts`](../e2e/portfolio.spec.ts)
+7. Creare test: flusso chat AI in [`e2e/chat.spec.ts`](../e2e/chat.spec.ts)
 8. Configurare screenshot/video su failure
 9. Configurare esecuzione su CI
 
@@ -295,7 +295,7 @@ Dipendenze: TASK 5.4
 
 **Microstep:**
 
-1. Creare file [`backend/tests/chaos/test_resilience.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/tests/chaos/test_resilience.py)
+1. Creare file [`backend/tests/chaos/test_resilience.py`](../backend/tests/chaos/test_resilience.py)
 2. Testare: Yahoo API timeout -> usa cache
 3. Testare: Yahoo API errore -> usa cache stale
 4. Testare: Database pool esaurito -> 503 graceful
@@ -330,7 +330,7 @@ Dipendenze: TASK 5.4, TASK 5.7
 
 **Microstep:**
 
-1. Creare file [`.github/workflows/ci.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.github/workflows/ci.yml)
+1. Creare file [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
 2. Definire trigger: push su main/develop, pull request
 3. Definire job `backend-lint`: ruff, mypy
 4. Definire job `backend-test`: pytest con coverage, services PostgreSQL/Redis
@@ -367,7 +367,7 @@ Dipendenze: TASK 5.10
 
 **Microstep:**
 
-1. Estendere [`.github/workflows/ci.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.github/workflows/ci.yml) o creare [`cd.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.github/workflows/cd.yml)
+1. Estendere [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) o creare [`cd.yml`](../.github/workflows/cd.yml)
 2. Definire job `build-images`: build Docker backend e frontend
 3. Definire job `push-images`: push a GitHub Container Registry
 4. Definire job `deploy-staging`: deploy automatico su staging (dopo merge su develop)
@@ -401,13 +401,13 @@ Dipendenze: -
 
 **Microstep:**
 
-1. Creare file [`docs/runbook/README.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docs/runbook/README.md) con indice
-2. Creare [`docs/runbook/startup-shutdown.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docs/runbook/startup-shutdown.md): procedure avvio/stop servizi
-3. Creare [`docs/runbook/monitoring.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docs/runbook/monitoring.md): dove guardare metriche, log, alert
-4. Creare [`docs/runbook/database-recovery.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docs/runbook/database-recovery.md): procedura restore da backup
-5. Creare [`docs/runbook/yahoo-outage.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docs/runbook/yahoo-outage.md): azioni durante outage Yahoo
-6. Creare [`docs/runbook/drive-sync-issues.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docs/runbook/drive-sync-issues.md): troubleshooting sync
-7. Creare [`docs/runbook/scaling.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docs/runbook/scaling.md): come scalare servizi
+1. Creare file [`docs/runbook/README.md`](../docs/runbook/README.md) con indice
+2. Creare [`docs/runbook/startup-shutdown.md`](../docs/runbook/startup-shutdown.md): procedure avvio/stop servizi
+3. Creare [`docs/runbook/monitoring.md`](../docs/runbook/monitoring.md): dove guardare metriche, log, alert
+4. Creare [`docs/runbook/database-recovery.md`](../docs/runbook/database-recovery.md): procedura restore da backup
+5. Creare [`docs/runbook/yahoo-outage.md`](../docs/runbook/yahoo-outage.md): azioni durante outage Yahoo
+6. Creare [`docs/runbook/drive-sync-issues.md`](../docs/runbook/drive-sync-issues.md): troubleshooting sync
+7. Creare [`docs/runbook/scaling.md`](../docs/runbook/scaling.md): come scalare servizi
 8. Includere comandi copia-incolla per ogni procedura
 9. Includere contatti e escalation path
 
@@ -442,8 +442,8 @@ Dipendenze: -
 3. Documentare tutti i codici errore possibili
 4. Aggiungere descrizioni ai parametri query/path
 5. Configurare metadata OpenAPI (title, version, description, contact)
-6. Verificare schema generato su [`/docs`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/docs)
-7. Esportare [`openapi.json`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/openapi.json) per uso esterno
+6. Verificare schema generato su [`/docs`](../docs)
+7. Esportare [`openapi.json`](../openapi.json) per uso esterno
 8. Creare pagina docs custom se necessario
 
 **Acceptance Criteria:**
@@ -474,7 +474,7 @@ Dipendenze: TASK 2.21, TASK 2.22
 
 **Microstep:**
 
-1. Creare file [`backend/scripts/migrate_from_legacy.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/scripts/migrate_from_legacy.py)
+1. Creare file [`backend/scripts/migrate_from_legacy.py`](../backend/scripts/migrate_from_legacy.py)
 2. Implementare funzione `connect_to_drive()`: autenticazione Google Drive
 3. Implementare funzione `download_legacy_data()`: scarica JSON e CSV da Drive
 4. Implementare funzione `parse_legacy_json(content)`: parsing stime legacy da backup JSON
@@ -492,7 +492,7 @@ Dipendenze: TASK 2.21, TASK 2.22
 - [ ] Validazione previene import dati corrotti
 - [ ] Report finale mostra: # stime migrate, # errori, # warning
 - [ ] Idempotente: rilanciabile senza duplicati (check via ticker+date)
-- [ ] Test con fixture dati legacy reali in [`tests/fixtures/legacy/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/tests/fixtures/legacy)
+- [ ] Test con fixture dati legacy reali in [`tests/fixtures/legacy/`](../backend/tests/fixtures/legacy)
 
 ---
 

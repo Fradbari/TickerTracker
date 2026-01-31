@@ -11,7 +11,7 @@ Dipendenze: TASK 2.1
 
 **Microstep:**
 
-1. Creare file [`docker-compose.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docker-compose.yml) nella root del progetto
+1. Creare file [`docker-compose.yml`](../docker-compose.yml) nella root del progetto
 2. Definire servizio `db` con immagine postgres:16
 3. Configurare variabili ambiente: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
 4. Configurare volume persistente per dati PostgreSQL
@@ -20,7 +20,7 @@ Dipendenze: TASK 2.1
 7. Configurare volume persistente per Redis
 8. Configurare healthcheck per Redis
 9. Definire network condivisa tra servizi
-10. Creare file [`docker-compose.override.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docker-compose.override.yml) per configurazioni locali (porte esposte)
+10. Creare file [`docker-compose.override.yml`](../docker-compose.override.yml) per configurazioni locali (porte esposte)
 
 **Acceptance Criteria:**
 
@@ -41,32 +41,32 @@ Dipendenze: TASK 2.1
 ID: TASK 3.12
 Area: docker
 Fase: MVP
-Dipendenze: TASK 2.20
+Dipendenze: TASK 2.2, TASK 2.20, TASK 4.1
 
-## **TASK 3.12: Docker Compose Ambiente Locale**
+## **TASK 3.12: Docker Compose Ambiente Locale (Estensione)**
 
 Priorità: Alta (MVP - richiesto per avere un ambiente locale "one‑command" DB + backend + frontend).
 
 **Descrizione:**  
-Preparare un ambiente locale "one‑command" con Docker Compose per DB, backend e frontend.
+Estendere il `docker-compose.yml` creato nel TASK 2.2 per includere anche i servizi backend e frontend, permettendo un avvio completo dell'applicazione.
 
 **Microstep:**
 
-- Creare file [`docker-compose.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docker-compose.yml) nella root del progetto.
+- Aggiornare il file [`docker-compose.yml`](../docker-compose.yml) nella root del progetto.
 - Definire servizio db (PostgreSQL 16) con:
   - volume per i dati,
-  - variabili d'ambiente (DB name, user, password) lette da [`.env`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.env.example).
+  - variabili d'ambiente (DB name, user, password) lette da [`.env`](../.env.example).
 - Definire servizio backend che:
-  - builda da [`./backend`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend) ([`Dockerfile`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/Dockerfile) semplice con Python + requirements),
+  - builda da [`./backend`](../backend) ([`Dockerfile`](../backend/Dockerfile) semplice con Python + requirements),
   - espone la porta 8000,
   - dipende da db,
   - usa variabili d'ambiente per DATABASE_URL e altre config base.
 - Definire servizio frontend che:
-  - builda da [`./frontend`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/frontend) (Vite build),
+  - builda da [`./frontend`](../frontend) (Vite build),
   - serve i file statici con un Nginx minimale o con npm run dev in dev,
   - espone la porta 3000.
-- Creare file [`.env.example`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.env.example) con valori di esempio per DB e configurazione minima.
-- Aggiornare il [`README`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/README.md) principale con una sezione "Avvio rapido" che spiega:
+- Creare file [`.env.example`](../.env.example) con valori di esempio per DB e configurazione minima.
+- Aggiornare il [`README`](../README.md) principale con una sezione "Avvio rapido" che spiega:
   - cp .env.example .env,
   - docker compose up --build,
   - URL di accesso (es. <http://localhost:3000>).
@@ -78,8 +78,6 @@ Preparare un ambiente locale "one‑command" con Docker Compose per DB, backend 
 - La procedura di avvio rapido nel README è sufficiente per riprodurre l'ambiente da zero.
 
 ---
-
-# SEZIONE 4: FRONTEND & UX
 
 ---
 
@@ -100,7 +98,7 @@ Dipendenze: -
 
 **Microstep:**
 
-1. Creare file [`docker-compose.prod.yml`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/docker-compose.prod.yml)
+1. Creare file [`docker-compose.prod.yml`](../docker-compose.prod.yml)
 2. Definire servizio `db`: PostgreSQL 16 con volume persistente
 3. Definire servizio `redis`: Redis 7 con volume persistente
 4. Definire servizio `backend`: immagine custom, env vars da file .env, healthcheck
@@ -108,7 +106,7 @@ Dipendenze: -
 6. Definire servizio `scheduler`: stesso backend ma comando diverso per worker
 7. Configurare network interna tra servizi
 8. Configurare resource limits per ogni servizio
-9. Creare file [`.env.prod.example`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.env.prod.example) con variabili richieste
+9. Creare file [`.env.prod.example`](../.env.prod.example) con variabili richieste
 
 **Acceptance Criteria:**
 

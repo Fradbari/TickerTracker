@@ -4,6 +4,27 @@
 
 **Stai per lavorare su TickerTracker v3.0** - un sistema completo per tracking stime di trading con architettura DDD/CQRS/Event Sourcing.
 
+---
+
+## 🛠 Regole Globali di Sviluppo
+
+Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istruzioni locali.
+
+1.  **Precisione Finanziaria**:
+    *   **Backend**: Usa SEMPRE `Decimal` per importi, prezzi e percentuali. Mai usare `float`.
+    *   **Frontend**: Usa SEMPRE `decimal.js` per ogni calcolo finanziario. Mai usare `number`.
+2.  **Comunicazione API**:
+    *   Usa SEMPRE il modello `ApiResponse` standard per ogni risposta del backend.
+    *   Il frontend deve usare SEMPRE l'API client centralizzato.
+3.  **Integrità dei Dati**:
+    *   Ogni azione significativa deve produrre un evento di dominio (Event Sourcing).
+4.  **Architettura**:
+    *   Rispetta rigorosamente i boundary dei moduli. No cross-import diretti tra feature.
+5.  **Documentazione**:
+    *   Ogni nuovo endpoint deve essere documentato con OpenAPI/Swagger.
+
+---
+
 ### Prima di Iniziare
 1. **Leggi la sezione appropriata** in base al tuo task:
    - 🐍 **Backend/AGENTS.md** → API, domain logic, database, sync
@@ -33,8 +54,9 @@
 - [ ] **TASK 1.7** - Middleware Sicurezza Base & Healthcheck
 - [ ] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
 
-#### Sezione 2: Backend Core & Data (0/19)
-- [ ] **TASK 2.1** - Setup Progetto Python con Poetry/uv
+#### Sezione 2: Backend Core & Data (0/20)
+- [ ] **TASK 2.0** - Setup Progetto Python con Poetry/uv
+- [ ] **TASK 2.1** - Setup SQLAlchemy e Database Connection Pool
 - [ ] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
 - [ ] **TASK 2.3** - Definizione Modello SQLAlchemy - Ticker
 - [ ] **TASK 2.4** - Definizione Modello SQLAlchemy - Estimate
@@ -131,9 +153,9 @@
 
 | Categoria | Completati | Totali | Percentuale |
 |-----------|------------|--------|-------------|
-| **MVP** | 0 | 45 | 0% |
+| **MVP** | 0 | 46 | 0% |
 | **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **0** | **64** | **0%** |
+| **TOTALE** | **0** | **65** | **0%** |
 
 ---
 
@@ -177,7 +199,7 @@ Standalone-app-v1/
 
 **Backend MVP**:
 - ✅ TASK 1.1-1.7: Setup base, value objects, config
-- ✅ TASK 2.1-2.6: Database, repositories, event store
+- ✅ TASK 2.0-2.6: Database, repositories, event store
 - ✅ TASK 2.10-2.16: API endpoints estimates (CRUD)
 - ✅ TASK 2.17-2.19: Market data & cache
 - ✅ TASK 2.20-2.24: Sync Google Drive & scheduler
@@ -295,7 +317,7 @@ Tests & Docs
 **Sezione 1**: tutti i task 1.1-1.8 (fondamenta)
 
 **Sezione 2**: 
-- Core: 2.1-2.6, 2.10
+- Core: 2.0-2.6, 2.10
 - API Estimates: 2.11-2.16
 - Market Data: 2.17-2.19
 - Sync Drive: 2.20-2.24

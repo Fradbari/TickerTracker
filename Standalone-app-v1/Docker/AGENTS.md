@@ -5,13 +5,13 @@ Area: docker
 Fase: MVP
 Dipendenze: TASK 2.1
 
-## TASK 2.2: Setup Docker Compose per PostgreSQL e Redis
+## TASK 2.2: Setup Docker Compose Base (DB + Redis)
 
-**Descrizione:** Configurare container Docker per database e cache di sviluppo.
+**Descrizione:** Configurare il `docker-compose.base.yml` per i servizi infrastrutturali comuni (Database e Cache).
 
 **Microstep:**
 
-1. Creare file [`docker-compose.yml`](../docker-compose.yml) nella root del progetto
+1. Creare file [`docker-compose.base.yml`](../docker-compose.base.yml) nella root del progetto
 2. Definire servizio `db` con immagine postgres:16
 3. Configurare variabili ambiente: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
 4. Configurare volume persistente per dati PostgreSQL
@@ -19,12 +19,11 @@ Dipendenze: TASK 2.1
 6. Definire servizio `redis` con immagine redis:7-alpine
 7. Configurare volume persistente per Redis
 8. Configurare healthcheck per Redis
-9. Definire network condivisa tra servizi
-10. Creare file [`docker-compose.override.yml`](../docker-compose.override.yml) per configurazioni locali (porte esposte)
+9. Definire network `ticker-network` condivisa
 
 **Acceptance Criteria:**
 
-- [ ] `docker compose up -d` avvia entrambi i servizi
+- [ ] `docker compose -f docker-compose.base.yml up -d` avvia entrambi i servizi
 - [ ] PostgreSQL accessibile su localhost:5432
 - [ ] Redis accessibile su localhost:6379
 - [ ] Healthcheck passa per entrambi i servizi
@@ -43,39 +42,34 @@ Area: docker
 Fase: MVP
 Dipendenze: TASK 2.2, TASK 2.20, TASK 4.1
 
-## **TASK 3.12: Docker Compose Ambiente Locale (Estensione)**
+## **TASK 3.12: Docker Compose Ambiente Locale (Dev)**
 
-Priorità: Alta (MVP - richiesto per avere un ambiente locale "one‑command" DB + backend + frontend).
+Priorità: Alta (MVP - richiesto per avere un ambiente locale "one‑command").
 
 **Descrizione:**  
-Estendere il `docker-compose.yml` creato nel TASK 2.2 per includere anche i servizi backend e frontend, permettendo un avvio completo dell'applicazione.
+Creare `docker-compose.dev.yml` che estende `base` includendo backend e frontend per lo sviluppo.
 
 **Microstep:**
 
-- Aggiornare il file [`docker-compose.yml`](../docker-compose.yml) nella root del progetto.
-- Definire servizio db (PostgreSQL 16) con:
-  - volume per i dati,
-  - variabili d'ambiente (DB name, user, password) lette da [`.env`](../.env.example).
-- Definire servizio backend che:
-  - builda da [`./backend`](../backend) ([`Dockerfile`](../backend/Dockerfile) semplice con Python + requirements),
-  - espone la porta 8000,
-  - dipende da db,
-  - usa variabili d'ambiente per DATABASE_URL e altre config base.
-- Definire servizio frontend che:
-  - builda da [`./frontend`](../frontend) (Vite build),
-  - serve i file statici con un Nginx minimale o con npm run dev in dev,
-  - espone la porta 3000.
-- Creare file [`.env.example`](../.env.example) con valori di esempio per DB e configurazione minima.
-- Aggiornare il [`README`](../README.md) principale con una sezione "Avvio rapido" che spiega:
-  - cp .env.example .env,
-  - docker compose up --build,
-  - URL di accesso (es. <http://localhost:3000>).
+- Creare file [`docker-compose.dev.yml`](../docker-compose.dev.yml) nella root.
+- Definire servizio `backend` che:
+  - builda da [`./backend`](../backend) ([`Dockerfile`](../backend/Dockerfile) dev),
+  - dipende da `db` e `redis` (definiti in base),
+  - espone porta 8000,
+  - monta volume `./backend:/app` per hot-reload.
+- Definire servizio `frontend` che:
+  - builda da [`./frontend`](../frontend),
+  - espone porta 3000,
+  - monta volume `./frontend:/app` per hot-reload.
+- Aggiornare il [`README`](../README.md) con comando di avvio unificato:
+  - `docker compose -f docker-compose.base.yml -f docker-compose.dev.yml up --build`
 
 **Acceptance Criteria:**
 
-- Con docker compose up --build il DB, il backend e il frontend partono senza configurazioni manuali extra.
-- Il frontend comunica correttamente con il backend all'interno di Docker (es. usando <http://backend:8000> come baseURL).
-- La procedura di avvio rapido nel README è sufficiente per riprodurre l'ambiente da zero.
+- [ ] Il comando combinato avvia tutti i 4 servizi (db, redis, backend, frontend).
+- [ ] Hot-reload funzionante per backend e frontend.
+- [ ] Frontend comunica con backend via network docker interna.
+- [ ] README aggiornato con procedura corretta.
 
 ---
 

@@ -39,10 +39,10 @@ Dipendenze: -
 
 **Acceptance Criteria:**
 
-- [ ] Struttura cartelle completa e navigabile
-- [ ] Ogni cartella ha un `__init__.py`
-- [ ] README documenta lo scopo di ogni layer (api, schemas, domain, services, repositories, infra)
-- [ ] Nessun file di logica ancora presente (solo struttura)
+- [x] Struttura cartelle completa e navigabile
+- [x] Ogni cartella ha un `__init__.py`
+- [x] README documenta lo scopo di ogni layer (api, schemas, domain, services, repositories, infra)
+- [x] Nessun file di logica ancora presente (solo struttura)
 
 ---
 
@@ -73,11 +73,11 @@ Dipendenze: TASK 1.1
 
 **Acceptance Criteria:**
 
-- [ ] Schema `ApiResponse` è generico e accetta qualsiasi tipo di `data`
-- [ ] Schema `ApiError` è annidabile in `ApiResponse.error`
-- [ ] Funzioni helper producono risposte conformi allo schema
-- [ ] Tutti i campi hanno type hints corretti
-- [ ] Docstring spiega quando usare success vs error response
+- [x] Schema `ApiResponse` è generico e accetta qualsiasi tipo di `data`
+- [x] Schema `ApiError` è annidabile in `ApiResponse.error`
+- [x] Funzioni helper producono risposte conformi allo schema
+- [x] Tutti i campi hanno type hints corretti
+- [x] Docstring spiega quando usare success vs error response
 
 ---
 
@@ -111,12 +111,12 @@ Dipendenze: TASK 1.1
 
 **Acceptance Criteria:**
 
-- [ ] Classe è immutabile (frozen dataclass)
-- [ ] Tutti i calcoli usano Decimal, mai float
-- [ ] Somma/sottrazione tra valute diverse solleva ValueError
-- [ ] Moltiplicazione accetta solo Decimal o int
-- [ ] Serializzazione/deserializzazione round-trip funziona
-- [ ] Test unitari coprono tutti i metodi
+- [x] Classe è immutabile (frozen dataclass)
+- [x] Tutti i calcoli usano Decimal, mai float
+- [x] Somma/sottrazione tra valute diverse solleva ValueError
+- [x] Moltiplicazione accetta solo Decimal o int
+- [x] Serializzazione/deserializzazione round-trip funziona
+- [x] Test unitari coprono tutti i metodi
 
 ---
 
@@ -150,11 +150,11 @@ Dipendenze: TASK 1.3
 
 **Acceptance Criteria:**
 
-- [ ] Classe è immutabile
-- [ ] Conversione da basis points corretta (100 bps = 1% = 0.01)
-- [ ] `apply_to` restituisce Money con importo corretto
-- [ ] `as_multiplier` per 10% restituisce Decimal("1.10")
-- [ ] Test unitari coprono tutti i metodi
+- [x] Classe è immutabile
+- [x] Conversione da basis points corretta (100 bps = 1% = 0.01)
+- [x] `apply_to` restituisce Money con importo corretto
+- [x] `as_multiplier` per 10% restituisce Decimal("1.10")
+- [x] Test unitari coprono tutti i metodi
 
 ---
 
@@ -190,10 +190,10 @@ Dipendenze: TASK 1.3, TASK 1.4
 
 **Acceptance Criteria:**
 
-- [ ] Validazione solleva ValueError per configurazioni invalide
-- [ ] Risk/reward ratio calcolato correttamente per entrambe le direzioni
-- [ ] Metodi is_target_hit e is_stop_hit funzionano per LONG e SHORT
-- [ ] Test unitari coprono scenari validi e invalidi
+- [x] Validazione solleva ValueError per configurazioni invalide
+- [x] Risk/reward ratio calcolato correttamente per entrambe le direzioni
+- [x] Metodi is_target_hit e is_stop_hit funzionano per LONG e SHORT
+- [x] Test unitari coprono scenari validi e invalidi
 
 ---
 
@@ -229,11 +229,11 @@ Dipendenze: TASK 1.1
 
 **Acceptance Criteria:**
 
-- [ ] Settings carica variabili da file .env
-- [ ] Tutti i secret usano tipo SecretStr
-- [ ] Valori di default sensati per development
-- [ ] `.env.example` documenta tutte le variabili richieste
-- [ ] `get_settings()` restituisce sempre la stessa istanza (cached)
+- [x] Settings carica variabili da file .env
+- [x] Tutti i secret usano tipo SecretStr
+- [x] Valori di default sensati per development
+- [x] `.env.example` documenta tutte le variabili richieste
+- [x] `get_settings()` restituisce sempre la stessa istanza (cached)
 
 ---
 

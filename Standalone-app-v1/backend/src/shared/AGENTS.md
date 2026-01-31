@@ -258,6 +258,11 @@ Dipendenze: TASK 1.3, TASK 1.4, TASK 1.5
 
 10\. Creare file `.env.example` con tutti i campi documentati
 
+11\. Creare/aggiornare `backend/.gitignore` per escludere `.env`, `__pycache__/`, `.venv/`, `.pytest_cache/`, `.coverage`, `.mypy_cache/`**
+
+12\. Creare test in `tests/unit/shared/test_config.py` per verificare caricamento, singleton, e protezione SecretStr
+
+
 **Acceptance Criteria:**
 
 - [ ] Settings carica variabili da file .env
@@ -269,6 +274,10 @@ Dipendenze: TASK 1.3, TASK 1.4, TASK 1.5
 - [ ] `.env.example` documenta tutte le variabili richieste
 
 - [ ] `get_settings()` restituisce sempre la stessa istanza (cached)
+
+- [ ] `.env` è in `.gitignore` e NON può essere committato
+
+- [ ] Test unitari passano e coprono casi principali
 
 ---
 

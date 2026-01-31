@@ -149,26 +149,35 @@ backend/
 │   ├── shared/           # Codice condiviso (value objects, utils)
 │   │   ├── domain/       # Valore objects immutabili
 │   │   │   └── value_objects/
-│   │   │       ├── money.py            # ✅ [1.3] Value Object Money
-│   │   │       ├── percentage.py       # ✅ [1.4] Value Object Percentage
-│   │   │       └── price_target.py     # ✅ [1.5] Value Object PriceTarget
+│   │   │       ├── money.py            # ✅ [1.3] Value Object Money (36 tests)
+│   │   │       ├── percentage.py       # ✅ [1.4] Value Object Percentage (39 tests)
+│   │   │       └── price_target.py     # ✅ [1.5] Value Object PriceTarget (41 tests)
+│   │   ├── infra/        # Infrastruttura layer
+│   │   │   ├── config.py              # ✅ [1.6] Configuration Management (27 tests)
+│   │   │   ├── cache/
+│   │   │   ├── drive/
+│   │   │   ├── logging/
+│   │   │   ├── security/
+│   │   │   └── yahoo/
 │   │   ├── api/          # Schema e utility API
 │   │   ├── schemas/      # Modelli Pydantic condivisi
 │   │   │   └── api_response.py     # ✅ [1.2] Risposta API standardizzata
 │   │   └── services/     # Servizi condivisi
-│   ├── infra/            # Infrastruttura (database, cache, providers)
 │   └── main.py           # Entry point FastAPI
 ├── tests/                # Test
 │   ├── unit/             # Unit tests
 │   │   └── shared/
-│   │       └── domain/
-│   │           ├── test_money.py           # ✅ [1.3] 36 test passanti
-│   │           ├── test_percentage.py      # ✅ [1.4] 39 test passanti
-│   │           └── test_price_target.py    # ✅ [1.5] 41 test passanti
+│   │       ├── domain/
+│   │       │   ├── test_money.py           # ✅ 36 tests ✓
+│   │       │   ├── test_percentage.py      # ✅ 39 tests ✓
+│   │       │   └── test_price_target.py    # ✅ 41 tests ✓
+│   │       └── test_config.py              # ✅ 27 tests ✓
 │   ├── integration/      # Integration tests
 │   └── e2e/              # End-to-end tests
 ├── alembic/              # Migrazioni database
 ├── scripts/              # Script di utilità
+├── .env.example          # ✅ [1.6] Configuration template
+├── .gitignore            # ✅ [1.6] Git ignore configuration
 ├── pyproject.toml        # Configurazione Poetry e tools
 ├── requirements.txt      # Dipendenze production (pip)
 ├── requirements-dev.txt  # Dipendenze development (pip)
@@ -177,15 +186,18 @@ backend/
 
 ## Implementation Progress
 
-### Phase 1: Foundation & API Structure (5/8 task)
+### Phase 1: Foundation & API Structure (6/8 task - 75% ✨)
 
-| Task | Descrizione | Status | Tests |
-|------|-----------|--------|-------|
-| 1.1 | Setup Struttura Layer Backend | ✅ COMPLETATO | - |
-| 1.2 | Modello Risposta API Standard | ✅ COMPLETATO | - |
-| 1.3 | Value Object Money | ✅ COMPLETATO | 36 ✓ |
-| 1.4 | Value Object Percentage | ✅ COMPLETATO | 39 ✓ |
-| 1.5 | Value Object PriceTarget | ✅ COMPLETATO | 41 ✓ |
+| Task | Descrizione | Status | Tests | Implementation |
+|------|-----------|--------|-------|-----------------|
+| 1.1 | Setup Struttura Layer Backend | ✅ COMPLETATO | - | Directory structure |
+| 1.2 | Modello Risposta API Standard | ✅ COMPLETATO | - | `ApiResponse` schema |
+| 1.3 | Value Object Money | ✅ COMPLETATO | 36 ✓ | Decimal-safe operations |
+| 1.4 | Value Object Percentage | ✅ COMPLETATO | 39 ✓ | Basis points support |
+| 1.5 | Value Object PriceTarget | ✅ COMPLETATO | 41 ✓ | LONG/SHORT validation |
+| 1.6 | **Config Multi-Ambiente** | ✅ **COMPLETATO** | **27 ✓** | **Pydantic Settings + Secrets** |
+
+**Total Tests**: 143 passing ✅
 
 ## Documentazione API
 

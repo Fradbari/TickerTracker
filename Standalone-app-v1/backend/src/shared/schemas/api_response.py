@@ -37,6 +37,9 @@ def success_response(data: Any, trace_id: str) -> ApiResponse[Any]:
     """
     Creates a standardized successful API response.
     
+    Use this helper when an operation has completed successfully and you need to 
+    return data to the client.
+    
     Args:
         data: The payload to include in the response.
         trace_id: Unique identifier for the request.
@@ -59,6 +62,9 @@ def error_response(
 ) -> ApiResponse[None]:
     """
     Creates a standardized error API response.
+    
+    Use this helper when an operation has failed and you need to return 
+    error details to the client.
     
     Args:
         code: Machine-readable error code.

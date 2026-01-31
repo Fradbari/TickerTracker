@@ -1,0 +1,77 @@
+from typing import Generic, Optional, TypeVar, Any, Dict
+from pydantic import BaseModel, Field
+from uuid import UUID
+
+# Generic type for the data field
+T = TypeVar("T")
+
+class ApiError(BaseModel):
+    """
+    Standard API error schema.
+    
+    Attributes:
+        code (str): Internal error code for machine readability.
+        message (str): Human-readable error message.
+        details (Optional[Dict[str, Any]]): Additional error context.
+    """
+    code: str
+    message: str
+    details: Optional[Dict[str, Any]] = None
+
+class ApiResponse(BaseModel, Generic[T]):
+    """
+    Uniform API response model used by all endpoints.
+    
+    Attributes:
+        success (bool): Indicates if the operation was successful.
+        data (Optional[T]): The response payload.
+        error (Optional[ApiError]): Error details if success is False.
+        trace_id: Unique identifier for request tracing.
+    """
+    success: bool
+    data: Optional[T] = None
+    error: Optional[ApiError] = None
+    trace_id: str
+
+def success_response(data: Any, trace_id: str) -> ApiResponse[Any]:
+    """
+    Creates a standardized successful API response.
+    
+    Args:
+        data: The payload to include in the response.
+        trace_id: Unique identifier for the request.
+        
+    Returns:
+        ApiResponse: A success response instance.
+    """
+    return ApiResponse(
+        success=True,
+        data=data,
+        error=None,
+        trace_id=trace_id
+    )
+
+def error_response(
+    code: str, 
+    message: str, 
+    details: Optional[Dict[str, Any]] = None, 
+    trace_id: str = ""
+) -> ApiResponse[None]:
+    """
+    Creates a standardized error API response.
+    
+    Args:
+        code: Machine-readable error code.
+        message: Human-readable error description.
+        details: Optional dictionary with extra error info.
+        trace_id: Unique identifier for the request.
+        
+    Returns:
+        ApiResponse: An error response instance.
+    """
+    return ApiResponse(
+        success=False,
+        data=None,
+        error=ApiError(code=code, message=message, details=details),
+        trace_id=trace_id
+    )

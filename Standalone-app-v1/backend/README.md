@@ -150,7 +150,8 @@ backend/
 │   │   ├── domain/       # Valore objects immutabili
 │   │   │   └── value_objects/
 │   │   │       ├── money.py            # ✅ [1.3] Value Object Money
-│   │   │       └── percentage.py       # ✅ [1.4] Value Object Percentage
+│   │   │       ├── percentage.py       # ✅ [1.4] Value Object Percentage
+│   │   │       └── price_target.py     # ✅ [1.5] Value Object PriceTarget
 │   │   ├── api/          # Schema e utility API
 │   │   ├── schemas/      # Modelli Pydantic condivisi
 │   │   │   └── api_response.py     # ✅ [1.2] Risposta API standardizzata
@@ -161,8 +162,9 @@ backend/
 │   ├── unit/             # Unit tests
 │   │   └── shared/
 │   │       └── domain/
-│   │           ├── test_money.py       # ✅ [1.3] 36 test passanti
-│   │           └── test_percentage.py  # ✅ [1.4] 39 test passanti
+│   │           ├── test_money.py           # ✅ [1.3] 36 test passanti
+│   │           ├── test_percentage.py      # ✅ [1.4] 39 test passanti
+│   │           └── test_price_target.py    # ✅ [1.5] 41 test passanti
 │   ├── integration/      # Integration tests
 │   └── e2e/              # End-to-end tests
 ├── alembic/              # Migrazioni database
@@ -175,7 +177,7 @@ backend/
 
 ## Implementation Progress
 
-### Phase 1: Foundation & API Structure (4/8 task)
+### Phase 1: Foundation & API Structure (5/8 task)
 
 | Task | Descrizione | Status | Tests |
 |------|-----------|--------|-------|
@@ -183,6 +185,7 @@ backend/
 | 1.2 | Modello Risposta API Standard | ✅ COMPLETATO | - |
 | 1.3 | Value Object Money | ✅ COMPLETATO | 36 ✓ |
 | 1.4 | Value Object Percentage | ✅ COMPLETATO | 39 ✓ |
+| 1.5 | Value Object PriceTarget | ✅ COMPLETATO | 41 ✓ |
 
 ## Documentazione API
 

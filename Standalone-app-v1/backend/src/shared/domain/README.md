@@ -185,18 +185,127 @@ python -m pytest tests/unit/shared/domain/test_percentage.py -v
 
 ---
 
+### `PriceTarget` - Gestione Target e Stop Loss
+
+**File**: `value_objects/price_target.py`
+
+#### Descrizione
+`PriceTarget` è un value object immutabile che encapsula la relazione tra prezzo di entrata, stop loss e take profit per un trade. Implementa validazioni specifiche per direzione e fornisce metodi per calcolare il rapporto rischio/rendimento e verificare il hit dei target/stop.
+
+#### Caratteristiche Chiave
+
+- **Immutabile** (frozen dataclass)
+- **Validazione directional**: 
+  - LONG: `stop_loss < entry_price < take_profit`
+  - SHORT: `take_profit < entry_price < stop_loss`
+- **Currency consistency**: Tutte le price devono avere la stessa valuta
+- **Risk/Reward calculation**: Calcola automaticamente il rapporto
+- **Target/Stop detection**: Metodi per verificare se sono stati raggiunti
+- **Serializzazione round-trip**
+
+#### Utilizzo
+
+```python
+from decimal import Decimal
+from src.shared.domain.value_objects import Money, PriceTarget
+
+# LONG trade: entry 100, stop 90, take profit 120
+target_long = PriceTarget(
+    entry_price=Money(Decimal("100"), "USD"),
+    stop_loss=Money(Decimal("90"), "USD"),
+    take_profit=Money(Decimal("120"), "USD"),
+    direction="LONG"
+)
+
+# Calcola risk/reward (reward 20 / risk 10 = 2.0)
+ratio = target_long.risk_reward_ratio()  # Decimal("2")
+
+# Verifica target e stop
+current = Money(Decimal("115"), "USD")
+target_long.is_target_hit(current)  # False (< 120)
+target_long.is_stop_hit(current)    # False (> 90)
+
+# SHORT trade: entry 100, stop 110, take profit 80
+target_short = PriceTarget(
+    entry_price=Money(Decimal("100"), "USD"),
+    stop_loss=Money(Decimal("110"), "USD"),
+    take_profit=Money(Decimal("80"), "USD"),
+    direction="SHORT"
+)
+
+# Serializzazione
+data = target_long.to_dict()
+restored = PriceTarget.from_dict(data)
+```
+
+#### Validazioni
+
+```python
+# ✅ Valido LONG
+PriceTarget(
+    entry_price=Money(Decimal("100"), "USD"),
+    stop_loss=Money(Decimal("90"), "USD"),
+    take_profit=Money(Decimal("120"), "USD"),
+    direction="LONG"
+)
+
+# ❌ Invalido LONG (stop > entry)
+PriceTarget(
+    entry_price=Money(Decimal("100"), "USD"),
+    stop_loss=Money(Decimal("110"), "USD"),  # Invalid
+    take_profit=Money(Decimal("120"), "USD"),
+    direction="LONG"
+)
+
+# ❌ Valute mismatch
+PriceTarget(
+    entry_price=Money(Decimal("100"), "USD"),
+    stop_loss=Money(Decimal("90"), "EUR"),   # Different currency
+    take_profit=Money(Decimal("120"), "USD"),
+    direction="LONG"
+)
+```
+
+#### Test Coverage
+
+**41 test unitari** in `tests/unit/shared/domain/test_price_target.py`:
+
+- ✅ Costruzione e validazione LONG (4 test)
+- ✅ Costruzione e validazione SHORT (4 test)
+- ✅ Validazione cross-field (3 test)
+- ✅ Risk/reward ratio calculation (4 test)
+- ✅ Target hit detection (8 test)
+- ✅ Stop hit detection (8 test)
+- ✅ Serializzazione (6 test)
+- ✅ String representation (2 test)
+- ✅ Integration tests (2 test)
+
+Esegui i test:
+```bash
+python -m pytest tests/unit/shared/domain/test_price_target.py -v
+```
+
+#### Implementazione Accettata
+
+- ✅ Validazione solleva ValueError per configurazioni invalide
+- ✅ Risk/reward ratio calcolato correttamente per entrambe le direzioni
+- ✅ Metodi is_target_hit e is_stop_hit funzionano per LONG e SHORT
+- ✅ Test unitari coprono scenari validi e invalidi
+
+---
+
 ## Summary Test Coverage
 
-**75 test passanti totali** ✨:
+**116 test passanti totali** ✨:
 - Money: 36 test
 - Percentage: 39 test
+- PriceTarget: 41 test
 
 ## Estensioni Future
 
 ### Prossimi Value Objects (Planned)
 
 - `Price`: Prezzo di un asset con timestamp
-- `Percentage`: Percentuale con validazione 0-100
 - `Quantity`: Quantità di azioni (non negativa)
 - `TimeFrame`: Intervallo di tempo (1D, 1H, 5M, etc.)
 - `TradeStatus`: Enum per stati trade (PENDING, EXECUTED, CANCELLED)

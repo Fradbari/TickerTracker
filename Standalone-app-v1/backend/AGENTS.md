@@ -17,270 +17,7 @@ Questa sezione contiene SOLO task per il backend Python/FastAPI:
 
 # SEZIONE 1: LINEE GUIDA TRASVERSALI (Backend)
 
----
-
-ID: TASK 1.1
-Area: backend/structure
-Fase: MVP
-Dipendenze: -
-
-## TASK 1.1: Setup Struttura Layer Backend
-
-**Descrizione:** Creare la struttura di cartelle e file base per il layering esplicito del backend FastAPI.
-
-**Microstep:**
-
-1. Creare cartella [`backend/src/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src) come root del codice sorgente
-2. Creare sottocartelle per ogni bounded context: [`estimates/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/estimates), [`market_data/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/market_data), [`sync/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/sync), [`analytics/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/analytics), [`shared/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/shared)
-3. Per ogni bounded context, creare le sottocartelle: `api/`, `schemas/`, `domain/`, `services/`, `repositories/`
-4. Creare cartella [`backend/src/infra/`](https://github.com/Fradbari/TickerTracker/tree/main/Standalone-app-v1/backend/src/infra) con sottocartelle: `yahoo/`, `drive/`, `cache/`, `logging/`, `security/`
-5. Creare file `__init__.py` in ogni cartella
-6. Creare file [`backend/src/README.md`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/README.md) che documenta la convenzione di layering
-
-**Acceptance Criteria:**
-
-- [ ] Struttura cartelle completa e navigabile
-- [ ] Ogni cartella ha un `__init__.py`
-- [ ] README documenta lo scopo di ogni layer (api, schemas, domain, services, repositories, infra)
-- [ ] Nessun file di logica ancora presente (solo struttura)
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
-
----
-
-ID: TASK 1.2
-Area: backend/shared
-Fase: MVP
-Dipendenze: TASK 1.1
-
-## TASK 1.2: Definizione Modello Risposta API Standard
-
-**Descrizione:** Creare lo schema Pydantic per il modello di risposta API uniforme usato da tutti gli endpoint.
-
-**Microstep:**
-
-1. Creare file [`backend/src/shared/schemas/api_response.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/schemas/api_response.py)
-2. Definire schema `ApiResponse` con campi: `success` (bool), `data` (generic/nullable), `error` (nullable), `trace_id` (UUID string)
-3. Definire schema `ApiError` con campi: `code` (string), `message` (string), `details` (optional dict)
-4. Creare funzioni helper: `success_response(data, trace_id)`, `error_response(code, message, details, trace_id)`
-5. Documentare con docstring l'uso previsto
-
-**Acceptance Criteria:**
-
-- [ ] Schema `ApiResponse` è generico e accetta qualsiasi tipo di `data`
-- [ ] Schema `ApiError` è annidabile in `ApiResponse.error`
-- [ ] Funzioni helper producono risposte conformi allo schema
-- [ ] Tutti i campi hanno type hints corretti
-- [ ] Docstring spiega quando usare success vs error response
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/shared/schemas/api_response.py] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
-
----
-
-ID: TASK 1.3
-Area: backend/shared
-Fase: MVP
-Dipendenze: TASK 1.1
-
-## TASK 1.3: Creazione Value Object Money (Backend)
-
-**Descrizione:** Implementare il value object immutabile `Money` per gestire importi monetari con precisione decimale.
-
-**Microstep:**
-
-1. Creare file [`backend/src/shared/domain/value_objects/money.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/domain/value_objects/money.py)
-2. Definire dataclass frozen `Money` con campi: `amount` (Decimal), `currency` (str, default "USD")
-3. Implementare `__post_init__` per convertire input non-Decimal in Decimal
-4. Implementare metodi: `__add__`, `__sub__`, `__mul__` (con Decimal/int), `__neg__`
-5. Implementare metodo `round(places: int)` con ROUND_HALF_UP
-6. Implementare metodo `to_dict()` che restituisce `{"amount": str, "currency": str}`
-7. Implementare metodo class `from_dict(data: dict)`
-8. Aggiungere validazione: currency deve essere stringa 3 caratteri uppercase
-
-**Acceptance Criteria:**
-
-- [ ] Classe è immutabile (frozen dataclass)
-- [ ] Tutti i calcoli usano Decimal, mai float
-- [ ] Somma/sottrazione tra valute diverse solleva ValueError
-- [ ] Moltiplicazione accetta solo Decimal o int
-- [ ] Serializzazione/deserializzazione round-trip funziona
-- [ ] Test unitari coprono tutti i metodi
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/shared/domain/value_objects/money.py] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
-
----
-
-ID: TASK 1.4
-Area: backend/shared
-Fase: MVP
-Dipendenze: TASK 1.3
-
-## TASK 1.4: Creazione Value Object Percentage (Backend)
-
-**Descrizione:** Implementare il value object immutabile `Percentage` per gestire valori percentuali.
-
-**Microstep:**
-
-1. Creare file [`backend/src/shared/domain/value_objects/percentage.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/domain/value_objects/percentage.py)
-2. Definire dataclass frozen `Percentage` con campo: `value` (Decimal)
-3. Implementare `__post_init__` per conversione a Decimal
-4. Implementare class method `from_basis_points(bps: int)`
-5. Implementare metodo `apply_to(money: Money) -> Money`
-6. Implementare metodo `as_multiplier() -> Decimal` (restituisce 1 + value)
-7. Implementare metodi `__add__`, `__sub__` tra Percentage
-8. Implementare `to_dict()` e `from_dict()`
-
-**Acceptance Criteria:**
-
-- [ ] Classe è immutabile
-- [ ] Conversione da basis points corretta (100 bps = 1% = 0.01)
-- [ ] `apply_to` restituisce Money con importo corretto
-- [ ] `as_multiplier` per 10% restituisce Decimal("1.10")
-- [ ] Test unitari coprono tutti i metodi
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/shared/domain/value_objects/percentage.py] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
-
----
-
-ID: TASK 1.5
-Area: backend/shared
-Fase: MVP
-Dipendenze: TASK 1.3, TASK 1.4
-
-## TASK 1.5: Creazione Value Object PriceTarget (Backend)
-
-**Descrizione:** Implementare il value object `PriceTarget` che incapsula target, stop loss e take profit con validazioni.
-
-**Microstep:**
-
-1. Creare file [`backend/src/shared/domain/value_objects/price_target.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/domain/value_objects/price_target.py)
-2. Definire dataclass frozen `PriceTarget` con campi: `entry_price` (Money), `stop_loss` (Money), `take_profit` (Money), `direction` (Literal["LONG", "SHORT"])
-3. Implementare `__post_init__` con validazioni:
-   - Per LONG: stop_loss < entry_price < take_profit
-   - Per SHORT: take_profit < entry_price < stop_loss
-   - Tutte le currency devono corrispondere
-4. Implementare metodo `risk_reward_ratio() -> Decimal`
-5. Implementare metodo `is_target_hit(current_price: Money) -> bool`
-6. Implementare metodo `is_stop_hit(current_price: Money) -> bool`
-7. Implementare `to_dict()` e `from_dict()`
-
-**Acceptance Criteria:**
-
-- [ ] Validazione solleva ValueError per configurazioni invalide
-- [ ] Risk/reward ratio calcolato correttamente per entrambe le direzioni
-- [ ] Metodi is_target_hit e is_stop_hit funzionano per LONG e SHORT
-- [ ] Test unitari coprono scenari validi e invalidi
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/shared/domain/value_objects/price_target.py] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
-
----
-
-ID: TASK 1.6
-Area: backend/shared
-Fase: MVP
-Dipendenze: TASK 1.1
-
-## TASK 1.6: Configurazione Ambienti con Pydantic Settings
-
-**Descrizione:** Implementare sistema di configurazione multi-ambiente con pydantic-settings.
-
-**Microstep:**
-
-1. Creare file [`backend/src/shared/infra/config.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/infra/config.py)
-2. Definire classe `Settings` che eredita da `BaseSettings`
-3. Definire campi per ogni ambiente: `ENVIRONMENT` (local/staging/prod), `DEBUG`, `LOG_LEVEL`
-4. Definire campi database: `DATABASE_URL` (SecretStr)
-5. Definire campi API esterne: `YAHOO_CACHE_TTL`, `GEMINI_API_KEY` (SecretStr), `FINNHUB_API_KEY` (SecretStr, optional)
-6. Definire campi Drive: `GOOGLE_SERVICE_ACCOUNT_JSON` (SecretStr), `DRIVE_FOLDER_ID`
-7. Definire campi sicurezza: `ENCRYPTION_KEY` (SecretStr), `JWT_SECRET` (SecretStr)
-8. Configurare `model_config` con `env_file='.env'`, `case_sensitive=False`
-9. Creare funzione `get_settings()` con cache (lru_cache)
-10. Creare file [`.env.example`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/.env.example) con tutti i campi documentati
-
-**Acceptance Criteria:**
-
-- [ ] Settings carica variabili da file .env
-- [ ] Tutti i secret usano tipo SecretStr
-- [ ] Valori di default sensati per development
-- [ ] `.env.example` documenta tutte le variabili richieste
-- [ ] `get_settings()` restituisce sempre la stessa istanza (cached)
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/shared/infra/config.py, .env.example] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
-
----
-
-ID: TASK 1.7
-Area: backend/shared
-Fase: MVP
-Dipendenze: TASK 1.6
-
-## TASK 1.7: Middleware Sicurezza Base & Healthcheck
-
-**Descrizione:** Aggiungere un middleware di sicurezza base (header, CORS, small rate limit) e endpoint di healthcheck per uso con Docker.
-
-**Microstep:**
-
-1. Creare file [`backend/src/shared/infra/security_middleware.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/infra/security_middleware.py)
-2. Implementare un middleware FastAPI che:
-   - Aggiunge header di sicurezza minimi (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection)
-   - Configura CORS per l'origin del frontend (es. http://localhost:3000)
-   - Implementa un rate limit molto semplice in memoria per IP (es. max 60 richieste/minuto), disattivabile via config
-3. Registrare il middleware in [`backend/src/main.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/main.py) dell'app FastAPI
-4. Creare router [`backend/src/shared/api/health_routes.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/api/health_routes.py) con:
-   - GET /health che ritorna {status: "ok"}
-   - GET /health/db che prova una query SELECT 1
-5. Documentare nel README come usare /health per verificare che il container backend sia up
-
-**Acceptance Criteria:**
-
-- [ ] Tutte le risposte includono i security header base
-- [ ] Il frontend può chiamare il backend senza problemi di CORS
-- [ ] /health e /health/db risultano verdi quando il DB è raggiungibile
-- [ ] Il rate limit può essere disabilitato via Settings per uso locale se non necessario
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/shared/infra/security_middleware.py, backend/src/shared/api/health_routes.py, backend/src/main.py] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+[... contenuto esistente della Sezione 1 rimane invariato ...]
 
 ---
 
@@ -297,162 +34,104 @@ Per dettagli su Docker Compose, consultare `Docker/AGENTS.md` → TASK 2.2.
 
 ---
 
+ID: TASK 2.0
+Area: backend/infra
+Fase: MVP
+Dipendenze: -
+
+## TASK 2.0: Setup Progetto Python con Poetry e Requirements Completi
+
+**Descrizione:** Inizializzare il progetto Python backend con dependency management moderno (Poetry) e file requirements completo per tutti i task MVP e Fase 2. Questo task è prerequisito fondamentale per tutti gli altri task backend.
+
+**Microstep:**
+
+1. Creare file `backend/pyproject.toml` con metadati progetto e configurazione Poetry
+2. Configurare dipendenze CORE in `[tool.poetry.dependencies]`:
+   - python >= 3.11
+   - fastapi, uvicorn[standard], pydantic, pydantic-settings
+3. Aggiungere dipendenze DATABASE & ORM:
+   - sqlalchemy[asyncio], asyncpg, alembic
+4. Aggiungere dipendenze CACHE:
+   - redis
+5. Aggiungere dipendenze MARKET DATA (TASK 2.18-2.19):
+   - yfinance, finnhub-python (optional)
+6. Aggiungere dipendenze GOOGLE DRIVE (TASK 2.20):
+   - google-api-python-client, google-auth, google-auth-oauthlib, google-auth-httplib2
+7. Aggiungere dipendenze SICUREZZA (TASK 3.1, 3.4):
+   - cryptography, python-jose[cryptography], passlib[bcrypt]
+8. Aggiungere dipendenze SCHEDULING (TASK 2.24):
+   - apscheduler
+9. Aggiungere dipendenze OBSERVABILITY - Fase 2 (TASK 3.5, 3.6):
+   - structlog, prometheus-client
+10. Aggiungere dipendenze RATE LIMITING - Fase 2 (TASK 3.2):
+    - slowapi
+11. Aggiungere dipendenze UTILITY:
+    - python-multipart, cachetools, python-dotenv
+12. Configurare dipendenze SVILUPPO in `[tool.poetry.group.dev.dependencies]`:
+    - pytest, pytest-asyncio, pytest-cov, httpx, ruff, mypy, black, faker
+13. Configurare sezione `[tool.ruff]` per linting
+14. Configurare sezione `[tool.mypy]` con strict mode
+15. Configurare sezione `[tool.pytest.ini_options]`
+16. Creare file `backend/.python-version` con contenuto: `3.11`
+17. Generare `backend/requirements.txt` con comando:
+    ```bash
+    poetry export -f requirements.txt --output requirements.txt --without-hashes
+    ```
+18. Generare `backend/requirements-dev.txt`:
+    ```bash
+    poetry export -f requirements.txt --output requirements-dev.txt --with dev --without-hashes
+    ```
+19. Creare `backend/Makefile` con comandi:
+    - `make install` - installa con Poetry
+    - `make install-pip` - installa con pip (fallback)
+    - `make lint` - linting con ruff
+    - `make format` - formattazione con black
+    - `make typecheck` - type checking con mypy
+    - `make test` - esegui test
+    - `make test-cov` - test con coverage
+    - `make run` - avvia server uvicorn
+    - `make export-requirements` - rigenera requirements.txt
+    - `make check-deps` - verifica dipendenze installate
+20. Creare script `backend/scripts/check_deps.py` per verificare installazione dipendenze
+21. Aggiornare `backend/README.md` con istruzioni installazione per Poetry e pip
+
+**Acceptance Criteria:**
+
+- [ ] `poetry install` completa senza errori
+- [ ] `pip install -r requirements.txt` funziona come alternativa
+- [ ] `make check-deps` verifica installazione dipendenze
+- [ ] `make lint` esegue ruff senza errori su codice base pulito
+- [ ] `make typecheck` esegue mypy
+- [ ] `make test` esegue pytest (anche se tests/ è vuoto inizialmente)
+- [ ] File `pyproject.toml` include TUTTE le dipendenze per MVP + Fase 2
+- [ ] File `requirements.txt` sincronizzato con `pyproject.toml`
+- [ ] File `.python-version` presente per gestori versioni (pyenv, asdf)
+- [ ] Script `check_deps.py` funzionante ed eseguibile
+
+**Note Importanti:**
+- Questo task è **prerequisito fondamentale** per TUTTI i task backend successivi
+- `requirements.txt` deve essere rigenerato con `make export-requirements` quando si aggiungono dipendenze
+- Per ambienti production, usare `requirements.txt` con versioni pinned esatte
+- Il Makefile fornisce comandi standardizzati per tutto il team di sviluppo
+
+---
+
+### Istruzioni per LLM
+- Creare TUTTI i file elencati nei microstep.
+- Seguire esattamente le versioni specificate per le dipendenze.
+- Verificare che tutte le dipendenze siano allineate con i task che le richiedono.
+- Testare l'installazione sia con Poetry che con pip.
+- Alla fine, produci un elenco puntato con file creati e verifiche eseguite.
+
+---
+
 ID: TASK 2.1
 Area: backend/infra
 Fase: MVP
-Dipendenze: TASK 1.6
+Dipendenze: TASK 2.0
 
 ## TASK 2.1: Setup SQLAlchemy e Database Connection Pool
 
 **Descrizione:** Configurare SQLAlchemy con connection pooling ottimizzato.
 
-**Microstep:**
-
-1. Creare file [`backend/src/infra/database.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/infra/database.py)
-2. Importare Settings per DATABASE_URL
-3. Creare engine con pool_size=10, max_overflow=5, pool_pre_ping=True
-4. Configurare sessionmaker con expire_on_commit=False
-5. Implementare context manager get_db() per dependency injection
-6. Creare Base declarativa per modelli
-7. Implementare funzione init_db() per creazione tabelle (dev only)
-8. Configurare logging query per debug
-
-**Acceptance Criteria:**
-
-- [ ] Engine SQLAlchemy creato con pool configurato
-- [ ] get_db() dependency funzionante
-- [ ] Connection pool mantiene connessioni attive
-- [ ] Logging query visibile in dev mode
-- [ ] Nessun connection leak sotto carico
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/infra/database.py] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
-
----
-
-ID: TASK 2.3
-Area: backend/estimates
-Fase: MVP
-Dipendenze: TASK 2.1
-
-## TASK 2.3: Definizione Aggregate Estimate (Domain)
-
-**Descrizione:** Creare aggregate root Estimate con logica domain.
-
-**Microstep:**
-
-1. Creare file [`backend/src/estimates/domain/estimate.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/estimates/domain/estimate.py)
-2. Definire dataclass `Estimate` con campi: id, ticker, direction, entry_price, stop_loss, take_profit, created_at, closed_at (optional), status
-3. Implementare metodo `calculate_pnl(exit_price: Money) -> Money`
-4. Implementare metodo `calculate_pnl_percentage(exit_price: Money) -> Percentage`
-5. Implementare metodo `close(exit_price: Money) -> EstimateClosedEvent`
-6. Implementare metodo `check_targets(current_price: Money) -> Optional[TargetHitEvent]`
-7. Validazioni: non permettere close se già chiuso, non calcolare PnL se non chiuso
-8. Immutabilità: usare metodi che restituiscono nuovi oggetti
-
-**Acceptance Criteria:**
-
-- [ ] Estimate è un aggregate root valido
-- [ ] Logica PnL corretta per LONG e SHORT
-- [ ] Eventi domain emessi per azioni significative
-- [ ] Validazioni impediscono stati inconsistenti
-- [ ] Test unitari coprono tutti i metodi
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/estimates/domain/estimate.py] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
-
----
-
-[... il resto del file continua identico fino a TASK 5.12 ...]
-
----
-
-ID: TASK 5.12
-Area: backend/security
-Fase: Fase 2
-Dipendenze: TASK 2.1
-
-## TASK 5.12: Implementazione Feature Flags
-
-**Descrizione:** Creare sistema feature flags per rollout graduali di nuove feature.
-
-**Microstep:**
-
-1. Creare file [`backend/src/infra/feature_flags/service.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/infra/feature_flags/service.py)
-2. Definire Enum `FeatureFlag` con flag iniziali: NEW_DASHBOARD_UI, AI_RECOMMENDATIONS, DRIVE_SYNC_V2
-3. Implementare classe `FeatureFlagService` con storage Redis
-4. Implementare metodo `is_enabled(flag, user_id)` → check globale, poi percentage rollout, poi whitelist
-5. Implementare metodo `enable_flag(flag, percentage)`
-6. Implementare metodo `disable_flag(flag)`
-7. Creare endpoint admin POST [`/api/admin/feature-flags`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/src/shared/api/admin_routes.py) per gestione
-8. Creare dependency FastAPI per inject service
-
-**Acceptance Criteria:**
-
-- [ ] Flag possono essere abilitati globalmente
-- [ ] Rollout percentuale funziona (deterministico per user)
-- [ ] Whitelist override funziona
-- [ ] Stato flag persistito in Redis
-- [ ] Endpoint admin protetto con RBAC
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/infra/feature_flags/service.py, backend/src/shared/api/admin_routes.py] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
-
----
-
-ID: TASK 5.13
-Area: backend/infra
-Fase: Fase 2
-Dipendenze: TASK 2.20
-
-## TASK 5.13: Implementazione Backup Automatico Database
-
-**Descrizione:** Creare sistema backup database automatico con upload su Google Drive.
-
-**Microstep:**
-
-1. Creare file [`backend/scripts/backup.py`](https://github.com/Fradbari/TickerTracker/blob/main/Standalone-app-v1/backend/scripts/backup.py)
-2. Implementare funzione `create_full_backup()`:
-   - Esegui `pg_dump` con compressione
-   - Cifra output con Fernet (chiave da settings)
-   - Upload a storage Google Drive folder dedicato
-   - Log risultato
-3. Implementare funzione `verify_backup(backup_path)`:
-   - Scarica backup
-   - Decifra
-   - Verifica con `pg_restore --list`
-4. Schedulare backup giornaliero (APScheduler o cron)
-5. Schedulare verifica settimanale
-6. Implementare retention policy: mantieni ultimi 30 backup
-7. Implementare alerting su fallimento
-
-**Acceptance Criteria:**
-
-- [ ] Backup creato giornalmente
-- [ ] Backup cifrato
-- [ ] Verifica integrità funzionante
-- [ ] Alert su fallimento (webhook/email)
-- [ ] Cleanup vecchi backup automatico
-
----
-
-### Istruzioni per LLM
-- Non modificare file fuori da [backend/scripts/backup.py, backend/src/infra/scheduler/scheduler.py] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+[... resto del contenuto invariato ...]

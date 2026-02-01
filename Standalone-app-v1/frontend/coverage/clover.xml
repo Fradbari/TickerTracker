@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1769948065042" clover="3.2.0">
-  <project timestamp="1769948065042" name="All files">
+<coverage generated="1769955636458" clover="3.2.0">
+  <project timestamp="1769955636458" name="All files">
     <metrics statements="720" coveredstatements="663" conditionals="59" coveredconditionals="52" methods="28" coveredmethods="26" elements="807" coveredelements="741" complexity="0" loc="720" ncloc="720" packages="1" files="4" classes="4"/>
-    <file name="decimal.ts" path="C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\frontend\src\shared\utils\decimal.ts">
+    <file name="decimal.ts" path="/app/Standalone-app-v1/frontend/src/shared/utils/decimal.ts">
       <metrics statements="311" coveredstatements="311" conditionals="27" coveredconditionals="26" methods="14" coveredmethods="14"/>
       <line num="1" count="1" type="stmt"/>
       <line num="2" count="1" type="stmt"/>
@@ -316,7 +316,7 @@
       <line num="310" count="6" type="stmt"/>
       <line num="311" count="6" type="stmt"/>
     </file>
-    <file name="financial.ts" path="C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\frontend\src\shared\utils\financial.ts">
+    <file name="financial.ts" path="/app/Standalone-app-v1/frontend/src/shared/utils/financial.ts">
       <metrics statements="44" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
       <line num="1" count="0" type="cond" truecount="0" falsecount="1"/>
       <line num="2" count="0" type="stmt"/>
@@ -363,7 +363,7 @@
       <line num="43" count="0" type="stmt"/>
       <line num="44" count="0" type="stmt"/>
     </file>
-    <file name="index.ts" path="C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\frontend\src\shared\utils\index.ts">
+    <file name="index.ts" path="/app/Standalone-app-v1/frontend/src/shared/utils/index.ts">
       <metrics statements="7" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
       <line num="1" count="0" type="cond" truecount="0" falsecount="1"/>
       <line num="2" count="0" type="stmt"/>
@@ -373,7 +373,7 @@
       <line num="6" count="0" type="stmt"/>
       <line num="7" count="0" type="stmt"/>
     </file>
-    <file name="percentage.ts" path="C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\frontend\src\shared\utils\percentage.ts">
+    <file name="percentage.ts" path="/app/Standalone-app-v1/frontend/src/shared/utils/percentage.ts">
       <metrics statements="358" coveredstatements="352" conditionals="30" coveredconditionals="26" methods="12" coveredmethods="12"/>
       <line num="1" count="1" type="stmt"/>
       <line num="2" count="1" type="stmt"/>

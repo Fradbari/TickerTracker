@@ -18,7 +18,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """
     Application settings with multi-environment support.
-    
+
     Configuration priority (highest to lowest):
     1. Environment variables
     2. .env file
@@ -109,13 +109,13 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """
     Get cached application settings.
-    
+
     Uses functools.lru_cache to ensure only one Settings instance exists,
     reducing I/O operations and environment variable parsing overhead.
-    
+
     Returns:
         Settings: Singleton Settings instance
-        
+
     Example:
         >>> settings = get_settings()
         >>> print(settings.ENVIRONMENT)

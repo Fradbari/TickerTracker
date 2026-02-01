@@ -8,7 +8,7 @@ Configures:
 - All bounded context routers
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from src.shared.api import health_routes
@@ -40,7 +40,7 @@ app.include_router(health_routes.router)
 
 
 @app.get("/", tags=["root"])
-async def root():
+async def root() -> dict[str, str]:
     """Root endpoint - API status."""
     return {
         "status": "running",
@@ -53,11 +53,11 @@ async def root():
 
 
 @app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Global exception handler for unhandled exceptions."""
     if settings.DEBUG:
         raise exc
-    
+
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},
@@ -66,7 +66,7 @@ async def global_exception_handler(request, exc):
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

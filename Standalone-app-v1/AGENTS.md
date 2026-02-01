@@ -44,15 +44,15 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 ### MVP - Ambiente Locale Single-User (46 task)
 
-### Sezione 1: Setup & Fondamenta (6/8)
+### Sezione 1: Setup & Fondamenta (8/8)
 - [x] **TASK 1.1** - Setup Struttura Layer Backend
 - [x] **TASK 1.2** - Definizione Modello Risposta API Standard
 - [x] **TASK 1.3** - Creazione Value Object Money Backend
 - [x] **TASK 1.4** - Creazione Value Object Percentage Backend
 - [x] **TASK 1.5** - Creazione Value Object PriceTarget Backend
 - [x] **TASK 1.6** - Configurazione Ambienti con Pydantic Settings
-- [ ] **TASK 1.7** - Middleware Sicurezza Base & Healthcheck
-- [ ] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
+- [x] **TASK 1.7** - Middleware Sicurezza Base & Healthcheck
+- [x] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
 
 #### Sezione 2: Backend Core & Data (0/20)
 - [ ] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
@@ -153,9 +153,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 | Categoria | Completati | Totali | Percentuale |
 |-----------|------------|--------|-------------|
-| **MVP** | 6 | 46 | 13% |
+| **MVP** | 8 | 46 | 17% |
 | **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **6** | **65** | 9% |
+| **TOTALE** | **8** | **65** | 12% |
 
 ---
 

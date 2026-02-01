@@ -28,41 +28,136 @@ Questa sezione contiene SOLO task per il frontend React/TypeScript:
 
 ---
 
-ID: TASK 1.8
-Area: frontend/shared
-Fase: MVP
-Dipendenze: TASK 1.1
-
 ## TASK 1.8: Setup Wrapper TypeScript per Decimali (Frontend)
 
-**Descrizione:** Creare wrapper TypeScript per gestione decimale precisa nel frontend usando decimal.js.
+**Descrizione:** Creare wrapper TypeScript per gestione decimale precisa nel frontend usando decimal.js, garantendo coerenza con i Value Objects backend (Money, Percentage) e prevenendo bug di arrotondamento IEEE 754 (es. `0.1 + 0.2 ≠ 0.3` in JavaScript nativo).
 
 **Microstep:**
 
-1. Installare dipendenza `decimal.js` nel progetto frontend
-2. Creare file [`frontend/src/shared/utils/decimal.ts`](../src/shared/utils/decimal.ts)
-3. Definire classe/type `MoneyValue` con proprietà: `amount` (Decimal), `currency` (string)
-4. Implementare funzioni factory: `createMoney(amount: string | number, currency?: string)`
-5. Implementare funzioni di calcolo: `add`, `subtract`, `multiply`, `divide` per MoneyValue
-6. Implementare funzione `formatMoney(money: MoneyValue, locale?: string) -> string`
-7. Implementare parsing: `parseMoney(formattedString: string) -> MoneyValue`
-8. Creare test unitari per tutti i metodi
+1. **Installare dipendenze decimal.js**
+   - Eseguire: `npm install decimal.js`
+   - Eseguire: `npm install --save-dev @types/decimal.js`
+   - Verificare che `decimal.js` sia in `dependencies` e `@types/decimal.js` in `devDependencies` del `package.json`
+
+2. **Creare file [`frontend/src/shared/utils/decimal.ts`](../src/shared/utils/decimal.ts)**
+   - Definire interface `MoneyValue` con campi: `amount: Decimal`, `currency: string`
+
+3. **Implementare funzione `createMoney(amount: string | number | Decimal, currency?: string): MoneyValue`**
+   - Default `currency = "USD"`
+   - Validare che `currency` sia esattamente 3 caratteri uppercase (ISO 4217), altrimenti lanciare errore
+   - Convertire `amount` in `Decimal` usando costruttore `new Decimal(amount)`
+
+4. **Implementare funzione `addMoney(a: MoneyValue, b: MoneyValue): MoneyValue`**
+   - Verificare che `a.currency === b.currency`, altrimenti lanciare errore con messaggio `"Cannot add {currency1} to {currency2}. Convert currencies first!"`
+   - Ritornare nuovo `MoneyValue` con `amount` sommato usando `a.amount.plus(b.amount)`
+
+5. **Implementare analogamente: `subtractMoney`, `multiplyMoney`, `divideMoney`**
+   - `multiplyMoney` e `divideMoney` accettano secondo parametro `factor: string | number | Decimal`
+   - `divideMoney` deve verificare che `divisor` non sia zero
+
+6. **Implementare funzione `roundMoney(money: MoneyValue, decimalPlaces: number = 2): MoneyValue`**
+   - Usare `money.amount.toDecimalPlaces(decimalPlaces, Decimal.ROUND_HALF_UP)` per arrotondamento bancario
+
+7. **Implementare funzione `formatMoney(money: MoneyValue, locale?: string): string`**
+   - Usare `Intl.NumberFormat` con `style: "currency"`, `currency: money.currency`
+   - Default `locale = navigator.language || "en-US"`
+
+8. **Implementare funzioni serializzazione: `moneyToJSON(money: MoneyValue)` → `{amount: string, currency: string}` e `moneyFromJSON(data)` → `MoneyValue`**
+   - `amount` deve essere salvato come stringa per evitare perdita precisione
+
+9. **Implementare funzioni comparazione: `compareMoney`, `isPositiveMoney`, `isNegativeMoney`, `isZeroMoney`**
+
+10. **Creare file [`frontend/src/shared/utils/percentage.ts`](../src/shared/utils/percentage.ts)**
+    - Definire interface `PercentageValue` con campo: `value: Decimal` (in formato decimale: `0.10 = 10%`)
+
+11. **Implementare funzione `createPercentage(percent: string | number | Decimal): PercentageValue`**
+    - Dividere input per 100: `new Decimal(percent).dividedBy(100)`
+
+12. **Implementare funzione `createPercentageFromBasisPoints(bps: number): PercentageValue`**
+    - Dividere per 10000: `100 bps = 1% = 0.01`
+
+13. **Implementare funzione `createPercentageFromDecimal(value: string | number | Decimal): PercentageValue`**
+    - Per input già in formato decimale (`0.10`)
+
+14. **Implementare funzione `applyPercentage(percentage: PercentageValue, money: MoneyValue): MoneyValue`**
+    - Usare `multiplyMoney(money, percentage.value)` da `decimal.ts`
+
+15. **Implementare funzione `asMultiplier(percentage: PercentageValue): Decimal`**
+    - Ritornare `new Decimal(1).plus(percentage.value)` per calcoli tipo "prezzo + 10%"
+
+16. **Implementare funzioni: `addPercentage`, `subtractPercentage`, `formatPercentage(percentage, decimalPlaces = 2)`**
+
+17. **Implementare serializzazione: `percentageToJSON` e `percentageFromJSON`**
+
+18. **Creare barrel export [`frontend/src/shared/utils/financial.ts`](../src/shared/utils/financial.ts)**
+    - Re-esportare tutti i tipi e funzioni da `decimal.ts` e `percentage.ts`
+    - Aggiungere commento JSDoc che specifica questo come unico entry point per import nei componenti
+
+19. **Configurare path alias in [`tsconfig.json`](../tsconfig.json)**
+    - Aggiungere in `compilerOptions.paths`: `"@/*": ["src/*"]`, `"@/shared/*": ["src/shared/*"]`
+    - Verificare che import tipo `import { createMoney } from '@/shared/utils/financial'` funzioni
+
+20. **Creare test unitari [`frontend/src/shared/utils/__tests__/decimal.test.ts`](../src/shared/utils/__tests__/decimal.test.ts)**
+    - Test per `createMoney`: verifica creazione corretta, errore su currency invalida
+    - Test per `addMoney`: verifica somma corretta, errore su valute diverse
+    - **Test critico JavaScript bug**: `addMoney(createMoney("0.1"), createMoney("0.2"))` deve dare esattamente `"0.3"`
+    - Test per `formatMoney`: verifica locale `"en-US"` produce `"$1,234.56"` e `"it-IT"` produce `"1.234,56 €"`
+    - Test per `roundMoney`: verifica arrotondamento con `ROUND_HALF_UP` (es. `123.456 → 123.46`)
+    - Test per operazioni su valute diverse: verificare che lancino errori espliciti
+
+21. **Creare test unitari [`frontend/src/shared/utils/__tests__/percentage.test.ts`](../src/shared/utils/__tests__/percentage.test.ts)**
+    - Test per `createPercentage(10)` produce `value: 0.1`
+    - Test per `createPercentageFromBasisPoints(100)` produce `value: 0.01`
+    - Test per `applyPercentage`: `10%` di `$100` = `$10`
+    - Test per `asMultiplier`: `10%` diventa moltiplicatore `1.10`
+    - Test per `formatPercentage`: `10.5678%` formattato con 2 decimali = `"10.57%"`
+
+22. **Configurare test runner in [`package.json`](../package.json)**
+    - Aggiungere script: `"test": "vitest"`, `"test:coverage": "vitest --coverage"`
+    - Aggiungere devDependencies: `vitest`, `@vitest/ui`, `@vitest/coverage-v8`
+    - Verificare che `npm run test` esegua tutti i test senza errori
+    - Verificare coverage ≥ 80% con `npm run test:coverage`
+
+23. **Documentare nel [`frontend/README.md`](../README.md)**
+    - Aggiungere sezione "💰 **Calcoli Finanziari (OBBLIGATORIO)**"
+    - Includere esempio corretto (✅): uso di `createMoney` con stringhe
+    - Includere esempio vietato (❌): calcoli con `number` nativo
+    - Includere tabella mapping Backend Python ⟷ Frontend TypeScript per coerenza API
 
 **Acceptance Criteria:**
 
-- [ ] Tutti i calcoli monetari usano Decimal internamente
-- [ ] Formatting locale-aware funzionante (es. $1,234.56 vs 1.234,56 €)
-- [ ] Parsing robusto a vari formati input
-- [ ] Test unitari coprono edge cases
-- [ ] Nessun uso di number nativi per calcoli finanziari
+- [ ] `decimal.js` installato e presente in `package.json`
+- [ ] File `decimal.ts` creato con tutti i tipi e funzioni richiesti
+- [ ] File `percentage.ts` creato con tutti i tipi e funzioni richiesti
+- [ ] File `financial.ts` barrel export creato
+- [ ] Validazione `currency` verifica 3 caratteri uppercase (ISO 4217)
+- [ ] Operazioni tra valute diverse lanciano errore esplicito con messaggio chiaro
+- [ ] Arrotondamento usa `Decimal.ROUND_HALF_UP` (coerente con backend Python `money.py`)
+- [ ] Formattazione `formatMoney` rispetta locale (separatori migliaia, simbolo valuta)
+- [ ] Serializzazione JSON produce `{amount: string, currency: string}` (coerente con backend `Money.to_dict()`)
+- [ ] Path alias `@/shared/utils/financial` configurato e funzionante
+- [ ] Test unitari coprono tutti i metodi principali
+- [ ] Test verifica precisione: `0.1 + 0.2 = 0.3` esatto (non `0.30000000000000004`)
+- [ ] Test verifica errori su valute diverse e divisione per zero
+- [ ] Coverage test ≥ 80%
+- [ ] `npm run build` completa senza errori TypeScript
+- [ ] README aggiornato con sezione calcoli finanziari
+- [ ] Nessun uso di `number` nativo per calcoli monetari nel codice prodotto
 
 ---
 
 ### Istruzioni per LLM
-- Non modificare file fuori da [frontend/src/shared/utils/decimal.ts, frontend/src/shared/finance/decimalMoney.ts] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
+
+- **Non modificare file fuori da** [`frontend/src/shared/utils/decimal.ts`](../src/shared/utils/decimal.ts), [`frontend/src/shared/utils/percentage.ts`](../src/shared/utils/percentage.ts), [`frontend/src/shared/utils/financial.ts`](../src/shared/utils/financial.ts), [`frontend/src/shared/utils/__tests__/`](../src/shared/utils/__tests__), [`frontend/package.json`](../package.json), [`frontend/tsconfig.json`](../tsconfig.json), [`frontend/README.md`](../README.md) **se non strettamente necessario**.
+- Segui i microstep in ordine sequenziale e **non introdurre pattern/tecnologie non menzionati** (es. non usare librerie diverse da `decimal.js`).
+- **Validazione `currency`** deve essere identica al backend: verifica che sia esattamente 3 caratteri uppercase, lancia errore con messaggio esplicito se non rispetta formato ISO 4217.
+- **Arrotondamento** deve usare `Decimal.ROUND_HALF_UP` per garantire coerenza con backend Python che usa `ROUND_HALF_UP` in `money.py`.
+- **Serializzazione JSON** deve produrre oggetto con `amount` come stringa (non `number`) per evitare perdita precisione durante trasporto HTTP.
+- **Operazioni tra valute diverse** devono sempre lanciare errore con messaggio tipo `"Cannot {operation} {currency1} {with/from/to} {currency2}. Convert currencies first!"` - mai eseguire calcoli su valute diverse silenziosamente.
+- **Preferire stringhe per input**: documentare che passare stringhe tipo `"123.45"` è preferibile a numeri `123.45` per evitare corruzione float prima della conversione in Decimal.
+- **Coerenza API backend**: studiare i file [`backend/src/shared/domain/value_objects/money.py`](../../backend/src/shared/domain/value_objects/money.py) e [`backend/src/shared/domain/value_objects/percentage.py`](../../backend/src/shared/domain/value_objects/percentage.py) per garantire comportamento identico (stessi metodi, stesse validazioni, stesso output).
 - Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+- Alla fine, produci un elenco puntato con **file modificati** e **test eseguiti**, includendo risultati coverage test.
 
 ---
 

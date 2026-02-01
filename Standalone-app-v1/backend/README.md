@@ -98,7 +98,105 @@ docker compose up -d db redis
 
 Oppure consulta `../Docker/AGENTS.md` per dettagli sul setup Docker completo.
 
-## Comandi Utili
+## Health Check & Monitoring
+
+L'applicazione espone endpoint di health check per monitoraggio e Docker health probes:
+
+### Endpoint Disponibili
+
+```bash
+# Basic health check (always 200 OK if app is running)
+curl http://localhost:8000/health
+
+# Readiness check (dependency checks)
+curl http://localhost:8000/health/ready
+
+# Response format
+{
+  "success": true,
+  "data": {
+    "status": "ok"  # or "ready"
+  },
+  "trace_id": "uuid-string",
+  "error": null
+}
+```
+
+### Docker Health Probe
+
+Per aggiungere un HEALTHCHECK nel Dockerfile:
+
+```dockerfile
+FROM python:3.13-slim
+
+# ... setup ...
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=2)"
+```
+
+### Kubernetes Health Probes
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tickertracker-backend
+spec:
+  containers:
+  - name: backend
+    image: tickertracker-backend:latest
+    ports:
+    - containerPort: 8000
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8000
+      initialDelaySeconds: 10
+      periodSeconds: 30
+    readinessProbe:
+      httpGet:
+        path: /health/ready
+        port: 8000
+      initialDelaySeconds: 5
+      periodSeconds: 10
+```
+
+## Security Features
+
+L'applicazione include security middleware di base:
+
+### Security Headers
+
+Tutte le risposte HTTP includono header di sicurezza standard:
+- `X-Content-Type-Options: nosniff` - Previene MIME sniffing
+- `X-Frame-Options: DENY` - Previene clickjacking
+- `X-XSS-Protection: 1; mode=block` - Protezione XSS
+- `Strict-Transport-Security` - Enforce HTTPS in produzione
+
+### CORS Configuration
+
+Frontend può effettuare richieste da:
+- `http://localhost:3000` (React dev server)
+- `http://localhost:5173` (Vite dev server)
+
+Per aggiungere altri origin:
+
+```env
+CORS_ORIGINS=https://example.com,https://other-domain.com
+```
+
+### Rate Limiting
+
+Rate limit semplice in memoria: **60 richieste/minuto per IP**
+
+Per disabilitare in sviluppo locale:
+
+```env
+ENABLE_RATE_LIMIT=false
+```
+
+---## Comandi Utili
 
 Il progetto include un `Makefile` con comandi standardizzati:
 
@@ -154,16 +252,18 @@ backend/
 │   │   │       └── price_target.py     # ✅ [1.5] Value Object PriceTarget (41 tests)
 │   │   ├── infra/        # Infrastruttura layer
 │   │   │   ├── config.py              # ✅ [1.6] Configuration Management (27 tests)
+│   │   │   ├── security_middleware.py # ✅ [1.7] Security Middleware + Rate Limit (16 tests)
 │   │   │   ├── cache/
 │   │   │   ├── drive/
 │   │   │   ├── logging/
 │   │   │   ├── security/
 │   │   │   └── yahoo/
-│   │   ├── api/          # Schema e utility API
+│   │   ├── api/          # API layer
+│   │   │   └── health_routes.py       # ✅ [1.7] Health Check Endpoints
 │   │   ├── schemas/      # Modelli Pydantic condivisi
 │   │   │   └── api_response.py     # ✅ [1.2] Risposta API standardizzata
 │   │   └── services/     # Servizi condivisi
-│   └── main.py           # Entry point FastAPI
+│   └── main.py           # ✅ [1.7] Entry point FastAPI
 ├── tests/                # Test
 │   ├── unit/             # Unit tests
 │   │   └── shared/
@@ -171,7 +271,8 @@ backend/
 │   │       │   ├── test_money.py           # ✅ 36 tests ✓
 │   │       │   ├── test_percentage.py      # ✅ 39 tests ✓
 │   │       │   └── test_price_target.py    # ✅ 41 tests ✓
-│   │       └── test_config.py              # ✅ 27 tests ✓
+│   │       ├── test_config.py              # ✅ 27 tests ✓
+│   │       └── test_middleware.py          # ✅ 16 tests ✓
 │   ├── integration/      # Integration tests
 │   └── e2e/              # End-to-end tests
 ├── alembic/              # Migrazioni database
@@ -186,7 +287,7 @@ backend/
 
 ## Implementation Progress
 
-### Phase 1: Foundation & API Structure (6/8 task - 75% ✨)
+### Phase 1: Foundation & API Structure (7/8 task - 87.5% ✨)
 
 | Task | Descrizione | Status | Tests | Implementation |
 |------|-----------|--------|-------|-----------------|
@@ -195,9 +296,10 @@ backend/
 | 1.3 | Value Object Money | ✅ COMPLETATO | 36 ✓ | Decimal-safe operations |
 | 1.4 | Value Object Percentage | ✅ COMPLETATO | 39 ✓ | Basis points support |
 | 1.5 | Value Object PriceTarget | ✅ COMPLETATO | 41 ✓ | LONG/SHORT validation |
-| 1.6 | **Config Multi-Ambiente** | ✅ **COMPLETATO** | **27 ✓** | **Pydantic Settings + Secrets** |
+| 1.6 | Config Multi-Ambiente | ✅ COMPLETATO | 27 ✓ | Pydantic Settings + Secrets |
+| 1.7 | **Middleware Sicurezza** | ✅ **COMPLETATO** | **16 ✓** | **Headers + CORS + Rate Limit + Healthcheck** |
 
-**Total Tests**: 143 passing ✅
+**Total Tests**: 159 passing ✅
 
 ## Documentazione API
 

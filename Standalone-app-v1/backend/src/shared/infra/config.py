@@ -79,6 +79,20 @@ class Settings(BaseSettings):
         description="JWT secret key for authentication tokens",
     )
 
+    # ========== Middleware Configuration ==========
+    ENABLE_RATE_LIMIT: bool = Field(
+        default=True,
+        description="Enable rate limiting middleware (disable for local development)",
+    )
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = Field(
+        default=60,
+        description="Rate limit: max requests per minute per IP",
+    )
+    CORS_ORIGINS: list[str] = Field(
+        default=[],
+        description="Additional CORS origins (comma-separated or list in env)",
+    )
+
     # ========== Pydantic Configuration ==========
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -35,6 +35,7 @@ class Percentage:
         if not isinstance(self.value, Decimal):
             try:
                 from decimal import DecimalException
+
                 object.__setattr__(self, "value", Decimal(str(self.value)))
             except (ValueError, TypeError, DecimalException) as e:
                 raise TypeError(f"Cannot convert percentage value to Decimal: {e}") from e

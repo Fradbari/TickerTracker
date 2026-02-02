@@ -1,0 +1,12 @@
+
+> tickertracker-frontend@3.0.0 type-check
+> tsc --noEmit
+
+src/shared/utils/decimal.ts(17,10): error TS2305: Module '"decimal.js"' has no exported member 'Decimal'.
+src/shared/utils/percentage.ts(31,11): error TS2749: 'Decimal' refers to a value, but is being used as a type here. Did you mean 'typeof Decimal'?
+src/shared/utils/percentage.ts(48,29): error TS2749: 'Decimal' refers to a value, but is being used as a type here. Did you mean 'typeof Decimal'?
+src/shared/utils/percentage.ts(78,34): error TS2749: 'Decimal' refers to a value, but is being used as a type here. Did you mean 'typeof Decimal'?
+src/shared/utils/percentage.ts(103,30): error TS2749: 'Decimal' refers to a value, but is being used as a type here. Did you mean 'typeof Decimal'?
+src/shared/utils/percentage.ts(183,60): error TS2749: 'Decimal' refers to a value, but is being used as a type here. Did you mean 'typeof Decimal'?
+src/shared/utils/percentage.ts(347,61): error TS2749: 'Decimal' refers to a value, but is being used as a type here. Did you mean 'typeof Decimal'?
+src/shared/utils/percentage.ts(360,68): error TS2749: 'Decimal' refers to a value, but is being used as a type here. Did you mean 'typeof Decimal'?

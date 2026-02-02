@@ -48,10 +48,10 @@ describe('Money Utilities', () => {
     })
 
     it('should throw error for invalid currency format', () => {
-      expect(() => createMoney('100', 'US')).toThrow('Invalid currency code')
-      expect(() => createMoney('100', 'USDA')).toThrow('Invalid currency code')
-      expect(() => createMoney('100', 'usd')).toThrow('Invalid currency code')
-      expect(() => createMoney('100', 'US1')).toThrow('Invalid currency code')
+      expect(() => createMoney('100', 'US')).toThrow('Currency must be a 3-character uppercase string')
+      expect(() => createMoney('100', 'USDA')).toThrow('Currency must be a 3-character uppercase string')
+      expect(() => createMoney('100', 'usd')).toThrow('Currency must be a 3-character uppercase string')
+      expect(() => createMoney('100', 'US1')).toThrow('Currency must be a 3-character uppercase string')
     })
 
     it('should accept valid ISO 4217 currency codes', () => {
@@ -301,7 +301,7 @@ describe('Money Utilities', () => {
 
     it('should throw error on invalid currency during deserialization', () => {
       const json = { amount: '100.50', currency: 'USDA' }
-      expect(() => moneyFromJSON(json)).toThrow('Invalid currency code')
+      expect(() => moneyFromJSON(json)).toThrow('Currency must be a 3-character uppercase string')
     })
   })
 

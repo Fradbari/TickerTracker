@@ -38,6 +38,7 @@ class Money:
         if not isinstance(self.amount, Decimal):
             try:
                 from decimal import DecimalException
+
                 object.__setattr__(self, "amount", Decimal(str(self.amount)))
             except (ValueError, TypeError, DecimalException) as e:
                 raise TypeError(f"Cannot convert amount to Decimal: {e}") from e

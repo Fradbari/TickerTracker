@@ -21,14 +21,14 @@
  */
 
 import Decimal from 'decimal.js'
-import type { MoneyValue } from './decimal'
-import { multiplyMoney, roundMoney, createMoney } from './decimal'
+import type { MoneyValue, DecimalInstance } from './decimal'
+import { multiplyMoney } from './decimal'
 
 /**
  * Represents a percentage value with amount and operation type
  */
 export interface PercentageValue {
-  amount: Decimal  // Stored as decimal: 50% = 0.50, 100% = 1.00
+  amount: DecimalInstance // Stored as decimal: 50% = 0.50, 100% = 1.00
   operation: 'add' | 'subtract' | 'multiply' | 'divide'
 }
 
@@ -45,7 +45,7 @@ export interface PercentageValue {
  * const ten = createPercentage("10", "subtract");  // 10% = 0.10
  */
 export function createPercentage(
-  amount: string | number | Decimal,
+  amount: string | number | DecimalInstance,
   operation: 'add' | 'subtract' | 'multiply' | 'divide' = 'add'
 ): PercentageValue {
   const decimalAmount = new Decimal(amount)
@@ -75,7 +75,7 @@ export function createPercentage(
  * createPercentageFromBasisPoints("1", "multiply"); // 0.01% = 0.0001
  */
 export function createPercentageFromBasisPoints(
-  basisPoints: string | number | Decimal,
+  basisPoints: string | number | DecimalInstance,
   operation: 'add' | 'subtract' | 'multiply' | 'divide' = 'add'
 ): PercentageValue {
   const bp = new Decimal(basisPoints)
@@ -100,7 +100,7 @@ export function createPercentageFromBasisPoints(
  * createPercentageFromDecimal("1.00", "add");       // 100%
  */
 export function createPercentageFromDecimal(
-  decimal: string | number | Decimal,
+  decimal: string | number | DecimalInstance,
   operation: 'add' | 'subtract' | 'multiply' | 'divide' = 'add'
 ): PercentageValue {
   return {
@@ -149,16 +149,18 @@ export function applyPercentage(
       // base * percentage
       return multiplyMoney(money, multiplier)
     
-    case 'divide':
+    case 'divide': {
       // base / percentage (handle division by zero)
       if (multiplier.isZero()) {
         throw new Error('Cannot apply percentage: division by zero')
       }
       return multiplyMoney(money, new Decimal(1).dividedBy(multiplier))
-    
-    default:
+    }
+
+    default: {
       const _exhaustive: never = percentage.operation
       return _exhaustive
+    }
   }
 }
 
@@ -178,7 +180,7 @@ export function applyPercentage(
  * const markup = createPercentage("20", "add");
  * asMultiplier(markup);  // 1.20
  */
-export function asMultiplier(percentage: PercentageValue): Decimal {
+export function asMultiplier(percentage: PercentageValue): DecimalInstance {
   switch (percentage.operation) {
     case 'add':
       return percentage.amount.plus(1)
@@ -189,15 +191,17 @@ export function asMultiplier(percentage: PercentageValue): Decimal {
     case 'multiply':
       return percentage.amount
     
-    case 'divide':
+    case 'divide': {
       if (percentage.amount.isZero()) {
         throw new Error('Cannot get multiplier: division by zero')
       }
       return new Decimal(1).dividedBy(percentage.amount)
-    
-    default:
+    }
+
+    default: {
       const _exhaustive: never = percentage.operation
       return _exhaustive
+    }
   }
 }
 
@@ -340,7 +344,7 @@ export function percentageFromJSON(data: {
  * asBasisPoints(createPercentage("50", "add"));  // 5000
  * asBasisPoints(createPercentage("1", "add"));   // 100
  */
-export function asBasisPoints(percentage: PercentageValue): Decimal {
+export function asBasisPoints(percentage: PercentageValue): DecimalInstance {
   return percentage.amount.times(10000)
 }
 
@@ -353,6 +357,6 @@ export function asBasisPoints(percentage: PercentageValue): Decimal {
  * @example
  * asPercentageNotation(createPercentage("50", "add"));  // 50
  */
-export function asPercentageNotation(percentage: PercentageValue): Decimal {
+export function asPercentageNotation(percentage: PercentageValue): DecimalInstance {
   return percentage.amount.times(100)
 }

@@ -16,11 +16,13 @@
 
 import Decimal from 'decimal.js'
 
+export type DecimalInstance = InstanceType<typeof Decimal>
+
 /**
  * Represents a monetary value with amount and currency
  */
 export interface MoneyValue {
-  amount: Decimal
+  amount: DecimalInstance
   currency: string
 }
 
@@ -33,7 +35,7 @@ export interface MoneyValue {
 function validateCurrency(currency: string): void {
   if (!/^[A-Z]{3}$/.test(currency)) {
     throw new Error(
-      `Invalid currency code: "${currency}". Must be exactly 3 uppercase letters (ISO 4217).`
+      `Currency must be a 3-character uppercase string, got: ${currency}`
     )
   }
 }
@@ -51,7 +53,7 @@ function validateCurrency(currency: string): void {
  * const eurPrice = createMoney("99.99", "EUR");
  */
 export function createMoney(
-  amount: string | number | Decimal,
+  amount: string | number | DecimalInstance,
   currency: string = 'USD'
 ): MoneyValue {
   validateCurrency(currency)
@@ -126,7 +128,7 @@ export function subtractMoney(a: MoneyValue, b: MoneyValue): MoneyValue {
  */
 export function multiplyMoney(
   money: MoneyValue,
-  factor: string | number | Decimal
+  factor: string | number | DecimalInstance
 ): MoneyValue {
   return {
     amount: money.amount.times(new Decimal(factor)),
@@ -148,7 +150,7 @@ export function multiplyMoney(
  */
 export function divideMoney(
   money: MoneyValue,
-  divisor: string | number | Decimal
+  divisor: string | number | DecimalInstance
 ): MoneyValue {
   const decimalDivisor = new Decimal(divisor)
   if (decimalDivisor.isZero()) {

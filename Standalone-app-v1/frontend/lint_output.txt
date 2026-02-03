@@ -1,0 +1,12 @@
+
+> tickertracker-frontend@3.0.0 lint
+> eslint . --ext .ts,.tsx
+
+
+/app/Standalone-app-v1/frontend/src/shared/utils/percentage.ts
+   25:25  error  'roundMoney' is defined but never used        @typescript-eslint/no-unused-vars
+   25:37  error  'createMoney' is defined but never used       @typescript-eslint/no-unused-vars
+  160:7   error  Unexpected lexical declaration in case block  no-case-declarations
+  199:7   error  Unexpected lexical declaration in case block  no-case-declarations
+
+✖ 4 problems (4 errors, 0 warnings)

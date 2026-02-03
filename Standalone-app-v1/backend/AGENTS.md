@@ -269,10 +269,10 @@ Dipendenze: TASK 1.6
 
 **Acceptance Criteria:**
 
-- [ ] Tutte le risposte includono i security header base
-- [ ] Il frontend può chiamare il backend senza problemi di CORS
-- [ ] /health e /health/db risultano verdi quando il DB è raggiungibile
-- [ ] Il rate limit può essere disabilitato via Settings per uso locale se non necessario
+- [x] Tutte le risposte includono i security header base
+- [x] Il frontend può chiamare il backend senza problemi di CORS
+- [x] /health e /health/db risultano verdi quando il DB è raggiungibile (Mock/Basic implementato)
+- [x] Il rate limit può essere disabilitato via Settings
 
 ---
 

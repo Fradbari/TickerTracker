@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.32% </span>
+                <span class="strong">98.34% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>352/358</span>
+                <span class='fraction'>356/362</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">86.66% </span>
+                <span class="strong">92.85% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>26/30</span>
+                <span class='fraction'>26/28</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.32% </span>
+                <span class="strong">98.34% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>352/358</span>
+                <span class='fraction'>356/362</span>
             </div>
         
             
@@ -421,7 +421,11 @@
 <a name='L356'></a><a href='#L356'>356</a>
 <a name='L357'></a><a href='#L357'>357</a>
 <a name='L358'></a><a href='#L358'>358</a>
-<a name='L359'></a><a href='#L359'>359</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L359'></a><a href='#L359'>359</a>
+<a name='L360'></a><a href='#L360'>360</a>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -578,12 +582,14 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -617,12 +623,14 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -802,14 +810,14 @@
  */
 &nbsp;
 import Decimal from 'decimal.js'
-import type { MoneyValue } from './decimal'
-import { multiplyMoney, roundMoney, createMoney } from './decimal'
+import type { MoneyValue, DecimalInstance } from './decimal'
+import { multiplyMoney } from './decimal'
 &nbsp;
 /**
  * Represents a percentage value with amount and operation type
  */
 export interface PercentageValue {
-  amount: Decimal  // Stored as decimal: 50% = 0.50, 100% = 1.00
+  amount: DecimalInstance // Stored as decimal: 50% = 0.50, 100% = 1.00
   operation: 'add' | 'subtract' | 'multiply' | 'divide'
 }
 &nbsp;
@@ -826,7 +834,7 @@ export interface PercentageValue {
  * const ten = createPercentage("10", "subtract");  // 10% = 0.10
  */
 export function createPercentage(
-  amount: string | number | Decimal,
+  amount: string | number | DecimalInstance,
   operation: 'add' | 'subtract' | 'multiply' | 'divide' = 'add'
 ): PercentageValue {
   const decimalAmount = new Decimal(amount)
@@ -856,7 +864,7 @@ export function createPercentage(
  * createPercentageFromBasisPoints("1", "multiply"); // 0.01% = 0.0001
  */
 export function createPercentageFromBasisPoints(
-  basisPoints: string | number | Decimal,
+  basisPoints: string | number | DecimalInstance,
   operation: 'add' | 'subtract' | 'multiply' | 'divide' = 'add'
 ): PercentageValue {
   const bp = new Decimal(basisPoints)
@@ -881,7 +889,7 @@ export function createPercentageFromBasisPoints(
  * createPercentageFromDecimal("1.00", "add");       // 100%
  */
 export function createPercentageFromDecimal(
-  decimal: string | number | Decimal,
+  decimal: string | number | DecimalInstance,
   operation: 'add' | 'subtract' | 'multiply' | 'divide' = 'add'
 ): PercentageValue {
   return {
@@ -930,18 +938,20 @@ export function applyPercentage(
       // base * percentage
       return multiplyMoney(money, multiplier)
     
-    case 'divide':
+    case 'divide': {
       // base / percentage (handle division by zero)
       if (multiplier.isZero()) {
         throw new Error('Cannot apply percentage: division by zero')
       }
       return multiplyMoney(money, new Decimal(1).dividedBy(multiplier))
-    
-<span class="branch-0 cbranch-no" title="branch not covered" >    default:</span>
+    }
+&nbsp;
+<span class="branch-0 cbranch-no" title="branch not covered" >    default: {</span>
 <span class="cstat-no" title="statement not covered" >      const _exhaustive: never = percentage.operation</span>
 <span class="cstat-no" title="statement not covered" >      return _exhaustive</span>
-<span class="branch-0 cbranch-no" title="branch not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+  }
+}
 &nbsp;
 /**
  * Gets percentage as a decimal multiplier
@@ -959,7 +969,7 @@ export function applyPercentage(
  * const markup = createPercentage("20", "add");
  * asMultiplier(markup);  // 1.20
  */
-export function asMultiplier(percentage: PercentageValue): Decimal {
+export function asMultiplier(percentage: PercentageValue): DecimalInstance {
   switch (percentage.operation) {
     case 'add':
       return percentage.amount.plus(1)
@@ -970,17 +980,19 @@ export function asMultiplier(percentage: PercentageValue): Decimal {
     case 'multiply':
       return percentage.amount
     
-    case 'divide':
+    case 'divide': {
       if (percentage.amount.isZero()) {
         throw new Error('Cannot get multiplier: division by zero')
       }
       return new Decimal(1).dividedBy(percentage.amount)
-    
-<span class="branch-0 cbranch-no" title="branch not covered" >    default:</span>
+    }
+&nbsp;
+<span class="branch-0 cbranch-no" title="branch not covered" >    default: {</span>
 <span class="cstat-no" title="statement not covered" >      const _exhaustive: never = percentage.operation</span>
 <span class="cstat-no" title="statement not covered" >      return _exhaustive</span>
-<span class="branch-0 cbranch-no" title="branch not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+  }
+}
 &nbsp;
 /**
  * Adds two percentages (only for 'add' and 'subtract' operations)
@@ -1121,7 +1133,7 @@ export function percentageFromJSON(data: {
  * asBasisPoints(createPercentage("50", "add"));  // 5000
  * asBasisPoints(createPercentage("1", "add"));   // 100
  */
-export function asBasisPoints(percentage: PercentageValue): Decimal {
+export function asBasisPoints(percentage: PercentageValue): DecimalInstance {
   return percentage.amount.times(10000)
 }
 &nbsp;
@@ -1134,7 +1146,7 @@ export function asBasisPoints(percentage: PercentageValue): Decimal {
  * @example
  * asPercentageNotation(createPercentage("50", "add"));  // 50
  */
-export function asPercentageNotation(percentage: PercentageValue): Decimal {
+export function asPercentageNotation(percentage: PercentageValue): DecimalInstance {
   return percentage.amount.times(100)
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -1144,7 +1156,7 @@ export function asPercentageNotation(percentage: PercentageValue): Decimal {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-01T12:14:25.015Z
+                at 2026-02-02T09:02:38.858Z
             </div>
         <script src="prettify.js"></script>
         <script>

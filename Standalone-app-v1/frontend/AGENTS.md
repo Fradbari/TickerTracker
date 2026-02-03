@@ -126,23 +126,23 @@ Questa sezione contiene SOLO task per il frontend React/TypeScript:
 
 **Acceptance Criteria:**
 
-- [ ] `decimal.js` installato e presente in `package.json`
-- [ ] File `decimal.ts` creato con tutti i tipi e funzioni richiesti
-- [ ] File `percentage.ts` creato con tutti i tipi e funzioni richiesti
-- [ ] File `financial.ts` barrel export creato
-- [ ] Validazione `currency` verifica 3 caratteri uppercase (ISO 4217)
-- [ ] Operazioni tra valute diverse lanciano errore esplicito con messaggio chiaro
-- [ ] Arrotondamento usa `Decimal.ROUND_HALF_UP` (coerente con backend Python `money.py`)
-- [ ] Formattazione `formatMoney` rispetta locale (separatori migliaia, simbolo valuta)
-- [ ] Serializzazione JSON produce `{amount: string, currency: string}` (coerente con backend `Money.to_dict()`)
-- [ ] Path alias `@/shared/utils/financial` configurato e funzionante
-- [ ] Test unitari coprono tutti i metodi principali
-- [ ] Test verifica precisione: `0.1 + 0.2 = 0.3` esatto (non `0.30000000000000004`)
-- [ ] Test verifica errori su valute diverse e divisione per zero
-- [ ] Coverage test ≥ 80%
-- [ ] `npm run build` completa senza errori TypeScript
-- [ ] README aggiornato con sezione calcoli finanziari
-- [ ] Nessun uso di `number` nativo per calcoli monetari nel codice prodotto
+- [x] `decimal.js` installato e presente in `package.json`
+- [x] File `decimal.ts` creato con tutti i tipi e funzioni richiesti
+- [x] File `percentage.ts` creato con tutti i tipi e funzioni richiesti
+- [x] File `financial.ts` barrel export creato
+- [x] Validazione `currency` verifica 3 caratteri uppercase (ISO 4217)
+- [x] Operazioni tra valute diverse lanciano errore esplicito con messaggio chiaro
+- [x] Arrotondamento usa `Decimal.ROUND_HALF_UP` (coerente con backend Python `money.py`)
+- [x] Formattazione `formatMoney` rispetta locale (separatori migliaia, simbolo valuta)
+- [x] Serializzazione JSON produce `{amount: string, currency: string}` (coerente con backend `Money.to_dict()`)
+- [x] Path alias `@/shared/utils/financial` configurato e funzionante
+- [x] Test unitari coprono tutti i metodi principali
+- [x] Test verifica precisione: `0.1 + 0.2 = 0.3` esatto (non `0.30000000000000004`)
+- [x] Test verifica errori su valute diverse e divisione per zero
+- [x] Coverage test ≥ 80%
+- [x] `npm run build` completa senza errori TypeScript
+- [x] README aggiornato con sezione calcoli finanziari
+- [x] Nessun uso di `number` nativo per calcoli monetari nel codice prodotto
 
 ---
 

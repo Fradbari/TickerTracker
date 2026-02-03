@@ -1,0 +1,3 @@
+🔍 Verifica sintassi Python in: /app/Standalone-app-v1/backend/src
+
+✅ Tutti i file Python hanno una sintassi valida.

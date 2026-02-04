@@ -12,53 +12,114 @@ Backend Python/FastAPI per TickerTracker v3.0 - Sistema di tracking stime tradin
 
 ## Installazione
 
-### Opzione 1: Poetry (Raccomandato)
+### Opzione 1: pip (Scelta Veloce su Windows)
+
+```bash
+cd backend
+
+# Attiva virtual environment (se non presente: python -m venv venv)
+# Su Windows:
+venv\Scripts\activate
+# Su Linux/macOS:
+source venv/bin/activate
+
+# Installa dipendenze
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+
+# Verifica installazione
+python scripts/check_deps.py
+```
+
+### Opzione 2: Poetry (Raccomandato)
 
 Poetry è il gestore di dipendenze raccomandato per questo progetto.
 
 ```bash
 # Installa Poetry se non presente
+# Windows (PowerShell):
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+# Linux/macOS:
 curl -sSL https://install.python-poetry.org | python3 -
 
 # Installa dipendenze
 cd backend
-make install
-
-# Oppure manualmente
 poetry install
+
+# Verifica installazione
+python scripts/check_deps.py
 ```
 
-### Opzione 2: pip (Fallback)
+### Opzione 3: PowerShell Script (Windows)
 
-Se preferisci usare pip tradizionale:
+Su Windows puoi usare il build script:
 
-```bash
+```powershell
 cd backend
 
-# Crea virtual environment
-python -m venv venv
-
-# Attiva virtual environment
-# Su Linux/macOS:
-source venv/bin/activate
-# Su Windows:
-venv\Scripts\activate
+# Mostra comandi disponibili
+.\build.ps1 help
 
 # Installa dipendenze
-make install-pip
+.\build.ps1 install-pip
 
-# Oppure manualmente
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+# Oppure con Poetry
+.\build.ps1 install
 ```
 
 ### Verifica Installazione
 
+Dopo l'installazione, verifica che tutte le dipendenze siano installate correttamente:
+
 ```bash
+# Opzione 1: Script check_deps.py
+python scripts/check_deps.py
+
+# Opzione 2: Make command (su Linux/macOS o con make su Windows)
 make check-deps
+
+# Opzione 3: PowerShell (su Windows)
+.\build.ps1 check-deps
 ```
 
-Questo comando verifica che tutte le dipendenze critiche siano installate correttamente.
+Output atteso:
+```
+╔═══════════════════════════════════════════════════════════╗
+║   VERIFICA DIPENDENZE TICKERTRACKER BACKEND             ║
+╚═══════════════════════════════════════════════════════════╝
+
+[Python] ✓ Python 3.11.0
+
+[DIPENDENZE CRITICHE] (Obbligatorie)
+  ✓ FastAPI - Web Framework
+  ✓ Uvicorn - ASGI Server
+  ✓ Pydantic - Data Validation
+  ✓ SQLAlchemy - ORM/Database
+  ✓ AsyncPG - PostgreSQL Driver
+  ✓ Redis - Cache Client
+  ✓ YFinance - Market Data
+  ✓ Google API Client
+  ✓ APScheduler - Job Scheduling
+
+[DIPENDENZE OPZIONALI] (Fase 2)
+  ✓ Cryptography - Security
+  ✓ Google Auth - Authentication
+  ✓ Prometheus - Metrics
+  ✓ Structlog - Structured Logging
+  ✓ SlowAPI - Rate Limiting
+
+[DIPENDENZE SVILUPPO] (Dev/Testing)
+  ✓ Pytest - Testing Framework
+  ✓ Pytest AsyncIO - Async Testing
+  ✓ Pytest Coverage - Coverage Reports
+  ✓ Mypy - Type Checker
+  ✓ Ruff - Code Linter/Formatter
+  ✓ HTTPX - HTTP Client
+
+==================================================
+✓ Tutte le 20 dipendenze sono installate correttamente!
+✓ Sistema pronto per lo sviluppo
+```
 
 ## Configurazione
 
@@ -196,43 +257,85 @@ Per disabilitare in sviluppo locale:
 ENABLE_RATE_LIMIT=false
 ```
 
----## Comandi Utili
+---
 
-Il progetto include un `Makefile` con comandi standardizzati:
+## Comandi Utili
 
-### Sviluppo
+### Build Script (Windows)
+
+Usa `build.ps1` per eseguire i comandi (alternativa a Make):
+
+```powershell
+.\build.ps1 help        # Mostra tutti i comandi
+.\build.ps1 check-deps  # Verifica dipendenze
+.\build.ps1 lint        # Linting con Ruff
+.\build.ps1 format      # Formattazione codice
+.\build.ps1 typecheck   # Type checking con Mypy
+.\build.ps1 test        # Esegui test
+.\build.ps1 test-cov    # Test con coverage report
+.\build.ps1 run         # Avvia server dev
+.\build.ps1 clean       # Pulisci cache
+.\build.ps1 all         # Esegui tutti i controlli
+```
+
+### Makefile Commands (Linux/macOS)
+
+Su sistemi Unix, usa Make:
 
 ```bash
+make help         # Mostra tutti i comandi
+make check-deps   # Verifica dipendenze critiche
+make lint         # Linting con ruff
+make format       # Formattazione codice con ruff
+make typecheck    # Type checking con mypy
+make test         # Esegui tutti i test
+make test-unit    # Solo unit tests
+make test-integration  # Solo integration tests
+make test-cov     # Test con coverage report
 make run          # Avvia server di sviluppo (http://localhost:8000)
-make format       # Formatta codice con black e ruff
-make lint         # Controlla codice con ruff
-make typecheck    # Controlla tipi con mypy
+make clean        # Rimuovi file temporanei e cache
+make export-requirements  # Rigenera requirements.txt da pyproject.toml
+make all          # Esegui tutti i controlli (lint, type, test)
 ```
 
-### Testing
+### Manual Commands
+
+Se preferisci eseguire comandi direttamente:
 
 ```bash
-make test             # Esegui tutti i test
-make test-unit        # Solo unit tests
-make test-integration # Solo integration tests
-make test-cov         # Test con coverage report (genera htmlcov/)
-```
+# Attiva virtual environment
+# Windows:
+venv\Scripts\activate
+# Linux/macOS:
+source venv/bin/activate
 
-### Database
+# Development server
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 
-```bash
-make migrate         # Applica migrazioni
-make migrate-down    # Rollback ultima migrazione
-make migrate-new     # Crea nuova migrazione auto-generata
-```
+# Linting
+ruff check src/ tests/
 
-### Utility
+# Code formatting
+ruff format src/ tests/
+ruff check src/ tests/ --fix
 
-```bash
-make check-deps          # Verifica dipendenze installate
-make export-requirements # Rigenera requirements.txt da pyproject.toml
-make clean               # Rimuovi file temporanei e cache
-make help                # Mostra tutti i comandi disponibili
+# Type checking
+mypy src/
+
+# Testing
+pytest tests/                              # Tutti i test
+pytest -m unit tests/                      # Solo unit tests
+pytest -m integration tests/               # Solo integration tests
+pytest --cov=src --cov-report=html tests/  # Con coverage
+
+# Dependencies
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+
+# Clean up
+find . -type d -name __pycache__ -exec rm -rf {} +
+find . -type f -name "*.pyc" -delete
+find . -type d -name .pytest_cache -exec rm -rf {} +
 ```
 
 ## Struttura Progetto

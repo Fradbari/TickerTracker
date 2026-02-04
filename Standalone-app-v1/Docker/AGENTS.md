@@ -11,31 +11,48 @@ Dipendenze: TASK 2.1
 
 **Microstep:**
 
-1. Creare file [`docker-compose.base.yml`](../docker-compose.base.yml) nella root del progetto
+1. Creare file [`docker-compose.base.yml`](../docker-compose.base.yml) nella root del progetto (`Standalone-app-v1/`)
 2. Definire servizio `db` con immagine postgres:16
-3. Configurare variabili ambiente: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
-4. Configurare volume persistente per dati PostgreSQL
-5. Configurare healthcheck per PostgreSQL
+3. Configurare variabili ambiente: `POSTGRES_USER=tickertracker`, `POSTGRES_PASSWORD=devpassword`, `POSTGRES_DB=tickertracker_dev`
+4. Configurare volume persistente per dati `postgres-data:/var/lib/postgresql/data`
+5. Configurare healthcheck per PostgreSQL:
+  ```
+  yaml
+   test: ["CMD-SHELL", "pg_isready -U tickertracker"]
+   interval: 10s
+   timeout: 5s
+   retries: 5
+   ```
 6. Definire servizio `redis` con immagine redis:7-alpine
-7. Configurare volume persistente per Redis
+7. Configurare volume persistente per Redis: redis-data:/data
 8. Configurare healthcheck per Redis
-9. Definire network `ticker-network` condivisa
+  ```
+  test: ["CMD", "redis-cli", "ping"]
+  interval: 10s
+  timeout: 3s
+  retries: 5
+  ```
+9. Definire network `ticker-network` condivisa tra servizi
+10. Esporre porte esternamente: 5432:5432 (PostgreSQL), 6379:6379 (Redis)
 
 **Acceptance Criteria:**
 
 - [ ] `docker compose -f docker-compose.base.yml up -d` avvia entrambi i servizi
 - [ ] PostgreSQL accessibile su localhost:5432
 - [ ] Redis accessibile su localhost:6379
-- [ ] Healthcheck passa per entrambi i servizi
+- [ ] Healthcheck passa per entrambi i servizi (healthy status)
 - [ ] Dati persistono dopo restart container
+- [ ] Network ticker-network creata e condivisa
 
 ---
 
 ### Istruzioni per LLM
-- Non modificare file fuori da [docker-compose.override.yml, docker-compose.yml] se non strettamente necessario.
-- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
-- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+-Crea solo docker-compose.base.yml - NON creare docker-compose.override.yml
+-Usa flag -f esplicito nei comandi per chiarezza
+-Network ticker-network sarà riusata da docker-compose.dev.yml (TASK 3.12)
+-Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
+-Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
 
 ID: TASK 3.12
 Area: docker

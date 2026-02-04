@@ -1,0 +1,151 @@
+# BASE CONFIGURATION - Infrastructure services shared by all environments (dev, prod, test)
+# This file defines PostgreSQL and Redis services that are reused by:
+# - docker-compose.dev.yml (development environment with backend/frontend)
+# - docker-compose.prod.yml (production environment)
+# 
+# Usage:
+#   docker compose -f docker-compose.base.yml up -d
+#   docker compose -f docker-compose.base.yml ps
+#   docker compose -f docker-compose.base.yml logs -f
+
+services:
+  # PostgreSQL 16 - Primary database for TickerTracker
+  # Stores all application data (estimates, portfolios, market data, etc.)
+  db:
+    image: postgres:16-alpine
+    container_name: tickertracker-postgres
+    
+    # Environment variables for PostgreSQL initialization
+    environment:
+      POSTGRES_USER: tickertracker
+      POSTGRES_PASSWORD: devpassword  # ⚠️ Change in production via .env
+      POSTGRES_DB: tickertracker_dev
+      POSTGRES_INITDB_ARGS: "-c max_connections=200"
+    
+    # Port mapping: internal:external
+    # Only expose for local development - should be internal-only in production
+    ports:
+      - "5432:5432"
+    
+    # Health check - PostgreSQL readiness probe
+    # Used by Docker and application startup logic
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tickertracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    
+    # Persistent storage - Survives container restarts and recreation
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Optional: Mount initialization scripts
+      # - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    
+    # Logging configuration
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Resource limits (optional - adjust based on load testing)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1'
+    #       memory: 1G
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 512M
+    
+    # Network attachment
+    networks:
+      - ticker-network
+    
+    # Restart policy
+    restart: unless-stopped
+
+  # Redis 7 - Cache and session store
+  # Used for:
+  # - Rate limiting (SlowAPI)
+  # - Session storage
+  # - Market data caching
+  # - Real-time data cache invalidation
+  redis:
+    image: redis:7-alpine
+    container_name: tickertracker-redis
+    
+    # Port mapping
+    ports:
+      - "6379:6379"
+    
+    # Command line args for Redis
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --requirepass devpassword
+    
+    # Health check - Redis readiness probe
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    
+    # Persistent storage
+    volumes:
+      - redis-data:/data
+    
+    # Logging configuration
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Resource limits (optional)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.5'
+    #       memory: 512M
+    #     reservations:
+    #       cpus: '0.25'
+    #       memory: 256M
+    
+    # Network attachment
+    networks:
+      - ticker-network
+    
+    # Restart policy
+    restart: unless-stopped
+
+# Shared volumes for persistent data
+# These are Docker-managed volumes that persist beyond container lifecycle
+volumes:
+  postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/postgres  # ${PWD} or explicit path like ./data/postgres
+  
+  redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/redis     # ${PWD} or explicit path like ./data/redis
+
+# Shared network for service-to-service communication
+# Other compose files (docker-compose.dev.yml, docker-compose.prod.yml) will
+# also attach to this network, enabling service discovery by container name
+networks:
+  ticker-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

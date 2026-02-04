@@ -52,32 +52,136 @@ Standalone-app-v1/
 
 ## 🚀 Avvio Rapido (Ambiente Docker)
 
-Il modo più semplice per avviare l'intero ambiente locale (Single-User) è utilizzare Docker Compose.
+Il modo più semplice per avviare l'intero ambiente locale è utilizzare Docker Compose con configurazione multi-file.
 
 ### 1. Prerequisiti
-- Docker e Docker Compose installati sul sistema.
-- Un account Google Cloud con API Drive abilitate (per la sincronizzazione).
+- **Docker** e **Docker Compose** installati sul sistema
+- Un account Google Cloud con API Drive abilitate (opzionale, per la sincronizzazione)
+- Python 3.11+ (per test script di connettività)
 
-### 2. Configurazione
-Copia il file di esempio per le variabili d'ambiente e configuralo:
+### 2. Configurazione Ambiente
+Copia il file di esempio per le variabili d'ambiente:
 
 ```bash
 cp backend/.env.example backend/.env
 # Inserisci le tue chiavi API (Google, Yahoo, Gemini) nel file .env
 ```
 
-### 3. Esecuzione
-Avvia tutti i servizi (DB, Backend, Frontend):
+### 3. Avvio Servizi Infrastrutturali (PostgreSQL + Redis)
+
+#### Opzione A: Script di Gestione (Raccomandato)
+
+**Windows (PowerShell)**:
+```powershell
+.\docker-manage.ps1 up          # Avvia PostgreSQL e Redis
+.\docker-manage.ps1 health       # Verifica stato healthcheck
+.\docker-manage.ps1 logs         # Mostra log in real-time
+.\docker-manage.ps1 down         # Arresta servizi
+```
+
+**Linux/macOS (Bash)**:
+```bash
+chmod +x docker-manage.sh
+./docker-manage.sh up            # Avvia PostgreSQL e Redis
+./docker-manage.sh health        # Verifica stato healthcheck
+./docker-manage.sh logs          # Mostra log in real-time
+./docker-manage.sh down          # Arresta servizi
+```
+
+#### Opzione B: Docker Compose Diretto
 
 ```bash
-docker compose -f docker-compose.base.yml -f docker-compose.dev.yml up --build
+# Avvia solo database e cache (servizi base)
+docker compose -f docker-compose.base.yml up -d
+
+# Verifica lo stato
+docker compose -f docker-compose.base.yml ps
+
+# Visualizza log
+docker compose -f docker-compose.base.yml logs -f
+
+# Arresta servizi
+docker compose -f docker-compose.base.yml down
+```
+
+### 4. Avvio Ambiente Completo (Backend + Frontend)
+
+Una volta che PostgreSQL e Redis sono in esecuzione:
+
+```bash
+# Avvia backend, frontend, database e cache
+docker compose \
+  -f docker-compose.base.yml \
+  -f docker-compose.dev.yml \
+  up --build
 ```
 
 L'applicazione sarà disponibile ai seguenti indirizzi:
 - **Frontend**: [http://localhost:3000](http://localhost:3000)
 - **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **PostgreSQL**: localhost:5432
-- **Redis**: localhost:6379
+- **Backend API**: [http://localhost:8000](http://localhost:8000)
+- **PostgreSQL**: `localhost:5432` (user: `tickertracker`, password: `devpassword`)
+- **Redis**: `localhost:6379` (password: `devpassword`)
+
+### 5. Test di Connettività
+
+Dopo aver avviato i servizi, verifica la connettività:
+
+```bash
+# Attiva venv nella root
+# Windows:
+.\.venv\Scripts\Activate.ps1
+# Linux/macOS:
+source .venv/bin/activate
+
+# Testa connessioni
+python scripts/test_docker_services.py
+```
+
+Expected output:
+```
+✓ PostgreSQL OK - PostgreSQL 16.x
+✓ Redis OK - vX.X.X - Memory: XXM
+✓ PostgreSQL Advanced OK - INSERT/SELECT/DELETE funzionante
+```
+
+### 6. Pulizia (Rimozione Dati)
+
+⚠️ **ATTENZIONE**: Questo comando rimuove TUTTI i dati persistenti!
+
+```bash
+# Windows
+.\docker-manage.ps1 clean
+
+# Linux/macOS
+./docker-manage.sh clean
+
+# Oppure direttamente
+docker compose -f docker-compose.base.yml down -v
+```
+
+---
+
+## 📋 Struttura Docker Compose
+
+L'applicazione usa una **strategia multi-file esplicita** (NO docker-compose.override.yml):
+
+- **`docker-compose.base.yml`** (TASK 2.2)
+  - Servizi infrastrutturali: PostgreSQL 16, Redis 7
+  - Network condivisa: `ticker-network`
+  - Volumi persistenti: `postgres-data`, `redis-data`
+  - Healthcheck per entrambi i servizi
+
+- **`docker-compose.dev.yml`** (TASK 3.12)
+  - Estende `base.yml`
+  - Servizi applicazione: Backend Python/FastAPI, Frontend React
+  - Volume mount per hot-reload
+  - Environment di sviluppo
+
+- **`docker-compose.prod.yml`** (TASK 5.14)
+  - Estende `base.yml`
+  - Configurazione produzione (no hot-reload, resource limits, etc.)
+  - Orchestrazione con bind mount ottimizzati
 
 ---
 
@@ -91,8 +195,8 @@ Il progetto adotta un approccio **Atomic Development**. Ogni modifica deve esser
    - [AGENTS.md principale](./AGENTS.md) - Progress tracker globale
    - [backend/AGENTS.md](./backend/AGENTS.md) - Task backend
    - [frontend/AGENTS.md](./frontend/AGENTS.md) - Task frontend
-   - [Docker/AGENTS.md](./Docker/AGENTS.md) - Task Docker
-   - [Docs/AGENTS.md](./Docs/AGENTS.md) - Task testing e docs
+   - [docker/AGENTS.md](./docker/AGENTS.md) - Task Docker
+   - [docs/AGENTS.md](./docs/AGENTS.md) - Task testing e docs
 
 2. **Standard di Codifica**:
     - **Backend**: Usa sempre `Decimal` per valori monetari. Segui il layering api → services → repositories → domain.

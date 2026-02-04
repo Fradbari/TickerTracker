@@ -1,0 +1,54 @@
+# Docker volumes data - should not be committed
+data/postgres/
+data/redis/
+
+# Docker container files
+.docker/
+
+# Environment files (contains secrets)
+.env
+.env.local
+.env.*.local
+
+# Python venv
+.venv/
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+.windows-build-tools
+
+# Build outputs
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+*~
+.#*

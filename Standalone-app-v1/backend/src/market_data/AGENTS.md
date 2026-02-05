@@ -7,33 +7,50 @@ Dipendenze: TASK 2.2
 
 ## TASK 2.3: Definizione Modello SQLAlchemy - Ticker
 
-**Descrizione:** Creare il modello SQLAlchemy per l'entità Ticker (anagrafica titoli).
+**Descrizione:** Configurare SQLAlchemy async base e creare primo modello Ticker.
 
-**Microstep:**
+### PARTE 1: Setup SQLAlchemy Base
 
-1\. Creare file `backend/src/market_data/domain/entities.py`
+1\. Creare file `backend/src/shared/infra/database.py`
+2\. Importare `declarative_base` da SQLAlchemy
+3\. Creare `Base = declarative_base()`
+4\. Configurare async engine con `create_async_engine()`:
+   - Pool size: 5 (dev), 20 (prod)
+   - Echo: True (dev), False (prod)
+   - DATABASE_URL da Settings
+5\. Creare `AsyncSessionLocal` con `async_sessionmaker`
+6\. Creare dependency `get_db()` per FastAPI injection
+7\. Esportare `Base`, `engine`, `AsyncSessionLocal`, `get_db` da `__init__.py`
 
-2\. Definire classe `Ticker` che eredita da Base
+### PARTE 2: Creazione Modello Ticker
 
-3\. Definire colonne: `id` (UUID, PK), `symbol` (String 10, unique), `name` (String 255), `exchange` (String 50), `currency` (String 3), `asset_type` (String 20: stock/etf/crypto)
+8\. Creare file `backend/src/market_data/domain/entities.py`
+9\. Importare `Base` da `shared.infra.database`
+10\. Definire classe `Ticker(Base)`:
+    - `__tablename__ = "tickers"`
+    - `id`: UUID primary key con `default=uuid.uuid4`
+    - `symbol`: String(10), unique, not null, index
+    - `name`: String(255), not null
+    - `exchange`: String(50)
+    - `currency`: String(3), default='USD'
+    - `asset_type`: String(20), check constraint ('stock','etf','crypto')
+11\. Aggiungere colonne audit:
+    - `created_at`: DateTime, `default=func.now()`
+    - `updated_at`: DateTime, `default=func.now()`, `onupdate=func.now()`
+12\. Definire `__repr__` per debug
+13\. Aggiungere `Index('ix_ticker_symbol', 'symbol')`
 
-4\. Definire colonne audit: `created_at`, `updated_at` con default e onupdate
-
-5\. Definire indice su `symbol`
-
-6\. Definire `__repr__` per debug
 
 **Acceptance Criteria:**
 
-- [ ] Modello ha tutti i campi richiesti con tipi corretti
-
-- [ ] UUID generato automaticamente se non fornito
-
+- [ ] `Base` importabile da `shared.infra.database`
+- [ ] Async engine si connette a PostgreSQL Docker
+- [ ] `get_db()` dependency funziona con FastAPI
+- [ ] Modello `Ticker` ha tutti i campi richiesti
+- [ ] UUID generato automaticamente
 - [ ] Timestamps gestiti automaticamente
-
-- [ ] Indice su symbol definito
-
-- [ ] Constraint unique su symbol
+- [ ] Constraint unique su `symbol`
+- [ ] Indice su `symbol` definito
 
 ---
 

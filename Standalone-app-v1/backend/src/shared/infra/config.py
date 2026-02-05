@@ -41,7 +41,7 @@ class Settings(BaseSettings):
 
     # ========== Database Configuration ==========
     DATABASE_URL: SecretStr = Field(
-        default=SecretStr("sqlite:///./test.db"),
+        default=SecretStr("postgresql+asyncpg://tickertracker:devpassword@localhost:5432/tickertracker_dev"),
         description="Database connection URL (use PostgreSQL in production)",
     )
 

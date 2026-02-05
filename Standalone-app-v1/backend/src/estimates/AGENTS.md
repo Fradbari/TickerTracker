@@ -1,11 +1,11 @@
 # AGENTS — estimates
 
-ID: TASK 2.4
+ID: TASK 2.5
 Area: estimates
 Fase: MVP
 Dipendenze: TASK 2.3
 
-## TASK 2.4: Definizione Modello SQLAlchemy - Estimate
+## TASK 2.5: Definizione Modello SQLAlchemy - Estimate
 
 **Descrizione:** Creare il modello SQLAlchemy per l'entità Estimate (stime/previsioni).
 
@@ -53,12 +53,12 @@ Dipendenze: TASK 2.3
 - Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
 - Alla fine, produci un elenco puntato con file modificati e test eseguiti.
 
-ID: TASK 2.5
+ID: TASK 2.6
 Area: estimates
 Fase: MVP
-Dipendenze: TASK 2.4
+Dipendenze: TASK 2.5
 
-## TASK 2.5: Definizione Modello SQLAlchemy - EstimateEvent (Event Sourcing)
+## TASK 2.6: Definizione Modello SQLAlchemy - EstimateEvent (Event Sourcing)
 
 **Descrizione:** Creare il modello per Event Sourcing delle stime.
 

@@ -97,7 +97,7 @@ Dipendenze: TASK 2.5
 ID: TASK 2.12
 Area: estimates
 Fase: MVP
-Dipendenze: TASK 2.4, TASK 2.10
+Dipendenze: TASK 2.5, TASK 2.10
 
 ## TASK 2.12: Creazione Repository Estimate
 
@@ -203,7 +203,7 @@ Dipendenze: TASK 2.12
 ID: TASK 2.15
 Area: estimates
 Fase: MVP
-Dipendenze: TASK 2.5, TASK 2.12
+Dipendenze: TASK 2.6, TASK 2.12
 
 ## TASK 2.15: Creazione Service EstimateHistoryService (Event Sourcing)
 

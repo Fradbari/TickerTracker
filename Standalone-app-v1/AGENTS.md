@@ -57,8 +57,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 #### Sezione 2: Backend Core & Data (0/20)
 - [ ] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
 - [ ] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
-- [ ] **TASK 2.3** - Setup SQLAlchemy e Database Connection Pool
-- [ ] **TASK 2.4** - Definizione Modello SQLAlchemy - Ticker
+- [ ] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker *(in market_data/AGENTS.md)*
 - [ ] **TASK 2.5** - Definizione Modello SQLAlchemy - Estimate
 - [ ] **TASK 2.6** - Definizione Modello SQLAlchemy - EstimateEvent
 - [ ] **TASK 2.7** - Definizione Modello SQLAlchemy - MarketData
@@ -361,7 +360,7 @@ Sezione 1 (Setup base):
 1.6 → 1.7
 
 Sezione 2 (Backend MVP):
-2.1 → 2.2 → 2.3 → 2.4 → 2.5 → 2.6
+2.1 → 2.2 → 2.3 → 2.5 → 2.6
 2.3 → 2.7 → 2.10
 2.5 + 2.7 → 2.11 → 2.16
 2.5 + 2.10 → 2.12 → 2.14 → 2.16

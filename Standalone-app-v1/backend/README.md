@@ -486,3 +486,25 @@ make export-requirements
 ## Licenza
 
 Proprietario - © 2026 Francesco Di Lecce
+
+---
+
+## Modelli Principali
+
+### SyncJob
+
+Il modello `SyncJob` è utilizzato per tracciare i job di sincronizzazione con Google Drive. Include i seguenti campi principali:
+
+- **id**: Identificativo univoco del job (UUID).
+- **job_type**: Tipo di job (enum `SyncJobType` con valori: `INITIAL_IMPORT`, `DAILY_HISTORY_UPDATE`, `ON_ESTIMATE_SAVE`, `MANUAL_SYNC`).
+- **status**: Stato del job (enum `SyncJobStatus` con valori: `PENDING`, `RUNNING`, `COMPLETED`, `FAILED`, `PARTIAL`).
+- **started_at**: Timestamp di inizio job.
+- **finished_at**: Timestamp di fine job (opzionale).
+- **error_message**: Messaggio di errore (opzionale).
+- **filename**: Nome del file associato al job.
+- **checksum_before**: Checksum del file prima del job (opzionale).
+- **checksum_after**: Checksum del file dopo il job (opzionale).
+- **records_processed**: Numero di record processati.
+- **records_failed**: Numero di record falliti.
+
+Il modello include un indice sul campo `started_at` per ottimizzare le query cronologiche.

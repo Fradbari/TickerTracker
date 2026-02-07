@@ -9,6 +9,7 @@ Il sistema è diviso in contesti delimitati per garantire l'isolamento della log
 - `sync/`: Sincronizzazione dei dati con Google Drive.
 - `analytics/`: Calcolo di metriche e performance del portfolio.
 - `shared/`: Codice comune, value objects e utility riutilizzabili.
+	- Modelli di base per autenticazione/autorizzazione (`User`, `Role`, RBAC) sono definiti in `shared/domain` (TASK 2.7).
 
 ## Layering all'interno di ogni contesto
 Ogni contesto segue una struttura a layer rigorosa:

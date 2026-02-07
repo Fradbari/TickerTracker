@@ -399,13 +399,13 @@ Dipendenze: TASK 2.3
 
 **Acceptance Criteria:**
 
-- [ ] Password mai salvata in chiaro (campo per hash)
+- [x] Password mai salvata in chiaro (campo per hash)
 
-- [ ] Relazione many-to-many funzionante
+- [x] Relazione many-to-many funzionante
 
-- [ ] Ruoli base definiti
+- [x] Ruoli base definiti
 
-- [ ] Utente può avere multipli ruoli
+- [x] Utente può avere multipli ruoli
 
 ---
 

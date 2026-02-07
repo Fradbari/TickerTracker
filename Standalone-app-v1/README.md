@@ -16,6 +16,7 @@ L'applicazione segue i principi del Clean Architecture e separazione dei ruoli (
 - **Cache**: **Redis** per rate limiting e caching dei dati di mercato.
 - **Patterns**: Event Sourcing per l'audit trail delle stime, CQRS con Materialized Views per query prestazionali.
 - **Provider Dati**: Integrazione con Yahoo Finance (via yfinance).
+- **Auth / RBAC**: Modelli base `User` e `Role` aggiunti in `backend/src/shared/domain` (TASK 2.7).
 
 ### Frontend
 - **Framework**: **React 19** + **TypeScript**.

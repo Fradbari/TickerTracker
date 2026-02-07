@@ -15,6 +15,31 @@ Questa sezione contiene SOLO task per il backend Python/FastAPI:
 
 ---
 
+ID: TASK 2.7
+Area: backend/shared
+Fase: MVP
+Dipendenze: TASK 1.1, TASK 2.3
+
+## TASK 2.7: Definizione Modello SQLAlchemy - User e Role (RBAC Base)
+
+**Descrizione:** Creare modelli per utenti e ruoli di base, predisponendo struttura RBAC per futuri task multi-utente.
+
+**Microstep:**
+1. Creare file `backend/src/shared/domain/user.py`
+2. Definire Enum `RoleType`: ADMIN, USER, READONLY
+3. Definire classe `User`: `id` (UUID), `email` (String, unique), `hashed_password` (String, nullable), `is_active` (Boolean), `created_at`, `updated_at`
+4. Definire classe `Role`: `id` (UUID), `name` (RoleType), `description` (String)
+5. Definire tabella associativa `user_roles` per relazione many-to-many
+6. Definire relazioni bidirezionali User <-> Role
+
+**Acceptance Criteria:**
+- [x] Password mai salvata in chiaro (campo per hash)
+- [x] Relazione many-to-many funzionante
+- [x] Ruoli base definiti
+- [x] Utente può avere multipli ruoli
+
+---
+
 # SEZIONE 1: LINEE GUIDA TRASVERSALI (Backend)
 
 ---
@@ -284,19 +309,6 @@ Dipendenze: TASK 1.6
 
 ---
 
-# SEZIONE 2: BACKEND & DATA
-
----
-
-## NOTE NUMERAZIONE
-
-**TASK 2.2**: Originariamente "Setup Docker Compose per PostgreSQL e Redis".  
-Spostato in `Docker/AGENTS.md` durante riorganizzazione architetturale.  
-La numerazione backend non è stata riallineata per preservare riferimenti storici e dipendenze esistenti.  
-Per dettagli su Docker Compose, consultare `Docker/AGENTS.md` → TASK 2.2.
-
----
-
 ID: TASK 2.1
 Area: backend/infra
 Fase: MVP
@@ -438,3 +450,39 @@ Dipendenze: TASK 2.3
 - [x] Helper properties per calcoli (day_range, day_change, day_change_percent)
 
 ---
+
+ID: TASK 2.8
+Area: backend/sync
+Fase: MVP
+Dipendenze: TASK 1.1
+
+## TASK 2.8: Definizione Modello SQLAlchemy - SyncJob
+
+**Descrizione:** Creare modello per tracciare i job di sincronizzazione con Google Drive.
+
+**Microstep:**
+1. Creare file `backend/src/sync/domain/entities.py`
+2. Definire Enum `SyncJobType`: INITIAL_IMPORT, DAILY_HISTORY_UPDATE, ON_ESTIMATE_SAVE, MANUAL_SYNC
+3. Definire Enum `SyncJobStatus`: PENDING, RUNNING, COMPLETED, FAILED, PARTIAL
+4. Definire classe `SyncJob` con i seguenti campi:
+   - `id` (UUID, PK)
+   - `job_type` (Enum, non nullo)
+   - `status` (Enum, non nullo, default: PENDING)
+   - `started_at` (DateTime, non nullo, default: datetime.utcnow)
+   - `finished_at` (DateTime, nullo)
+   - `error_message` (Text, nullo)
+   - `filename` (String, non nullo)
+   - `checksum_before` (String, nullo)
+   - `checksum_after` (String, nullo)
+   - `records_processed` (Integer, non nullo, default: 0)
+   - `records_failed` (Integer, non nullo, default: 0)
+5. Aggiungere indice su `started_at`
+6. Aggiornare documentazione e test
+
+**Acceptance Criteria:**
+- [x] Modello creato con tutti i campi richiesti
+- [x] Enum definiti correttamente
+- [x] Indice su `started_at` presente
+- [ ] Documentazione aggiornata
+- [ ] Test di import completati
+- [ ] Migrazione Alembic generata

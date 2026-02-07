@@ -34,14 +34,19 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from shared.infra.database import Base
+
+# Import all models to register them with Base.metadata
+from market_data.domain.entities import Ticker
+from market_data.domain.market_data import MarketData
+from estimates.domain.entities import Estimate
+from estimates.domain.events import EstimateEvent
 from analytics.domain.entities import AiModelRun
 from sync.domain.entities import SyncJob
+from shared.domain.user import User, Role
 
-# Update target_metadata to include Base.metadata
+# Set target_metadata for autogenerate support
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

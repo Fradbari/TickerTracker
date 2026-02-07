@@ -11,7 +11,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 from sqlalchemy import (
     Column, String, Text, DateTime, ForeignKey, 
-    Index, Enum as SQLEnum, CheckConstraint, DECIMAL
+    Index, Enum as SQLEnum, CheckConstraint, DECIMAL, text
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
@@ -206,7 +206,7 @@ class Estimate(Base):
         Index(
             "ix_estimate_open_status",
             "status",
-            postgresql_where=(Column("status") == EstimateStatus.OPEN)
+            postgresql_where=text("status = 'OPEN'")
         ),
         
         # Check constraints

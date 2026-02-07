@@ -308,11 +308,11 @@ npm run test           # Vitest
 **Obiettivo:** App funzionante localmente per 1 utente, senza autenticazione.
 
 - Sezione 1: Setup & Fondamenta (8 task) - **8/8 completati**
-- Sezione 2: Backend Core & Data (20 task) - **4/20 completati**
+- Sezione 2: Backend Core & Data (20 task) - **5/20 completati**
 - Sezione 4: Frontend Setup & Features (13 task)
 - Sezione 5: Testing & CI/CD Base (5 task)
 
-**Status:** 12/46 completati (26.1% ✨)
+**Status:** 13/46 completati (28.3% ✨)
 
 **Total Test Coverage**: 159+ tests passing ✅
 

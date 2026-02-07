@@ -410,3 +410,31 @@ Dipendenze: TASK 2.4
 - [x] JSONB usato per flessibilità dati evento
 - [x] Indice permette query efficienti per timeline
 - [x] Ogni tipo evento documentato nel Enum
+---
+
+ID: TASK 2.6
+Area: backend/domain
+Fase: MVP
+Dipendenze: TASK 2.3
+
+## TASK 2.6: Definizione Modello SQLAlchemy - MarketData
+
+**Descrizione:** Creare il modello per dati storici di mercato (OHLCV).
+
+**Microstep:**
+1. Creare file `backend/src/market_data/domain/market_data.py`
+2. Definire classe `MarketData` che eredita da Base
+3. Definire colonne OHLCV: `ticker_id` (FK), `date`, `open`, `high`, `low`, `close` (DECIMAL), `volume` (BigInteger)
+4. Definire PK composta: `(ticker_id, date)`
+5. Definire colonne lineage: `data_source`, `ingested_at`, `quality_score`
+6. Definire indici e check constraints per validazione OHLC
+
+**Acceptance Criteria:**
+- [x] PK composta impedisce duplicati per ticker+data
+- [x] Tutti i prezzi usano DECIMAL
+- [x] Volume usa BigInteger per supportare valori grandi
+- [x] Metadati lineage presenti per audit
+- [x] Check constraints validano relazioni H>=L, H>=O, H>=C, L<=O, L<=C
+- [x] Helper properties per calcoli (day_range, day_change, day_change_percent)
+
+---

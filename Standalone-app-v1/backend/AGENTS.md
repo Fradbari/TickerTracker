@@ -486,3 +486,25 @@ Dipendenze: TASK 1.1
 - [ ] Documentazione aggiornata
 - [ ] Test di import completati
 - [ ] Migrazione Alembic generata
+
+---
+
+ID: TASK 2.9
+Area: backend/analytics
+Fase: MVP
+Dipendenze: TASK 1.1
+
+## TASK 2.9: Definizione Modello SQLAlchemy - AiModelRun
+
+**Descrizione:** Creare modello per tracciare esecuzioni dei modelli AI.
+
+**Microstep:**
+1. Creare file `backend/src/analytics/domain/entities.py`
+2. Definire classe `AiModelRun`: `id` (UUID), `estimate_id` (FK, nullable), `model_name` (String), `model_version` (String), `prompt_hash` (String), `prompt_tokens` (Integer), `completion_tokens` (Integer), `latency_ms` (Integer), `output_summary` (Text), `raw_response` (JSONB), `created_at`
+3. Definire indice su `model_name` e `created_at`
+
+**Acceptance Criteria:**
+- [x] Traccia consumo token per monitoraggio costi
+- [x] Hash del prompt per deduplicazione
+- [x] Latenza per performance monitoring
+- [x] JSONB per risposta raw flessibile

@@ -508,3 +508,21 @@ Il modello `SyncJob` è utilizzato per tracciare i job di sincronizzazione con G
 - **records_failed**: Numero di record falliti.
 
 Il modello include un indice sul campo `started_at` per ottimizzare le query cronologiche.
+
+### AiModelRun
+
+Il modello `AiModelRun` è utilizzato per tracciare le esecuzioni dei modelli AI. Include i seguenti campi principali:
+
+- **id**: Identificativo univoco dell'esecuzione (UUID).
+- **estimate_id**: ID della stima associata (FK, opzionale).
+- **model_name**: Nome del modello AI.
+- **model_version**: Versione del modello AI.
+- **prompt_hash**: Hash del prompt per deduplicazione.
+- **prompt_tokens**: Numero di token utilizzati nel prompt.
+- **completion_tokens**: Numero di token generati nella risposta.
+- **latency_ms**: Latenza dell'esecuzione in millisecondi.
+- **output_summary**: Riassunto dell'output generato (opzionale).
+- **raw_response**: Risposta grezza in formato JSONB (opzionale).
+- **created_at**: Timestamp di creazione dell'esecuzione.
+
+Il modello include un indice sui campi `model_name` e `created_at` per ottimizzare le query cronologiche e per modello.

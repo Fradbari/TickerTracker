@@ -55,11 +55,11 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
 
 #### Sezione 2: Backend Core & Data (0/20)
-- [ ] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
+- [x] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
 - [ ] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
-- [ ] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker *(in market_data/AGENTS.md)*
-- [ ] **TASK 2.5** - Definizione Modello SQLAlchemy - Estimate
-- [ ] **TASK 2.6** - Definizione Modello SQLAlchemy - EstimateEvent
+- [x] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker
+- [x] **TASK 2.4** - Definizione Modello SQLAlchemy - Estimate
+- [x] **TASK 2.5** - Definizione Modello SQLAlchemy - EstimateEvent
 - [ ] **TASK 2.7** - Definizione Modello SQLAlchemy - MarketData
 - [ ] **TASK 2.10** - Setup Alembic per Migrazioni Database
 - [ ] **TASK 2.11** - Creazione Materialized View EstimateSummaryView
@@ -152,9 +152,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 | Categoria | Completati | Totali | Percentuale |
 |-----------|------------|--------|-------------|
-| **MVP** | 8 | 46 | 17% |
+| **MVP** | 12 | 46 | 26% |
 | **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **8** | **65** | 12% |
+| **TOTALE** | **12** | **65** | 18% |
 
 ---
 
@@ -198,7 +198,7 @@ Standalone-app-v1/
 
 **Backend MVP**:
 - ✅ TASK 1.1-1.7: Setup base, value objects, config
-- ✅ TASK 2.1-2.7: Database, repositories, event store
+- ✅ TASK 2.1-2.5: Database, repositories, event store (Ticker, Estimate, Event)
 - ✅ TASK 2.10-2.16: API endpoints estimates (CRUD)
 - ✅ TASK 2.17-2.19: Market data & cache
 - ✅ TASK 2.20-2.24: Sync Google Drive & scheduler

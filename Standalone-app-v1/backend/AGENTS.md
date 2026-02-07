@@ -325,9 +325,88 @@ Dipendenze: -
 
 **Acceptance Criteria:**
 
-- [ ] `poetry install` completa senza errori
-- [ ] `make check-deps` verifica dipendenze critiche
-- [ ] `requirements*.txt` sincronizzati con pyproject.toml
-- [ ] TASK 2.1 può partire immediatamente senza installare altro
+- [x] `poetry install` completa senza errori
+- [x] `make check-deps` verifica dipendenze critiche (simulato con verify script)
+- [x] `requirements*.txt` sincronizzati con pyproject.toml
+- [x] TASK 2.1 può partire immediatamente senza installare altro
 
-[... resto del contenuto invariato ...]
+---
+
+ID: TASK 2.3
+Area: backend/infra
+Fase: MVP
+Dipendenze: TASK 2.1
+
+## TASK 2.3: Setup SQLAlchemy Base + Modello Ticker
+
+**Descrizione:** Inizializzare l'infrastruttura di persistenza async e definire il modello Ticker.
+
+**Microstep:**
+1. Configurare `shared/infra/database.py` con async engine, session factory e Base declarative
+2. Definire `market_data/domain/entities.py` con modello `Ticker`
+3. Aggiungere campi: `id` (UUID), `symbol`, `name`, `exchange`, `currency`, `asset_type`
+4. Aggiungere audit: `created_at`, `updated_at`
+5. Aggiungere vincoli: unique e index su `symbol`
+
+**Acceptance Criteria:**
+- [x] Base importabile da `shared.infra.database`
+- [x] Async engine si connette a PostgreSQL Docker
+- [x] `get_db()` dependency funziona con FastAPI
+- [x] Modello `Ticker` ha tutti i campi richiesti
+- [x] UUID generato automaticamente
+- [x] Timestamps gestiti automaticamente
+- [x] Constraint unique su `symbol`
+- [x] Indice su `symbol` definito
+
+---
+
+ID: TASK 2.4
+Area: backend/domain
+Fase: MVP
+Dipendenze: TASK 2.3
+
+## TASK 2.4: Definizione Modello SQLAlchemy - Estimate
+
+**Descrizione:** Creare il modello SQLAlchemy per l'entità Estimate (stime/previsioni).
+
+**Microstep:**
+1. Creare file `backend/src/estimates/domain/entities.py`
+2. Definire classe `Estimate` che eredita da Base
+3. Definire colonne identificative: `id` (UUID, PK), `ticker_id` (FK to Ticker), `user_id` (FK to User, nullable)
+4. Definire colonne prezzo: `start_price`, `target_price`, `stop_loss_price` (DECIMAL 10,4)
+5. Definire colonne target: `target_profit_percent`, `stop_loss_percent` (DECIMAL 8,4)
+6. Definire colonne stato: `status` (Enum), `direction` (Enum LONG/SHORT)
+7. Definire colonne AI: `ai_model`, `ai_confidence`, `ai_reasoning`
+8. Definire colonne date: `created_at`, `updated_at`, `closed_at`
+9. Definire colonne esito: `exit_price`, `realized_pnl`
+
+**Acceptance Criteria:**
+- [x] Tutti i campi prezzo usano DECIMAL, non FLOAT
+- [x] Enums definiti come tipi Python Enum
+- [x] Foreign key a Ticker definita correttamente
+- [x] Indici ottimizzati per query frequenti (incluso partial index su status='OPEN')
+- [x] Campi nullable marcati esplicitamente
+
+---
+
+ID: TASK 2.5
+Area: backend/domain
+Fase: MVP
+Dipendenze: TASK 2.4
+
+## TASK 2.5: Definizione Modello SQLAlchemy - EstimateEvent (Event Sourcing)
+
+**Descrizione:** Creare il modello per Event Sourcing delle stime.
+
+**Microstep:**
+1. Creare file `backend/src/estimates/domain/events.py`
+2. Definire Enum `EstimateEventType`
+3. Definire classe `EstimateEvent` con `id` (UUID), `estimate_id`, `event_type`, `event_data` (JSONB)
+4. Aggiungere `user_id` e `timestamp`
+5. Definire indice composto su `(estimate_id, timestamp)`
+
+**Acceptance Criteria:**
+- [x] Eventi sono immutabili (append-only)
+- [x] JSONB usato per flessibilità dati evento
+- [x] Indice permette query efficienti per timeline
+- [x] Ogni tipo evento documentato nel Enum

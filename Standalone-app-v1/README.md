@@ -290,7 +290,7 @@ npm run test           # Vitest
 
 ## 📊 Roadmap
 
-### ✅ Phase 1: Foundation & API Structure (7/8 task completati ✨)
+### ✅ Phase 1: Foundation & Core Setup (8/8 task completati ✨)
 
 | Task | Descrizione | Status | Tests |
 |------|-----------|--------|-------|
@@ -300,20 +300,21 @@ npm run test           # Vitest
 | 1.4 | Value Object Percentage | ✅ COMPLETATO | 39 ✓ |
 | 1.5 | Value Object PriceTarget | ✅ COMPLETATO | 41 ✓ |
 | 1.6 | Configurazione Ambienti | ✅ COMPLETATO | 27 ✓ |
-| 1.7 | **Middleware Sicurezza** | ✅ **COMPLETATO** | **16 ✓** |
+| 1.7 | Middleware Sicurezza | ✅ COMPLETATO | 16 ✓ |
+| 1.8 | Setup decimal.js Frontend | ✅ COMPLETATO | - |
 
 ### ✅ MVP - Ambiente Locale Single-User (46 task)
 
 **Obiettivo:** App funzionante localmente per 1 utente, senza autenticazione.
 
-- Sezione 1: Setup & Fondamenta (8 task) - **7/8 completati**
-- Sezione 2: Backend Core & Data (20 task)
+- Sezione 1: Setup & Fondamenta (8 task) - **8/8 completati**
+- Sezione 2: Backend Core & Data (20 task) - **4/20 completati**
 - Sezione 4: Frontend Setup & Features (13 task)
 - Sezione 5: Testing & CI/CD Base (5 task)
 
-**Status:** 7/46 completati (15.2% ✨)
+**Status:** 12/46 completati (26.1% ✨)
 
-**Total Test Coverage**: 159 tests passing ✅
+**Total Test Coverage**: 159+ tests passing ✅
 
 ### 🚧 Fase 2 - Produzione Multi-User (19 task)
 
@@ -394,4 +395,4 @@ Questo progetto è rilasciato sotto licenza MIT. Vedi [LICENSE](../LICENSE) per 
 
 **Versione:** 3.0  
 **Status:** In Sviluppo (MVP)  
-**Último aggiornamento:** 31 Gennaio 2026
+**Ultimo aggiornamento:** 7 Febbraio 2026

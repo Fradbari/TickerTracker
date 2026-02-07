@@ -467,6 +467,55 @@ make migrate-new  # Crea migrazione
 make migrate      # Applica migrazione
 ```
 
+#### Database Schema
+
+Il database include le seguenti tabelle principali:
+
+**Core Tables:**
+- `tickers` - Informazioni ticker (AAPL, TSLA, etc.)
+- `market_data` - Dati storici OHLCV
+- `estimates` - Stime di trading con target/stop-loss
+- `estimate_events` - Event sourcing per stime
+- `ai_model_runs` - Tracciamento esecuzioni AI
+- `sync_jobs` - Tracciamento sincronizzazione Drive
+- `users` - Utenti sistema
+- `roles` - Ruoli RBAC
+- `user_roles` - Tabella di associazione user-role
+
+**Materialized Views:**
+- `estimate_summary_view` - View CQRS per dashboard queries (< 5ms)
+
+Per dettagli completi sulle migrazioni: [ALEMBIC_SETUP_COMPLETED.md](./ALEMBIC_SETUP_COMPLETED.md)
+
+### CQRS Pattern - Estimate Summary View
+
+Per ottimizzare le query del dashboard, è stata implementata una **materialized view** che pre-calcola metriche e join:
+
+```bash
+# Refresh manuale (con lock)
+docker exec tickertracker-db psql -U tickertracker -d tickertracker_dev -c "REFRESH MATERIALIZED VIEW estimate_summary_view;"
+
+# Refresh concorrente (senza lock, raccomandato)
+python scripts/refresh_estimate_summary_view.py
+
+# Con statistiche
+python scripts/refresh_estimate_summary_view.py --stats
+```
+
+**Metriche pre-calcolate:**
+- `current_price` - Ultimo prezzo di mercato disponibile
+- `current_pnl` - PnL non realizzato (LONG/SHORT aware)
+- `current_pnl_percent` - PnL in percentuale
+- `days_open` - Giorni dalla creazione della stima
+- `risk_level` - Classificazione rischio (LOW/MEDIUM/HIGH)
+
+**Performance:**
+- Query time: < 5ms (target < 50ms) ✅
+- Concurrent refresh: ~12ms
+- Zero downtime con `REFRESH MATERIALIZED VIEW CONCURRENTLY`
+
+Per dettagli completi: [docs/ESTIMATE_SUMMARY_VIEW.md](./docs/ESTIMATE_SUMMARY_VIEW.md)
+
 ### Rigenerare requirements.txt
 
 Se modifichi `pyproject.toml`, rigenera i file requirements:

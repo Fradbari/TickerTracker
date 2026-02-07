@@ -309,13 +309,51 @@ npm run test           # Vitest
 **Obiettivo:** App funzionante localmente per 1 utente, senza autenticazione.
 
 - Sezione 1: Setup & Fondamenta (8 task) - **8/8 completati**
-- Sezione 2: Backend Core & Data (20 task) - **5/20 completati**
+- Sezione 2: Backend Core & Data (20 task) - **11/20 completati**
+  - ✅ TASK 2.1: Modello Ticker
+  - ✅ TASK 2.3: Modello MarketData
+  - ✅ TASK 2.4: Modello Estimate
+  - ✅ TASK 2.5: Modello EstimateEvent
+  - ✅ TASK 2.6: Modello SyncJob
+  - ✅ TASK 2.7: Modelli User & Role (RBAC)
+  - ✅ TASK 2.8: Modello AiModelRun
+  - ✅ TASK 2.10: Setup Alembic & Migrazione Iniziale (10 tabelle create)
+  - ✅ TASK 2.11: Materialized View per CQRS - Estimate Summary (query < 5ms)
+  - 🚧 Altri task backend in progress...
 - Sezione 4: Frontend Setup & Features (13 task)
 - Sezione 5: Testing & CI/CD Base (5 task)
 
-**Status:** 13/46 completati (28.3% ✨)
+**Status:** 19/46 completati (41.3% ✨)
 
 **Total Test Coverage**: 159+ tests passing ✅
+
+### 🗄️ Database Schema (Task 2.10)
+
+Il database PostgreSQL 16 include le seguenti tabelle:
+
+**Core Tables:**
+- `tickers` - Informazioni ticker (symbol, name, exchange, asset_type)
+- `market_data` - Dati storici OHLCV (open, high, low, close, volume)
+- `estimates` - Stime di trading (target_price, stop_loss, direction)
+- `estimate_events` - Event sourcing per audit trail completo
+- `ai_model_runs` - Tracciamento esecuzioni AI (tokens, latency, cost)
+- `sync_jobs` - Sincronizzazione Google Drive (status, checksum)
+- `users` - Utenti sistema (email, hashed_password, is_active)
+- `roles` - Ruoli RBAC (ADMIN, USER, READONLY)
+- `user_roles` - Relazione many-to-many User <-> Role
+
+**Materialized Views (Task 2.11):**
+- `estimate_summary_view` - View CQRS per query ottimizzate dashboard
+  - Pre-calcola: current_price, current_pnl, current_pnl_percent, days_open, risk_level
+  - Performance: 3-5ms per query (target < 50ms) ✅
+  - Supporto concurrent refresh: zero-downtime updates
+
+**Migrazioni:**
+- Alembic configurato con supporto asyncpg
+- Migrazione iniziale: `f9f513c6220d` (schema completo)
+- Materialized view: `e97b3b8578e1` (CQRS pattern)
+- Documentazione: [backend/ALEMBIC_SETUP_COMPLETED.md](./backend/ALEMBIC_SETUP_COMPLETED.md)
+- Materialized View Guide: [backend/docs/ESTIMATE_SUMMARY_VIEW.md](./backend/docs/ESTIMATE_SUMMARY_VIEW.md)
 
 ### 🚧 Fase 2 - Produzione Multi-User (19 task)
 

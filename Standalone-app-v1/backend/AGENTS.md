@@ -508,3 +508,125 @@ Dipendenze: TASK 1.1
 - [x] Hash del prompt per deduplicazione
 - [x] Latenza per performance monitoring
 - [x] JSONB per risposta raw flessibile
+
+---
+
+ID: TASK 2.10
+Area: backend/database
+Fase: MVP
+Dipendenze: TASK 2.1-2.9
+
+## TASK 2.10: Setup Alembic e Generazione Migrazione Iniziale
+
+**Descrizione:** Configurare Alembic per gestire le migrazioni del database e generare la migrazione iniziale con tutte le tabelle definite nei task precedenti.
+
+**Microstep:**
+1. Installare Alembic: `pip install alembic`
+2. Inizializzare Alembic nella directory backend: `alembic init alembic`
+3. Configurare `alembic.ini`:
+   - Impostare `script_location = alembic` (non `backend/alembic`)
+   - Impostare `sqlalchemy.url` da variabile ambiente DATABASE_URL
+4. Configurare `alembic/env.py`:
+   - Importare tutti i modelli SQLAlchemy (Ticker, MarketData, Estimate, EstimateEvent, SyncJob, AiModelRun, User, Role)
+   - Configurare `target_metadata = Base.metadata` (non `None`)
+   - Configurare async context manager per asyncpg
+   - Separare logica sincrona (do_run_migrations) da async (run_migrations_online)
+5. Creare file `.env` con DATABASE_URL
+6. Generare migrazione iniziale: `alembic revision --autogenerate -m "initial schema"`
+7. Verificare file di migrazione generato in `alembic/versions/`
+8. Applicare migrazione: `alembic upgrade head`
+9. Verificare tabelle create nel database: `docker exec tickertracker-db psql -U tickertracker -d tickertracker_dev -c "\dt"`
+
+**Problemi Risolti:**
+- ✅ `target_metadata = None` → Importati tutti i modelli e configurato `Base.metadata`
+- ✅ `script_location = backend/alembic` → Corretto in `alembic`
+- ✅ TypeError con async context manager → Separato sync callback da async function
+- ✅ Partial index con Enum → Usato `text("status = 'OPEN'")` invece di Column comparison
+
+**Acceptance Criteria:**
+- [x] Alembic configurato correttamente
+- [x] Migrazione iniziale generata con successo (f9f513c6220d)
+- [x] Migrazione applicata al database
+- [x] 10 tabelle create: tickers, market_data, estimates, estimate_events, ai_model_runs, sync_jobs, users, roles, user_roles, alembic_version
+- [x] Tutti gli indici e foreign keys creati
+- [x] Script di verifica eseguito con successo (verify_task_2_7.py)
+
+---
+
+ID: TASK 2.11
+Area: backend/database
+Fase: MVP
+Dipendenze: TASK 2.10
+
+## TASK 2.11: Creazione Materialized View per CQRS - Estimate Summary
+
+**Descrizione:** Creare una materialized view PostgreSQL per ottimizzare le query del dashboard, pre-calcolando join e metriche aggregate (pattern CQRS - Command Query Responsibility Segregation).
+
+**Rationale:**
+Le query del dashboard richiedono join complessi tra `estimates` e `market_data` (per ottenere il prezzo corrente) e calcoli di metriche derivate (PnL corrente, giorni aperti, livello di rischio). Una materialized view pre-calcola questi dati per query < 50ms.
+
+**Microstep:**
+1. Creare migrazione Alembic: `alembic revision -m "create estimate_summary_view materialized view"`
+2. Definire SQL per creazione materialized view in `upgrade()`:
+   - Base: tutti i campi da `estimates`
+   - Join LATERAL con `market_data` per ottenere ultimo prezzo disponibile
+   - Campi calcolati:
+     - `current_price`: ultimo prezzo da market_data (fallback a start_price)
+     - `current_pnl`: PnL non realizzato per OPEN, realized_pnl per CLOSED
+     - `current_pnl_percent`: PnL in percentuale
+     - `days_open`: giorni da created_at (o a closed_at se chiuso)
+     - `risk_level`: LOW/MEDIUM/HIGH basato su stop_loss_percent
+3. Creare indici sulla materialized view:
+   - Unique index su `id` (richiesto per CONCURRENT refresh)
+   - Index su `status` (per filtrare OPEN/CLOSED)
+   - Index su `ticker_id` (per filtri per ticker)
+   - Composite index su `(status, created_at DESC)` (per ordinamento cronologico)
+4. Definire SQL per `downgrade()`: DROP MATERIALIZED VIEW
+5. Creare script utility `backend/scripts/refresh_estimate_summary_view.py`:
+   - Supporto per refresh concorrente (default, no lock)
+   - Supporto per refresh standard (con lock, più veloce)
+   - Opzione `--stats` per mostrare statistiche post-refresh
+6. Creare script di test `backend/test_estimate_summary_view.py`:
+   - Creare dati di esempio (2 ticker, 30 giorni market data, 3 estimates)
+   - Test 1: query tutti gli estimates dalla view
+   - Test 2: query solo estimates OPEN
+   - Test 3: performance test (target < 50ms)
+   - Test 4: concurrent refresh funziona
+
+**Problemi Risolti:**
+- ✅ Ticker initialization: usare `name` non `company_name`, aggiungere `exchange`, `currency`, `asset_type`
+- ✅ LEFT JOIN LATERAL per ottenere ultimo market_data disponibile
+- ✅ Unique index su `id` per abilitare REFRESH MATERIALIZED VIEW CONCURRENTLY
+
+**Risultati Test:**
+```
+📊 Query Performance: 3-5ms (target < 50ms) ✅
+🔄 Concurrent Refresh: 12.15ms ✅
+📈 Metriche: current_price, current_pnl, current_pnl_percent, days_open, risk_level ✅
+```
+
+**Acceptance Criteria:**
+- [x] Materialized view creata con successo (migrazione e97b3b8578e1)
+- [x] Query restituisce dati corretti con metriche calcolate
+- [x] Refresh concorrente funziona senza lock
+- [x] Performance query < 50ms (attuale: 3-5ms)
+- [x] Script refresh_estimate_summary_view.py funzionante
+- [x] Test di validazione passati con successo
+- [x] Documentazione completa in docs/ESTIMATE_SUMMARY_VIEW.md
+
+**Documentazione:**
+- [docs/ESTIMATE_SUMMARY_VIEW.md](./docs/ESTIMATE_SUMMARY_VIEW.md) - Guida completa all'uso della materialized view
+- [ALEMBIC_SETUP_COMPLETED.md](./ALEMBIC_SETUP_COMPLETED.md) - Setup migrazioni Alembic
+
+**Usage:**
+```bash
+# Refresh manuale
+python scripts/refresh_estimate_summary_view.py
+
+# Con statistiche
+python scripts/refresh_estimate_summary_view.py --stats
+
+# Query dalla view
+SELECT * FROM estimate_summary_view WHERE status = 'OPEN' ORDER BY created_at DESC;
+```
+

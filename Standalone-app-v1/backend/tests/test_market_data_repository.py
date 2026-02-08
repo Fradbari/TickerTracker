@@ -24,15 +24,15 @@ from src.market_data.repositories import MarketDataRepository, MarketDataRow
 from src.market_data.domain.entities import Ticker
 
 
-async def create_test_ticker(session_factory, suffix: str = "") -> Ticker:
-    """Create a test ticker for testing."""
-    if not suffix:
-        suffix = str(uuid4())[:3]
+async def create_test_ticker(session_factory, prefix: str = "TEST") -> Ticker:
+    """Create a test ticker with unique UUID-based symbol."""
+    # Use UUID to ensure unique symbol even across multiple test runs
+    unique_id = str(uuid4())[:8].upper()
     
     ticker = Ticker(
         id=uuid4(),
-        symbol=f"T{suffix}",
-        name=f"Test {suffix}",
+        symbol=f"{prefix}_{unique_id}",
+        name=f"Test Ticker {unique_id}",
         exchange="NASDAQ",
         currency="USD",
         asset_type="stock",
@@ -91,7 +91,7 @@ async def test_repository():
     
     # Test 1: Create test ticker
     print("[1/8] Creating test ticker...")
-    ticker = await create_test_ticker(AsyncSessionLocal)
+    ticker = await create_test_ticker(AsyncSessionLocal, "AAPL")
     print(f"[OK] Ticker created: {ticker.symbol} ({ticker.id})\n")
     
     # Test 2: Upsert daily data (initial insert)
@@ -157,9 +157,9 @@ async def test_repository():
     
     # Test 7: Batch latest prices
     print("[7/8] Testing get_latest_prices_batch()...")
-    # Create 2 more test tickers
-    ticker2 = await create_test_ticker(AsyncSessionLocal, "G")
-    ticker3 = await create_test_ticker(AsyncSessionLocal, "M")
+    # Create 2 more test tickers with unique symbols
+    ticker2 = await create_test_ticker(AsyncSessionLocal, "GOOGL")
+    ticker3 = await create_test_ticker(AsyncSessionLocal, "MSFT")
     
     # Add data to ticker2 and ticker3
     test_data2 = await generate_test_data(date(2025, 1, 1), 15, ticker2.id)
@@ -175,7 +175,7 @@ async def test_repository():
     assert len(batch_result) == 3, "Should return data for all 3 tickers"
     
     for ticker_id, market_data in batch_result.items():
-        print(f"   {market_data.ticker_id}: ${market_data.close} on {market_data.date}")
+        print(f"   {ticker_id}: ${market_data.close} on {market_data.date}")
     
     print("[OK] Verified: Batch query avoids N+1 problem\n")
     
@@ -223,7 +223,7 @@ async def test_repository():
     print("\nAcceptance Criteria Verification:")
     print("  [OK] Upsert does not create duplicates (test 3-4)")
     print("  [OK] Batch query avoids N+1 problem (test 7)")
-    print("  [OK] Aggregations support 1D/1W/1M (test 8)")
+    print("  [OK] Aggregations calculated DB-side (test 8)")
     print("  [OK] Performance acceptable for 10 years of data (tested 30 days)\n")
 
 

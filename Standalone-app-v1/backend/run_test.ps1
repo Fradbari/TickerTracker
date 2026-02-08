@@ -16,8 +16,8 @@ Write-Host "Running Test: $TestFile" -ForegroundColor Cyan
 Write-Host "================================" -ForegroundColor Cyan
 Write-Host "\n" -NoNewline
 
-# Set PYTHONPATH to include backend directory
-$env:PYTHONPATH = $BackendDir
+# Set PYTHONPATH to include backend directory and src
+$env:PYTHONPATH = "$BackendDir;$BackendDir\src"
 
 # Run the test
 python $TestFile

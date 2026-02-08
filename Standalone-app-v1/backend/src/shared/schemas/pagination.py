@@ -66,6 +66,7 @@ class PaginatedResult(BaseModel, Generic[T]):
     page_info: PageInfo = Field(description="Pagination info")
     
     class Config:
+        arbitrary_types_allowed = True
         json_schema_extra = {
             "example": {
                 "items": [{"id": "123...", "name": "Example"}],

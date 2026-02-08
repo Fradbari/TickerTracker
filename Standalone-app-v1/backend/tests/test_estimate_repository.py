@@ -24,17 +24,18 @@ from src.estimates.repositories import EstimateRepository
 from src.estimates.schemas.filters import EstimateFilters
 from src.shared.schemas.pagination import Pagination
 from src.estimates.domain.entities import Estimate
-from src.tickers.domain.ticker import Ticker
+from src.market_data.domain.entities import Ticker
 
 
 async def create_test_ticker(session_factory) -> Ticker:
     """Create a test ticker for testing."""
     ticker = Ticker(
         id=uuid4(),
-        symbol="TEST",
+        symbol=f"TX{uuid4().hex[:6].upper()}",
         name="Test Stock",
         exchange="NASDAQ",
         currency="USD",
+        asset_type="stock",
     )
     
     async with session_factory() as session:

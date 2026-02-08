@@ -4,8 +4,15 @@ Manual verification script for EstimateRepository (TASK 2.12).
 Run this script to verify all repository methods work correctly.
 
 Usage:
-    python -m tests.test_estimate_repository
+    python tests/test_estimate_repository.py
 """
+
+import sys
+from pathlib import Path
+
+# Add backend directory to Python path
+backend_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(backend_dir))
 
 import asyncio
 from datetime import datetime, timedelta

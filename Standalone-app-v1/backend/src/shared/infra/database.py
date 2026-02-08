@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.pool import NullPool
 
-from shared.infra.config import get_settings
+from src.shared.infra.config import get_settings
 
 # Create declarative base for all models
 Base = declarative_base()

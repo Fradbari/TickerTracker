@@ -8,6 +8,7 @@
 - ✅ `src/estimates/repositories/estimate_repository.py` - EstimateRepository class
 - ✅ `src/estimates/repositories/__init__.py` - Exports
 - ✅ `tests/test_estimate_repository.py` - Verification script
+- ✅ `run_test.ps1` - Helper script to run tests
 
 **Methods Implemented**:
 1. ✅ `create(estimate)` - Create new estimate
@@ -29,7 +30,7 @@ cd backend
 git pull origin test
 ```
 
-**Expected**: 5 files changed
+**Expected**: 7 files changed (including fixes)
 
 ---
 
@@ -41,6 +42,7 @@ Test-Path src\shared\schemas\pagination.py
 Test-Path src\estimates\schemas\filters.py
 Test-Path src\estimates\repositories\estimate_repository.py
 Test-Path tests\test_estimate_repository.py
+Test-Path run_test.ps1
 ```
 
 **Expected**: All return `True`
@@ -53,10 +55,11 @@ Test-Path tests\test_estimate_repository.py
 # Activate venv if not active
 .venv\Scripts\Activate.ps1
 
-# Test imports
-python -c "from src.estimates.repositories import EstimateRepository; print('✅ EstimateRepository imported')"
-python -c "from src.shared.schemas.pagination import Pagination, PaginatedResult; print('✅ Pagination schemas imported')"
-python -c "from src.estimates.schemas.filters import EstimateFilters; print('✅ Filters imported')"
+# Set PYTHONPATH and test imports
+$env:PYTHONPATH = (Get-Location).Path
+python -c "from src.estimates.repositories import EstimateRepository; print('✅ Repository OK')"
+python -c "from src.shared.schemas.pagination import Pagination, PaginatedResult; print('✅ Pagination OK')"
+python -c "from src.estimates.schemas.filters import EstimateFilters; print('✅ Filters OK')"
 ```
 
 **Expected**: All print success messages without errors
@@ -85,15 +88,20 @@ curl http://localhost:8000/health
 
 ---
 
-### **STEP 5: Run Manual Test Script**
+### **STEP 5: Run Manual Test Script** ⭐ **CRITICO**
 
+**Option A: Use helper script (RECOMMENDED)**
 ```powershell
-# From backend directory with venv active
-python -m tests.test_estimate_repository
+.\run_test.ps1
 ```
 
-**Expected Output**: All 10 tests pass
+**Option B: Manual run**
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+python tests\test_estimate_repository.py
+```
 
+**Expected Output**:
 ```
 ============================================================
 TASK 2.12 - EstimateRepository Verification
@@ -163,132 +171,129 @@ Acceptance Criteria Verification:
 
 ---
 
-### **STEP 6: Verify Database Schema**
+### **STEP 6: Verify Database**
 
 ```powershell
-# Check estimates table structure
-docker exec tickertracker-db psql -U tickertracker -d tickertracker_dev -c "\d estimates"
-```
-
-**Expected**: Table with `is_deleted` and `deleted_at` columns
-
-```powershell
-# Check soft delete works
+# Check soft delete in DB
 docker exec tickertracker-db psql -U tickertracker -d tickertracker_dev -c "
 SELECT id, status, is_deleted, deleted_at 
 FROM estimates 
-LIMIT 10;
+WHERE ticker_id = (SELECT id FROM tickers WHERE symbol = 'TEST')
+ORDER BY created_at DESC;
 "
 ```
 
-**Expected**: Rows with `is_deleted` = true have `deleted_at` timestamp
+**Expected**: Rows with `is_deleted = t` have `deleted_at` timestamp
+
+**If "(0 rows)"**: Test hasn't been run yet, execute STEP 5 first
 
 ---
 
-### **STEP 7: Verify Cursor Pagination Logic**
+### **STEP 7: Test Paginazione Interattivo** (Opzionale)
 
-```python
-# Interactive Python test
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
 python
 ```
 
 ```python
 import asyncio
-from src.shared.schemas.pagination import Pagination
-from src.estimates.schemas.filters import EstimateFilters
 from src.estimates.repositories import EstimateRepository
+from src.estimates.schemas.filters import EstimateFilters
+from src.shared.schemas.pagination import Pagination
 from src.shared.infra.database import AsyncSessionLocal
-from uuid import uuid4
 
 repo = EstimateRepository(AsyncSessionLocal)
 
-# Test basic pagination
 async def test():
     filters = EstimateFilters()
-    pagination = Pagination(limit=5)
+    pagination = Pagination(limit=3)
+    
+    # Page 1
     result = await repo.get_all(filters, pagination)
     print(f"Page 1: {len(result.items)} items")
     print(f"Has next: {result.page_info.has_next_page}")
     
+    # Page 2 (if exists)
     if result.page_info.next_cursor:
-        pagination2 = Pagination(limit=5, cursor=result.page_info.next_cursor)
+        pagination2 = Pagination(limit=3, cursor=result.page_info.next_cursor)
         result2 = await repo.get_all(filters, pagination2)
         print(f"Page 2: {len(result2.items)} items")
 
 asyncio.run(test())
-# Exit with: exit()
+# Exit: exit()
 ```
 
 ---
 
-## ✅ Acceptance Criteria Checklist
+## ✅ Acceptance Criteria - Verification Matrix
 
-### **Requirement 1: All CRUD Operations Work**
-- [x] `create()` - Creates estimate with all fields
-- [x] `get_by_id()` - Retrieves by UUID with eager loading
-- [x] `get_all()` - Returns paginated results
-- [x] `update()` - Updates estimate fields
-- [x] `soft_delete()` - Sets is_deleted flag
-
-**Verification**: Run `python -m tests.test_estimate_repository` (Steps 2-10)
-
----
-
-### **Requirement 2: Cursor-Based Pagination**
-- [x] No OFFSET used (inefficient)
-- [x] Cursor encodes `(created_at, id)` tuple
-- [x] Pagination uses `WHERE (created_at, id) > cursor` logic
-- [x] `has_next_page` correctly computed
-- [x] `next_cursor` generated for next page
-
-**Verification**: Check Step 5 output (pagination test), Step 7 interactive test
-
----
-
-### **Requirement 3: Filters Applied Correctly**
-- [x] `ticker_id` filter
-- [x] `user_id` filter
-- [x] `status` filter
-- [x] `direction` filter
-- [x] Date range filters (created_after/before, closed_after/before)
-- [x] Confidence range filters (min/max)
-- [x] `include_deleted` flag
-- [x] Multiple filters combined with AND
-
-**Verification**: Step 5 test [7/10] filters by status
-
----
-
-### **Requirement 4: Soft Delete**
-- [x] `soft_delete()` sets `is_deleted = True`
-- [x] `soft_delete()` sets `deleted_at = NOW()`
-- [x] `soft_delete()` does NOT remove row from DB
-- [x] `get_by_id()` excludes soft-deleted by default
-- [x] `get_all()` excludes soft-deleted unless `include_deleted=True`
-
-**Verification**: Step 5 test [10/10], Step 6 database query
-
----
-
-### **Requirement 5: Transactions Managed**
-- [x] Each method uses `async with session_factory()` context
-- [x] Auto-commit on success
-- [x] Auto-rollback on exception
-- [x] Session closed in finally block
-
-**Verification**: Code review of `estimate_repository.py` (line 47, 68, etc.)
+| Criterio | Status | Come Verificare |
+|----------|--------|---------------|
+| **CRUD Operations** | ✅ | STEP 5 (test 2,3,9,10) |
+| **Cursor Pagination** | ✅ | STEP 5 (test 5,6) + STEP 7 |
+| **Filters** | ✅ | STEP 5 (test 7) |
+| **Soft Delete** | ✅ | STEP 5 (test 10) + STEP 6 |
+| **Transactions** | ✅ | Code review + no locks |
 
 ---
 
 ## 🎯 Summary
 
-| Criterion | Status | Verification Method |
-|-----------|--------|---------------------|
-| CRUD Operations | ✅ | Step 5 (tests 2,3,9,10) |
-| Cursor Pagination | ✅ | Step 5 (tests 5,6) + Step 7 |
-| Filters | ✅ | Step 5 (test 7) |
-| Soft Delete | ✅ | Step 5 (test 10) + Step 6 |
-| Transactions | ✅ | Code review + no DB locks |
+**Status**: ✅ **READY FOR NEXT TASK**
+
+**What Works**:
+- ✅ All 10 CRUD operations
+- ✅ Cursor-based pagination (no OFFSET)
+- ✅ 11 filter types (ticker, user, status, dates, confidence)
+- ✅ Soft delete with flag + timestamp
+- ✅ Transaction management (auto-commit/rollback)
+- ✅ Eager loading (ticker relationship)
+- ✅ Statistics aggregation
+
+**Performance**:
+- ✅ O(log n) pagination vs O(n) OFFSET
+- ✅ Index on `(created_at, id)` for sorting
+- ✅ Batch queries avoid N+1
+
+---
+
+## 🆘 Troubleshooting
+
+### Error: `ModuleNotFoundError: No module named 'src'`
+**Solution**: Set PYTHONPATH before running
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+python tests\test_estimate_repository.py
+```
+
+**OR use helper script**:
+```powershell
+.\run_test.ps1
+```
+
+### Error: `ImportError: cannot import name 'EstimateRepository'`
+**Solution**: `git pull origin test` to get latest code
+
+### Error: Test script fails with DB connection
+**Solution**: Verify Docker container running, `.env` correct
+```powershell
+docker ps | findstr tickertracker-db
+type .env | findstr DATABASE_URL
+```
+
+### Error: `IntegrityError` on ticker creation
+**Solution**: Test ticker already exists, delete or restart test
+```sql
+DELETE FROM estimates WHERE ticker_id IN (
+    SELECT id FROM tickers WHERE symbol = 'TEST'
+);
+DELETE FROM tickers WHERE symbol = 'TEST';
+```
+
+### Database shows (0 rows) after test
+**Issue**: Test creates data but you're checking before running test
+**Solution**: Run STEP 5 first, then STEP 6
 
 ---
 
@@ -299,28 +304,14 @@ After verification:
 1. ✅ **TASK 2.12 COMPLETE** - EstimateRepository ready
 2. ➡️ **Proceed to TASK 2.13** - MarketDataRepository
 3. ➡️ **Cleanup test data** (optional):
-   ```sql
+   ```powershell
+   docker exec tickertracker-db psql -U tickertracker -d tickertracker_dev -c "
    DELETE FROM estimates WHERE ticker_id IN (
        SELECT id FROM tickers WHERE symbol = 'TEST'
    );
    DELETE FROM tickers WHERE symbol = 'TEST';
+   "
    ```
-
----
-
-## 🆘 Troubleshooting
-
-### Error: `ModuleNotFoundError: No module named 'src'`
-**Solution**: Ensure you're in `backend/` directory and venv is active
-
-### Error: `ImportError: cannot import name 'EstimateRepository'`
-**Solution**: `git pull origin test` to get latest code
-
-### Error: Test script fails with DB connection
-**Solution**: Verify Docker container running, `.env` correct
-
-### Error: `IntegrityError` on ticker creation
-**Solution**: Test ticker already exists, delete or use different symbol
 
 ---
 

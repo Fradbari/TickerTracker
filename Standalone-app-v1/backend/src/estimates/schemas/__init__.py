@@ -1,17 +1,11 @@
 """Schemas for the estimates bounded context."""
 
-from .filters import (
-	EstimateFilters,
-	Pagination,
-	PaginatedResult,
-	encode_cursor,
-	decode_cursor,
-)
+from src.estimates.schemas.filters import EstimateFilters
+from src.shared.schemas.pagination import Pagination, PaginatedResult, PageInfo
 
 __all__ = [
-	"EstimateFilters",
-	"Pagination",
-	"PaginatedResult",
-	"encode_cursor",
-	"decode_cursor",
+    "EstimateFilters",
+    "Pagination",
+    "PaginatedResult",
+    "PageInfo",
 ]

@@ -27,7 +27,7 @@ from src.market_data.domain.entities import Ticker
 async def create_test_ticker(session_factory, prefix: str = "TEST") -> Ticker:
     """Create a test ticker with unique UUID-based symbol."""
     # Use UUID to ensure unique symbol even across multiple test runs
-    unique_id = str(uuid4())[:8].upper()
+    unique_id = str(uuid4())[:3].upper()
     
     ticker = Ticker(
         id=uuid4(),

@@ -7,7 +7,8 @@ from decimal import Decimal
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from sqlalchemy import and_, func, insert, select, text, update
+from sqlalchemy import and_, bindparam, func, insert, select, text, update
+from sqlalchemy.types import Date
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -255,7 +256,7 @@ class MarketDataRepository:
         async with self._session_factory() as session:
             # Build SQL query with DATE_TRUNC for aggregation
             stmt = text(
-                f"""
+                """
                 SELECT 
                     DATE_TRUNC(:trunc_unit, date)::date AS period_start,
                     (ARRAY_AGG(open ORDER BY date ASC))[1] AS open,
@@ -271,6 +272,11 @@ class MarketDataRepository:
                 GROUP BY DATE_TRUNC(:trunc_unit, date)
                 ORDER BY period_start ASC
                 """
+            ).bindparams(
+                bindparam("trunc_unit"),
+                bindparam("ticker_id"),
+                bindparam("start", type_=Date),
+                bindparam("end", type_=Date),
             )
 
             result = await session.execute(

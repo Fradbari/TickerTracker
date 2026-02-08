@@ -15,7 +15,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
-from shared.infra.database import Base
+from src.shared.infra.database import Base
 
 
 class MarketData(Base):

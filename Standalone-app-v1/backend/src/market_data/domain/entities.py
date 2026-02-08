@@ -10,7 +10,7 @@ from sqlalchemy import Column, String, DateTime, Index, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
-from shared.infra.database import Base
+from src.shared.infra.database import Base
 
 
 class Ticker(Base):

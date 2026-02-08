@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """Repository for MarketData data access."""
 
 from __future__ import annotations
@@ -12,7 +11,7 @@ from sqlalchemy import and_, func, insert, select, text, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from market_data.domain.market_data import MarketData
+from src.market_data.domain.market_data import MarketData
 
 
 class MarketDataRow:
@@ -134,143 +133,10 @@ class MarketDataRepository:
 
             return result.rowcount
 
-=======
-"""
-MarketData Repository - Data access layer for MarketData entities.
-
-Implements:
-- UPSERT operations with ON CONFLICT DO UPDATE (PostgreSQL)
-- Range queries for historical data
-- Batch queries to avoid N+1 problem
-- SQL-based aggregations (1D/1W/1M intervals)
-- Performance optimized for 10+ years of data
-"""
-
-from datetime import date, timedelta
-from typing import List, Optional, Dict
-from uuid import UUID
-from decimal import Decimal
-
-from sqlalchemy import select, and_, func, text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import selectinload
-
-from src.market_data.domain.market_data import MarketData
-from src.market_data.schemas.market_data_schemas import MarketDataRow, AggregatedData
-
-
-class MarketDataRepository:
-    """
-    Repository for MarketData entity data access.
-    
-    Provides type-safe, async methods for:
-    - Upserting daily OHLCV data (bulk insert with conflict resolution)
-    - Retrieving historical data by date range
-    - Getting latest prices (single and batch)
-    - Computing aggregations (daily, weekly, monthly)
-    
-    Performance:
-    - UPSERT: ~1000 rows/sec
-    - Range query (1 year): ~10ms
-    - Batch latest prices (100 tickers): ~50ms
-    - Aggregation (10 years): ~100ms
-    """
-    
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
-        """
-        Initialize repository with async session factory.
-        
-        Args:
-            session_factory: AsyncSessionLocal from database module
-        """
-        self.session_factory = session_factory
-    
-    async def upsert_daily(
-        self,
-        ticker_id: UUID,
-        data: List[MarketDataRow]
-    ) -> int:
-        """
-        Upsert daily market data for a ticker.
-        
-        Uses PostgreSQL's INSERT ... ON CONFLICT DO UPDATE to handle duplicates.
-        If a row with the same (ticker_id, date) exists, it updates the values.
-        
-        Args:
-            ticker_id: UUID of the ticker
-            data: List of MarketDataRow objects to upsert
-            
-        Returns:
-            Number of rows upserted (inserted or updated)
-            
-        Example:
-            ```python
-            rows = [
-                MarketDataRow(
-                    date=date(2026, 2, 8),
-                    open=Decimal("150.00"),
-                    high=Decimal("152.00"),
-                    low=Decimal("149.50"),
-                    close=Decimal("151.00"),
-                    volume=1000000
-                )
-            ]
-            count = await repo.upsert_daily(ticker_id, rows)
-            print(f"Upserted {count} rows")
-            ```
-        """
-        if not data:
-            return 0
-        
-        async with self.session_factory() as session:
-            # Prepare data for bulk insert
-            values = [
-                {
-                    "ticker_id": ticker_id,
-                    "date": row.date,
-                    "open": row.open,
-                    "high": row.high,
-                    "low": row.low,
-                    "close": row.close,
-                    "volume": row.volume,
-                    "data_source": row.data_source,
-                    "quality_score": row.quality_score,
-                }
-                for row in data
-            ]
-            
-            # Build PostgreSQL INSERT with ON CONFLICT
-            stmt = insert(MarketData).values(values)
-            
-            # Define update behavior on conflict (ticker_id, date)
-            update_dict = {
-                "open": stmt.excluded.open,
-                "high": stmt.excluded.high,
-                "low": stmt.excluded.low,
-                "close": stmt.excluded.close,
-                "volume": stmt.excluded.volume,
-                "data_source": stmt.excluded.data_source,
-                "quality_score": stmt.excluded.quality_score,
-                "ingested_at": func.now(),  # Update timestamp on conflict
-            }
-            
-            stmt = stmt.on_conflict_do_update(
-                index_elements=["ticker_id", "date"],
-                set_=update_dict
-            )
-            
-            await session.execute(stmt)
-            await session.commit()
-            
-            return len(values)
-    
->>>>>>> 98e7fc441700f98a799f4f5498549aa95bfd0edb
     async def get_history(
         self,
         ticker_id: UUID,
         start: date,
-<<<<<<< HEAD
         end: date,
     ) -> List[MarketData]:
         """
@@ -310,68 +176,10 @@ class MarketDataRepository:
         """
         async with self._session_factory() as session:
             result = await session.execute(
-=======
-        end: date
-    ) -> List[MarketData]:
-        """
-        Get historical market data for a ticker within a date range.
-        
-        Args:
-            ticker_id: UUID of the ticker
-            start: Start date (inclusive)
-            end: End date (inclusive)
-            
-        Returns:
-            List of MarketData ordered by date ascending
-            
-        Example:
-            ```python
-            history = await repo.get_history(
-                ticker_id,
-                start=date(2025, 1, 1),
-                end=date(2025, 12, 31)
-            )
-            print(f"Found {len(history)} trading days in 2025")
-            ```
-        """
-        async with self.session_factory() as session:
-            query = (
-                select(MarketData)
-                .where(MarketData.ticker_id == ticker_id)
-                .where(MarketData.date >= start)
-                .where(MarketData.date <= end)
-                .order_by(MarketData.date.asc())
-                .options(selectinload(MarketData.ticker))  # Eager load ticker
-            )
-            
-            result = await session.execute(query)
-            return list(result.scalars().all())
-    
-    async def get_latest_price(self, ticker_id: UUID) -> Optional[MarketData]:
-        """
-        Get the most recent market data for a ticker.
-        
-        Args:
-            ticker_id: UUID of the ticker
-            
-        Returns:
-            Latest MarketData or None if no data exists
-            
-        Example:
-            ```python
-            latest = await repo.get_latest_price(ticker_id)
-            if latest:
-                print(f"Latest close: ${latest.close} on {latest.date}")
-            ```
-        """
-        async with self.session_factory() as session:
-            query = (
->>>>>>> 98e7fc441700f98a799f4f5498549aa95bfd0edb
                 select(MarketData)
                 .where(MarketData.ticker_id == ticker_id)
                 .order_by(MarketData.date.desc())
                 .limit(1)
-<<<<<<< HEAD
             )
             return result.scalar_one_or_none()
 
@@ -379,39 +187,42 @@ class MarketDataRepository:
         self, ticker_ids: List[UUID]
     ) -> Dict[UUID, MarketData]:
         """
-        Get the most recent market data for multiple tickers (avoids N+1).
+        Get the most recent market data for multiple tickers efficiently.
+
+        Uses window function to avoid N+1 queries.
 
         Args:
             ticker_ids: List of ticker IDs
 
         Returns:
-            Dictionary mapping ticker_id to its most recent MarketData
-
-        Example:
-            >>> tickers = [uuid1, uuid2, uuid3]
-            >>> prices = await repo.get_latest_prices_batch(tickers)
-            >>> current_price = prices[uuid1].close
+            Dictionary mapping ticker_id to most recent MarketData
         """
         if not ticker_ids:
             return {}
 
         async with self._session_factory() as session:
-            # Use window function to get most recent per ticker
-            stmt = select(MarketData).where(
-                MarketData.ticker_id.in_(ticker_ids)
-                & (
-                    MarketData.date
-                    == select(func.max(MarketData.date))
-                    .where(MarketData.ticker_id == MarketData.ticker_id)
-                    .correlate(MarketData)
-                    .scalar_subquery()
-                )
+            # Use window function to get latest for each ticker
+            stmt = text(
+                """
+                SELECT DISTINCT ON (ticker_id) *
+                FROM market_data
+                WHERE ticker_id = ANY(:ticker_ids)
+                ORDER BY ticker_id, date DESC
+                """
             )
 
-            result = await session.execute(stmt)
-            rows = result.scalars().all()
+            result = await session.execute(
+                stmt.bindparams(ticker_ids=ticker_ids)
+            )
+            rows = result.all()
 
-            return {row.ticker_id: row for row in rows}
+            # Convert to dict mapping
+            result_dict: Dict[UUID, MarketData] = {}
+            for row in rows:
+                ticker_id = row[1]  # ticker_id column position
+                result_dict[ticker_id] = row
+
+            return result_dict
 
     async def get_aggregated(
         self,
@@ -421,363 +232,123 @@ class MarketDataRepository:
         end: Optional[date] = None,
     ) -> List[AggregatedData]:
         """
-        Get aggregated market data by interval (1D, 1W, 1M).
+        Get aggregated OHLCV data for a ticker by time interval.
 
-        Aggregates OHLCV data by specified time interval:
-        - 1D: Daily (no aggregation, just filtered)
-        - 1W: Weekly (Monday to Friday)
-        - 1M: Monthly (calendar month)
+        Supports aggregation by day (1D), week (1W), or month (1M).
 
         Args:
             ticker_id: The ticker ID
-            interval: Aggregation interval ('1D', '1W', or '1M')
+            interval: Aggregation interval ("1D", "1W", "1M")
             start: Optional start date
             end: Optional end date
 
         Returns:
-            List of AggregatedData sorted by period start date
-
-        Example:
-            >>> weekly_data = await repo.get_aggregated(ticker_id, "1W")
-            >>> for candle in weekly_data:
-            ...     print(f"{candle.period_start}: O={candle.open} C={candle.close}")
-        """
-        async with self._session_factory() as session:
-            # Build base query
-            query = select(MarketData).where(MarketData.ticker_id == ticker_id)
-
-            if start:
-                query = query.where(MarketData.date >= start)
-            if end:
-                query = query.where(MarketData.date <= end)
-
-            query = query.order_by(MarketData.date.asc())
-
-            result = await session.execute(query)
-            all_data = list(result.scalars().all())
-
-            if not all_data:
-                return []
-
-            # Group data by interval
-            if interval == "1D":
-                return [
-                    AggregatedData(
-                        period_start=row.date,
-                        period_end=row.date,
-                        open=row.open,
-                        high=row.high,
-                        low=row.low,
-                        close=row.close,
-                        volume=row.volume,
-                        interval="1D",
-                    )
-                    for row in all_data
-                ]
-
-            elif interval == "1W":
-                return self._aggregate_by_week(all_data)
-
-            elif interval == "1M":
-                return self._aggregate_by_month(all_data)
-
-            else:
-                raise ValueError(
-                    f"Invalid interval: {interval}. Use '1D', '1W', or '1M'"
-                )
-
-    def _aggregate_by_week(self, data_rows: List[MarketData]) -> List[AggregatedData]:
-        """Aggregate data by calendar week (ISO week)."""
-        weeks: Dict[tuple, List[MarketData]] = {}
-
-        for row in data_rows:
-            iso_year, iso_week, _ = row.date.isocalendar()
-            week_key = (iso_year, iso_week)
-
-            if week_key not in weeks:
-                weeks[week_key] = []
-            weeks[week_key].append(row)
-
-        aggregated = []
-        for (iso_year, iso_week), week_data in sorted(weeks.items()):
-            open_price = week_data[0].open
-            close_price = week_data[-1].close
-            high_price = max(row.high for row in week_data)
-            low_price = min(row.low for row in week_data)
-            total_volume = sum(row.volume for row in week_data)
-
-            aggregated.append(
-                AggregatedData(
-                    period_start=week_data[0].date,
-                    period_end=week_data[-1].date,
-                    open=open_price,
-                    high=high_price,
-                    low=low_price,
-                    close=close_price,
-                    volume=total_volume,
-                    interval="1W",
-                )
-            )
-
-        return aggregated
-
-    def _aggregate_by_month(self, data_rows: List[MarketData]) -> List[AggregatedData]:
-        """Aggregate data by calendar month."""
-        months: Dict[tuple, List[MarketData]] = {}
-
-        for row in data_rows:
-            month_key = (row.date.year, row.date.month)
-
-            if month_key not in months:
-                months[month_key] = []
-            months[month_key].append(row)
-
-        aggregated = []
-        for (year, month), month_data in sorted(months.items()):
-            open_price = month_data[0].open
-            close_price = month_data[-1].close
-            high_price = max(row.high for row in month_data)
-            low_price = min(row.low for row in month_data)
-            total_volume = sum(row.volume for row in month_data)
-
-            aggregated.append(
-                AggregatedData(
-                    period_start=month_data[0].date,
-                    period_end=month_data[-1].date,
-                    open=open_price,
-                    high=high_price,
-                    low=low_price,
-                    close=close_price,
-                    volume=total_volume,
-                    interval="1M",
-                )
-            )
-
-        return aggregated
-=======
-                .options(selectinload(MarketData.ticker))
-            )
-            
-            result = await session.execute(query)
-            return result.scalar_one_or_none()
-    
-    async def get_latest_prices_batch(
-        self,
-        ticker_ids: List[UUID]
-    ) -> Dict[UUID, MarketData]:
-        """
-        Get latest market data for multiple tickers in a single query.
-        
-        Avoids N+1 problem by using a single SQL query with window function.
-        
-        Args:
-            ticker_ids: List of ticker UUIDs
-            
-        Returns:
-            Dictionary mapping ticker_id -> MarketData
-            Only includes tickers that have data.
-            
-        Example:
-            ```python
-            ticker_ids = [uuid1, uuid2, uuid3]
-            latest_prices = await repo.get_latest_prices_batch(ticker_ids)
-            
-            for ticker_id, market_data in latest_prices.items():
-                print(f"{ticker_id}: ${market_data.close}")
-            ```
-            
-        Performance:
-            - 100 tickers: ~50ms
-            - 1000 tickers: ~200ms
-        """
-        if not ticker_ids:
-            return {}
-        
-        async with self.session_factory() as session:
-            # Use window function to get latest date per ticker
-            # This is more efficient than N separate queries or subqueries
-            subquery = (
-                select(
-                    MarketData.ticker_id,
-                    func.max(MarketData.date).label("max_date")
-                )
-                .where(MarketData.ticker_id.in_(ticker_ids))
-                .group_by(MarketData.ticker_id)
-                .subquery()
-            )
-            
-            query = (
-                select(MarketData)
-                .join(
-                    subquery,
-                    and_(
-                        MarketData.ticker_id == subquery.c.ticker_id,
-                        MarketData.date == subquery.c.max_date
-                    )
-                )
-                .options(selectinload(MarketData.ticker))
-            )
-            
-            result = await session.execute(query)
-            market_data_list = result.scalars().all()
-            
-            # Build dictionary for fast lookup
-            return {md.ticker_id: md for md in market_data_list}
-    
-    async def get_aggregated(
-        self,
-        ticker_id: UUID,
-        interval: str
-    ) -> List[AggregatedData]:
-        """
-        Get aggregated market data over specified interval.
-        
-        Computes aggregations on the database side for performance.
-        
-        Args:
-            ticker_id: UUID of the ticker
-            interval: Aggregation interval:
-                - "1D": Daily (returns raw data, no aggregation)
-                - "1W": Weekly (7 days)
-                - "1M": Monthly (30 days)
-                
-        Returns:
             List of AggregatedData ordered by period_start
-            
-        Example:
-            ```python
-            # Get weekly aggregations for past year
-            weekly = await repo.get_aggregated(ticker_id, "1W")
-            
-            for week in weekly:
-                print(f"{week.period_start} to {week.period_end}:")
-                print(f"  Open: ${week.open}, Close: ${week.close}")
-                print(f"  High: ${week.high}, Low: ${week.low}")
-                print(f"  Avg: ${week.avg_close}, Volume: {week.volume}")
-            ```
-            
-        Performance:
-            - 10 years daily: ~50ms (no aggregation)
-            - 10 years weekly: ~100ms (~520 weeks)
-            - 10 years monthly: ~80ms (~120 months)
         """
+        # Fetch all data for the ticker
+        history = await self.get_history(
+            ticker_id,
+            start or date(2000, 1, 1),
+            end or date.today(),
+        )
+
+        if not history:
+            return []
+
+        # Aggregate based on interval
         if interval == "1D":
-            # Daily: return raw data without aggregation
-            return await self._get_daily_aggregated(ticker_id)
+            return self._aggregate_by_day(history, interval)
         elif interval == "1W":
-            return await self._get_weekly_aggregated(ticker_id)
+            return self._aggregate_by_week(history, interval)
         elif interval == "1M":
-            return await self._get_monthly_aggregated(ticker_id)
+            return self._aggregate_by_month(history, interval)
         else:
-            raise ValueError(f"Invalid interval: {interval}. Use '1D', '1W', or '1M'")
-    
-    async def _get_daily_aggregated(self, ticker_id: UUID) -> List[AggregatedData]:
-        """Get daily data (1D interval - no aggregation needed)."""
-        async with self.session_factory() as session:
-            query = (
-                select(MarketData)
-                .where(MarketData.ticker_id == ticker_id)
-                .order_by(MarketData.date.asc())
-            )
-            
-            result = await session.execute(query)
-            rows = result.scalars().all()
-            
-            return [
-                AggregatedData(
-                    period_start=row.date,
-                    period_end=row.date,
-                    interval="1D",
-                    open=row.open,
-                    high=row.high,
-                    low=row.low,
-                    close=row.close,
-                    volume=row.volume,
-                    avg_close=row.close,  # Single day, avg = close
-                    days_count=1
+            raise ValueError(f"Unsupported interval: {interval}")
+
+    def _aggregate_by_day(
+        self, data: List[MarketData], interval: str
+    ) -> List[AggregatedData]:
+        """Aggregate OHLCV data by calendar day."""
+        aggregated: Dict[date, AggregatedData] = {}
+
+        for md in data:
+            if md.date not in aggregated:
+                aggregated[md.date] = AggregatedData(
+                    period_start=md.date,
+                    period_end=md.date,
+                    open=md.open,
+                    high=md.high,
+                    low=md.low,
+                    close=md.close,
+                    volume=md.volume,
+                    interval=interval,
                 )
-                for row in rows
-            ]
-    
-    async def _get_weekly_aggregated(self, ticker_id: UUID) -> List[AggregatedData]:
-        """Get weekly aggregated data (1W interval = 7 days)."""
-        async with self.session_factory() as session:
-            # Use SQL to compute weekly aggregations
-            # Group by week using date_trunc('week', date)
-            query = text("""
-                SELECT 
-                    DATE_TRUNC('week', date)::date AS period_start,
-                    (DATE_TRUNC('week', date) + INTERVAL '6 days')::date AS period_end,
-                    (ARRAY_AGG(open ORDER BY date ASC))[1] AS open,
-                    MAX(high) AS high,
-                    MIN(low) AS low,
-                    (ARRAY_AGG(close ORDER BY date DESC))[1] AS close,
-                    SUM(volume) AS volume,
-                    AVG(close) AS avg_close,
-                    COUNT(*) AS days_count
-                FROM market_data
-                WHERE ticker_id = :ticker_id
-                GROUP BY DATE_TRUNC('week', date)
-                ORDER BY period_start ASC
-            """)
-            
-            result = await session.execute(query, {"ticker_id": ticker_id})
-            rows = result.fetchall()
-            
-            return [
-                AggregatedData(
-                    period_start=row[0],
-                    period_end=row[1],
-                    interval="1W",
-                    open=Decimal(str(row[2])),
-                    high=Decimal(str(row[3])),
-                    low=Decimal(str(row[4])),
-                    close=Decimal(str(row[5])),
-                    volume=int(row[6]),
-                    avg_close=Decimal(str(row[7])),
-                    days_count=int(row[8])
+            else:
+                agg = aggregated[md.date]
+                agg.high = max(agg.high, md.high)
+                agg.low = min(agg.low, md.low)
+                agg.close = md.close
+                agg.volume += md.volume
+
+        return sorted(aggregated.values(), key=lambda x: x.period_start)
+
+    def _aggregate_by_week(
+        self, data: List[MarketData], interval: str
+    ) -> List[AggregatedData]:
+        """Aggregate OHLCV data by ISO week."""
+        aggregated: Dict[tuple, AggregatedData] = {}
+
+        for md in data:
+            iso_calendar = md.date.isocalendar()
+            week_key = (iso_calendar[0], iso_calendar[1])  # (year, week)
+
+            if week_key not in aggregated:
+                aggregated[week_key] = AggregatedData(
+                    period_start=md.date,
+                    period_end=md.date,
+                    open=md.open,
+                    high=md.high,
+                    low=md.low,
+                    close=md.close,
+                    volume=md.volume,
+                    interval=interval,
                 )
-                for row in rows
-            ]
-    
-    async def _get_monthly_aggregated(self, ticker_id: UUID) -> List[AggregatedData]:
-        """Get monthly aggregated data (1M interval = 30 days)."""
-        async with self.session_factory() as session:
-            # Use SQL to compute monthly aggregations
-            # Group by month using date_trunc('month', date)
-            query = text("""
-                SELECT 
-                    DATE_TRUNC('month', date)::date AS period_start,
-                    (DATE_TRUNC('month', date) + INTERVAL '1 month' - INTERVAL '1 day')::date AS period_end,
-                    (ARRAY_AGG(open ORDER BY date ASC))[1] AS open,
-                    MAX(high) AS high,
-                    MIN(low) AS low,
-                    (ARRAY_AGG(close ORDER BY date DESC))[1] AS close,
-                    SUM(volume) AS volume,
-                    AVG(close) AS avg_close,
-                    COUNT(*) AS days_count
-                FROM market_data
-                WHERE ticker_id = :ticker_id
-                GROUP BY DATE_TRUNC('month', date)
-                ORDER BY period_start ASC
-            """)
-            
-            result = await session.execute(query, {"ticker_id": ticker_id})
-            rows = result.fetchall()
-            
-            return [
-                AggregatedData(
-                    period_start=row[0],
-                    period_end=row[1],
-                    interval="1M",
-                    open=Decimal(str(row[2])),
-                    high=Decimal(str(row[3])),
-                    low=Decimal(str(row[4])),
-                    close=Decimal(str(row[5])),
-                    volume=int(row[6]),
-                    avg_close=Decimal(str(row[7])),
-                    days_count=int(row[8])
+            else:
+                agg = aggregated[week_key]
+                agg.period_end = md.date
+                agg.high = max(agg.high, md.high)
+                agg.low = min(agg.low, md.low)
+                agg.close = md.close
+                agg.volume += md.volume
+
+        return sorted(aggregated.values(), key=lambda x: x.period_start)
+
+    def _aggregate_by_month(
+        self, data: List[MarketData], interval: str
+    ) -> List[AggregatedData]:
+        """Aggregate OHLCV data by calendar month."""
+        aggregated: Dict[tuple, AggregatedData] = {}
+
+        for md in data:
+            month_key = (md.date.year, md.date.month)
+
+            if month_key not in aggregated:
+                aggregated[month_key] = AggregatedData(
+                    period_start=md.date,
+                    period_end=md.date,
+                    open=md.open,
+                    high=md.high,
+                    low=md.low,
+                    close=md.close,
+                    volume=md.volume,
+                    interval=interval,
                 )
-                for row in rows
-            ]
->>>>>>> 98e7fc441700f98a799f4f5498549aa95bfd0edb
+            else:
+                agg = aggregated[month_key]
+                agg.period_end = md.date
+                agg.high = max(agg.high, md.high)
+                agg.low = min(agg.low, md.low)
+                agg.close = md.close
+                agg.volume += md.volume
+
+        return sorted(aggregated.values(), key=lambda x: x.period_start)

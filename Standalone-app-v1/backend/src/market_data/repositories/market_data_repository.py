@@ -189,38 +189,32 @@ class MarketDataRepository:
         """
         Get the most recent market data for multiple tickers efficiently.
 
-        Uses window function to avoid N+1 queries.
+        Uses DISTINCT ON to avoid N+1 queries and returns MarketData objects.
 
         Args:
             ticker_ids: List of ticker IDs
 
         Returns:
-            Dictionary mapping ticker_id to most recent MarketData
+            Dictionary mapping ticker_id to most recent MarketData object
         """
         if not ticker_ids:
             return {}
 
         async with self._session_factory() as session:
-            # Use window function to get latest for each ticker
-            stmt = text(
-                """
-                SELECT DISTINCT ON (ticker_id) *
-                FROM market_data
-                WHERE ticker_id = ANY(:ticker_ids)
-                ORDER BY ticker_id, date DESC
-                """
-            )
-
+            # Use SQLAlchemy ORM query with DISTINCT ON
             result = await session.execute(
-                stmt.bindparams(ticker_ids=ticker_ids)
+                select(MarketData)
+                .where(MarketData.ticker_id.in_(ticker_ids))
+                .distinct(MarketData.ticker_id)
+                .order_by(MarketData.ticker_id, MarketData.date.desc())
             )
-            rows = result.all()
+            
+            market_data_list = result.scalars().all()
 
-            # Convert to dict mapping
-            result_dict: Dict[UUID, MarketData] = {}
-            for row in rows:
-                ticker_id = row[1]  # ticker_id column position
-                result_dict[ticker_id] = row
+            # Convert to dict mapping ticker_id -> MarketData
+            result_dict: Dict[UUID, MarketData] = {
+                md.ticker_id: md for md in market_data_list
+            }
 
             return result_dict
 
@@ -234,6 +228,7 @@ class MarketDataRepository:
         """
         Get aggregated OHLCV data for a ticker by time interval.
 
+        Uses PostgreSQL DATE_TRUNC for efficient server-side aggregation.
         Supports aggregation by day (1D), week (1W), or month (1M).
 
         Args:
@@ -245,110 +240,64 @@ class MarketDataRepository:
         Returns:
             List of AggregatedData ordered by period_start
         """
-        # Fetch all data for the ticker
-        history = await self.get_history(
-            ticker_id,
-            start or date(2000, 1, 1),
-            end or date.today(),
-        )
+        # Map interval to PostgreSQL DATE_TRUNC unit
+        trunc_map = {
+            "1D": "day",
+            "1W": "week",
+            "1M": "month",
+        }
 
-        if not history:
-            return []
+        if interval not in trunc_map:
+            raise ValueError(f"Unsupported interval: {interval}. Use 1D, 1W, or 1M.")
 
-        # Aggregate based on interval
-        if interval == "1D":
-            return self._aggregate_by_day(history, interval)
-        elif interval == "1W":
-            return self._aggregate_by_week(history, interval)
-        elif interval == "1M":
-            return self._aggregate_by_month(history, interval)
-        else:
-            raise ValueError(f"Unsupported interval: {interval}")
+        trunc_unit = trunc_map[interval]
 
-    def _aggregate_by_day(
-        self, data: List[MarketData], interval: str
-    ) -> List[AggregatedData]:
-        """Aggregate OHLCV data by calendar day."""
-        aggregated: Dict[date, AggregatedData] = {}
+        async with self._session_factory() as session:
+            # Build SQL query with DATE_TRUNC for aggregation
+            stmt = text(
+                f"""
+                SELECT 
+                    DATE_TRUNC(:trunc_unit, date)::date AS period_start,
+                    (ARRAY_AGG(open ORDER BY date ASC))[1] AS open,
+                    MAX(high) AS high,
+                    MIN(low) AS low,
+                    (ARRAY_AGG(close ORDER BY date DESC))[1] AS close,
+                    SUM(volume) AS volume,
+                    MAX(date) AS period_end
+                FROM market_data
+                WHERE ticker_id = :ticker_id
+                    AND (:start IS NULL OR date >= :start)
+                    AND (:end IS NULL OR date <= :end)
+                GROUP BY DATE_TRUNC(:trunc_unit, date)
+                ORDER BY period_start ASC
+                """
+            )
 
-        for md in data:
-            if md.date not in aggregated:
-                aggregated[md.date] = AggregatedData(
-                    period_start=md.date,
-                    period_end=md.date,
-                    open=md.open,
-                    high=md.high,
-                    low=md.low,
-                    close=md.close,
-                    volume=md.volume,
+            result = await session.execute(
+                stmt,
+                {
+                    "trunc_unit": trunc_unit,
+                    "ticker_id": ticker_id,
+                    "start": start,
+                    "end": end,
+                },
+            )
+
+            rows = result.all()
+
+            # Convert rows to AggregatedData objects
+            aggregated_data = [
+                AggregatedData(
+                    period_start=row[0],
+                    period_end=row[6],
+                    open=row[1],
+                    high=row[2],
+                    low=row[3],
+                    close=row[4],
+                    volume=row[5],
                     interval=interval,
                 )
-            else:
-                agg = aggregated[md.date]
-                agg.high = max(agg.high, md.high)
-                agg.low = min(agg.low, md.low)
-                agg.close = md.close
-                agg.volume += md.volume
+                for row in rows
+            ]
 
-        return sorted(aggregated.values(), key=lambda x: x.period_start)
-
-    def _aggregate_by_week(
-        self, data: List[MarketData], interval: str
-    ) -> List[AggregatedData]:
-        """Aggregate OHLCV data by ISO week."""
-        aggregated: Dict[tuple, AggregatedData] = {}
-
-        for md in data:
-            iso_calendar = md.date.isocalendar()
-            week_key = (iso_calendar[0], iso_calendar[1])  # (year, week)
-
-            if week_key not in aggregated:
-                aggregated[week_key] = AggregatedData(
-                    period_start=md.date,
-                    period_end=md.date,
-                    open=md.open,
-                    high=md.high,
-                    low=md.low,
-                    close=md.close,
-                    volume=md.volume,
-                    interval=interval,
-                )
-            else:
-                agg = aggregated[week_key]
-                agg.period_end = md.date
-                agg.high = max(agg.high, md.high)
-                agg.low = min(agg.low, md.low)
-                agg.close = md.close
-                agg.volume += md.volume
-
-        return sorted(aggregated.values(), key=lambda x: x.period_start)
-
-    def _aggregate_by_month(
-        self, data: List[MarketData], interval: str
-    ) -> List[AggregatedData]:
-        """Aggregate OHLCV data by calendar month."""
-        aggregated: Dict[tuple, AggregatedData] = {}
-
-        for md in data:
-            month_key = (md.date.year, md.date.month)
-
-            if month_key not in aggregated:
-                aggregated[month_key] = AggregatedData(
-                    period_start=md.date,
-                    period_end=md.date,
-                    open=md.open,
-                    high=md.high,
-                    low=md.low,
-                    close=md.close,
-                    volume=md.volume,
-                    interval=interval,
-                )
-            else:
-                agg = aggregated[month_key]
-                agg.period_end = md.date
-                agg.high = max(agg.high, md.high)
-                agg.low = min(agg.low, md.low)
-                agg.close = md.close
-                agg.volume += md.volume
-
-        return sorted(aggregated.values(), key=lambda x: x.period_start)
+            return aggregated_data

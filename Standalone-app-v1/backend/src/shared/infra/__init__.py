@@ -1,7 +1,7 @@
 """Shared infrastructure exports for database and configuration."""
 
-from shared.infra.database import Base, engine, AsyncSessionLocal, get_db
-from shared.infra.config import get_settings, Settings
+from src.shared.infra.database import Base, engine, AsyncSessionLocal, get_db
+from src.shared.infra.config import get_settings, Settings
 
 __all__ = [
     "Base",

@@ -54,7 +54,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 1.7** - Middleware Sicurezza Base & Healthcheck
 - [x] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
 
-#### Sezione 2: Backend Core & Data (9/20 completati)
+#### Sezione 2: Backend Core & Data (10/20 completati)
 - [x] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
 - [ ] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
 - [x] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker
@@ -65,7 +65,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 2.10** - Setup Alembic per Migrazioni Database
 - [x] **TASK 2.11** - Creazione Materialized View EstimateSummaryView
 - [x] **TASK 2.12** - Creazione Repository Estimate
-- [ ] **TASK 2.13** - Creazione Repository MarketData
+- [x] **TASK 2.13** - Creazione Repository MarketData
 - [ ] **TASK 2.14** - Creazione Service EstimateService
 - [ ] **TASK 2.15** - Creazione Service EstimateHistoryService
 - [ ] **TASK 2.16** - Creazione API Router Estimates
@@ -153,9 +153,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 | Categoria | Completati | Totali | Percentuale |
 |-----------|------------|--------|-------------|
-| **MVP** | 17 | 46 | 37% |
+| **MVP** | 18 | 46 | 39% |
 | **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **17** | **65** | 26% |
+| **TOTALE** | **18** | **65** | 28% |
 
 ---
 

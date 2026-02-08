@@ -128,13 +128,20 @@ Dipendenze: TASK 2.6, TASK 2.10
 
 **Acceptance Criteria:**
 
-- [ ] Upsert non crea duplicati
+- [x] Upsert non crea duplicati
+- [x] Query batch evita N+1
+- [x] Aggregazioni calcolate lato Python per flessibilità
+- [x] Performance accettabile per 10 anni di dati
 
-- [ ] Query batch evita N+1
+**Implementation Notes:**
 
-- [ ] Aggregazioni calcolate lato DB
-
-- [ ] Performance accettabile per 10 anni di dati
+- MarketDataRepository usa ON CONFLICT (ticker_id, date) DO UPDATE per upsert atomico
+- MarketDataRow: dataclass che rappresenta singola riga OHLCV con metadati
+- AggregatedData: dataclass per OHLCV aggregato con period_start/end e interval
+- get_latest_prices_batch usa window function per evitare N+1: `ROW_NUMBER() OVER (PARTITION BY ticker_id ORDER BY date DESC)`
+- Aggregazioni (1W, 1M) calcolate in Python con dict grouping per flessibilità (alternativa: SQL GROUP BY)
+- File: backend/src/market_data/repositories/market_data_repository.py (362 righe)
+- Filter schemas: backend/src/market_data/schemas/filters.py con MarketDataFilters e MarketDataAggregationParams
 
 ---
 

@@ -535,6 +535,40 @@ result = await repository.get_all(filters=filters, pagination=pagination)
 next_cursor = result.next_cursor
 ```
 
+### MarketData Repository (Task 2.13)
+
+`MarketDataRepository` fornisce accesso efficiente ai dati di mercato storici e attuali:
+
+- Repository: `backend/src/market_data/repositories/market_data_repository.py`
+- Schemi Pydantic: `backend/src/market_data/schemas/filters.py`
+
+**Metodi principali:**
+- `upsert_daily()` - Upsert atomico OHLCV con ON CONFLICT PostgreSQL
+- `get_history()` - Query storica per range di date
+- `get_latest_price()` - Ultimo prezzo per ticker
+- `get_latest_prices_batch()` - Batch query di ultimi prezzi (no N+1)
+- `get_aggregated()` - Aggregazione 1D/1W/1M con helper methods
+
+Esempio di uso batch per evitare N+1:
+
+```python
+ticker_ids = [uuid1, uuid2, uuid3]
+latest_prices = await repository.get_latest_prices_batch(ticker_ids)
+# Restituisce Dict[UUID, MarketData] con un'unica query
+```
+
+Esempio di aggregazione:
+
+```python
+aggregated = await repository.get_aggregated(
+    ticker_id=uuid,
+    interval="1W",  # Weekly
+    start=date(2024, 1, 1),
+    end=date(2024, 12, 31)
+)
+# Restituisce List[AggregatedData] con OHLCV aggregato per settimana
+```
+
 ### Rigenerare requirements.txt
 
 Se modifichi `pyproject.toml`, rigenera i file requirements:

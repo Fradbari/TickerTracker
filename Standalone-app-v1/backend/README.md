@@ -475,6 +475,7 @@ Il database include le seguenti tabelle principali:
 - `tickers` - Informazioni ticker (AAPL, TSLA, etc.)
 - `market_data` - Dati storici OHLCV
 - `estimates` - Stime di trading con target/stop-loss
+- `estimates` include soft delete (`is_deleted`, `deleted_at`)
 - `estimate_events` - Event sourcing per stime
 - `ai_model_runs` - Tracciamento esecuzioni AI
 - `sync_jobs` - Tracciamento sincronizzazione Drive
@@ -515,6 +516,24 @@ python scripts/refresh_estimate_summary_view.py --stats
 - Zero downtime con `REFRESH MATERIALIZED VIEW CONCURRENTLY`
 
 Per dettagli completi: [docs/ESTIMATE_SUMMARY_VIEW.md](./docs/ESTIMATE_SUMMARY_VIEW.md)
+
+### Repository & Paginazione (Task 2.12)
+
+Il repository `EstimateRepository` centralizza le operazioni CRUD su `Estimate` e
+fornisce paginazione cursor-based con filtri dedicati:
+
+- Repository: `backend/src/estimates/repositories/estimate_repository.py`
+- Schemi Pydantic: `backend/src/estimates/schemas/filters.py`
+
+Esempio d'uso (cursor-based):
+
+```python
+filters = EstimateFilters(status=EstimateStatus.OPEN)
+pagination = Pagination(limit=20)
+
+result = await repository.get_all(filters=filters, pagination=pagination)
+next_cursor = result.next_cursor
+```
 
 ### Rigenerare requirements.txt
 

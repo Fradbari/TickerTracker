@@ -10,8 +10,17 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 from sqlalchemy import (
-    Column, String, Text, DateTime, ForeignKey, 
-    Index, Enum as SQLEnum, CheckConstraint, DECIMAL, text
+    Boolean,
+    Column,
+    String,
+    Text,
+    DateTime,
+    ForeignKey,
+    Index,
+    Enum as SQLEnum,
+    CheckConstraint,
+    DECIMAL,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
@@ -56,6 +65,8 @@ class Estimate(Base):
         created_at: Timestamp of estimate creation
         updated_at: Timestamp of last update
         closed_at: Timestamp when estimate was closed (nullable)
+        is_deleted: Soft delete flag
+        deleted_at: Timestamp when estimate was soft deleted (nullable)
         exit_price: Actual exit price (nullable until closed)
         realized_pnl: Realized profit/loss (nullable until closed)
     """
@@ -174,6 +185,21 @@ class Estimate(Base):
         nullable=True,
         doc="Timestamp when estimate was closed"
     )
+
+    is_deleted = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default=text("false"),
+        index=True,
+        doc="Soft delete flag"
+    )
+
+    deleted_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        doc="Timestamp when estimate was soft deleted"
+    )
     
     # Exit fields (nullable until closed)
     exit_price = Column(
@@ -201,6 +227,7 @@ class Estimate(Base):
         Index("ix_estimate_ticker_id", "ticker_id"),
         Index("ix_estimate_status", "status"),
         Index("ix_estimate_created_at", "created_at"),
+        Index("ix_estimate_is_deleted", "is_deleted"),
         
         # Partial index for open estimates (most frequent query)
         Index(

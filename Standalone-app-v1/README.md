@@ -309,7 +309,7 @@ npm run test           # Vitest
 **Obiettivo:** App funzionante localmente per 1 utente, senza autenticazione.
 
 - Sezione 1: Setup & Fondamenta (8 task) - **8/8 completati**
-- Sezione 2: Backend Core & Data (20 task) - **11/20 completati**
+- Sezione 2: Backend Core & Data (20 task) - **10/20 completati**
   - ✅ TASK 2.1: Modello Ticker
   - ✅ TASK 2.3: Modello MarketData
   - ✅ TASK 2.4: Modello Estimate
@@ -319,11 +319,12 @@ npm run test           # Vitest
   - ✅ TASK 2.8: Modello AiModelRun
   - ✅ TASK 2.10: Setup Alembic & Migrazione Iniziale (10 tabelle create)
   - ✅ TASK 2.11: Materialized View per CQRS - Estimate Summary (query < 5ms)
+  - ✅ TASK 2.12: Repository Estimate + Paginazione cursor-based
   - 🚧 Altri task backend in progress...
 - Sezione 4: Frontend Setup & Features (13 task)
 - Sezione 5: Testing & CI/CD Base (5 task)
 
-**Status:** 19/46 completati (41.3% ✨)
+**Status:** 18/46 completati (39.1% ✨)
 
 **Total Test Coverage**: 159+ tests passing ✅
 
@@ -334,7 +335,7 @@ Il database PostgreSQL 16 include le seguenti tabelle:
 **Core Tables:**
 - `tickers` - Informazioni ticker (symbol, name, exchange, asset_type)
 - `market_data` - Dati storici OHLCV (open, high, low, close, volume)
-- `estimates` - Stime di trading (target_price, stop_loss, direction)
+- `estimates` - Stime di trading (target_price, stop_loss, direction, soft delete)
 - `estimate_events` - Event sourcing per audit trail completo
 - `ai_model_runs` - Tracciamento esecuzioni AI (tokens, latency, cost)
 - `sync_jobs` - Sincronizzazione Google Drive (status, checksum)

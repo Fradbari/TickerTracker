@@ -204,8 +204,12 @@ LIMIT 10;
    - Consider application-level caching for very frequent reads
 
 4. **Migration Management**
-   - View definition is in Alembic migration `e97b3b8578e1`
+   - View definition is in Alembic migrations `e97b3b8578e1` and `7f1c0d6b4a62`
    - To modify view, create a new migration with `DROP` and `CREATE`
+
+5. **Soft Delete Filtering**
+   - The view excludes soft-deleted estimates (`is_deleted = false`)
+   - Refresh after soft delete to update dashboard data
 
 ## 🔧 Troubleshooting
 

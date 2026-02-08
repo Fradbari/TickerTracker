@@ -127,15 +127,15 @@ Dipendenze: TASK 2.5, TASK 2.10
 
 **Acceptance Criteria:**
 
-- [ ] Tutte le operazioni CRUD funzionano
+- [x] Tutte le operazioni CRUD funzionano
 
-- [ ] Paginazione cursor-based implementata
+- [x] Paginazione cursor-based implementata
 
-- [ ] Filtri applicati correttamente
+- [x] Filtri applicati correttamente
 
-- [ ] Soft delete imposta flag, non cancella
+- [x] Soft delete imposta flag, non cancella
 
-- [ ] Transazioni gestite correttamente
+- [x] Transazioni gestite correttamente
 
 ---
 

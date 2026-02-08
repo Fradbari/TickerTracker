@@ -61,11 +61,14 @@ Stime di trading (Long/Short) con target e stop-loss.
 - `ai_model`, `ai_confidence`, `ai_reasoning` - Campi AI
 - `created_at`, `updated_at`, `closed_at` (Timestamp)
 - `exit_price`, `realized_pnl` (Decimal, nullable) - Per stime chiuse
+- `is_deleted` (Boolean) - Soft delete flag
+- `deleted_at` (Timestamp, nullable) - Quando la stima e' stata eliminata logicamente
 
 **Indexes:**
 - Index su `status`
 - Partial index su `(ticker_id, status)` WHERE status = 'OPEN'
 - Index su `user_id`
+- Index su `is_deleted`
 
 ---
 
@@ -163,6 +166,7 @@ Sistema di autenticazione e autorizzazione (base per Fase 2).
 
 **What it does:**
 - JOIN tra `estimates` e `market_data` per ottenere ultimo prezzo disponibile
+- Esclude stime soft-delete (`is_deleted = false`)
 - Calcola metriche in real-time:
   - `current_price` - Ultimo prezzo di mercato
   - `current_pnl` - PnL non realizzato (LONG/SHORT aware)
@@ -416,5 +420,5 @@ docker exec tickertracker-db psql -U tickertracker -d tickertracker_dev -c "
 
 ---
 
-**Last Updated:** February 2026  
-**Schema Version:** e97b3b8578e1 (Alembic)
+**Last Updated:** February 8, 2026  
+**Schema Version:** 7f1c0d6b4a62 (Alembic)

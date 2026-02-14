@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.sync.domain.entities import SyncJob, SyncJobType, SyncJobStatus
 from src.sync.repositories.sync_job_repository import SyncJobRepository
 from src.sync.infra.csv_parser import LegacyCsvParser
+from src.sync.infra.json_parser import LegacyJsonParser
 from src.sync.infra.legacy_models import LegacyEstimateRow, LegacyHistoryRow
 from src.infra.drive.client import GoogleDriveClient
 from src.estimates.repositories.estimate_repository import EstimateRepository
@@ -73,6 +74,7 @@ class SyncService:
         self,
         drive_client: GoogleDriveClient,
         csv_parser: LegacyCsvParser,
+        json_parser: LegacyJsonParser,
         estimate_repo: EstimateRepository,
         market_data_repo: MarketDataRepository,
         sync_job_repo: SyncJobRepository,
@@ -85,6 +87,7 @@ class SyncService:
         Args:
             drive_client: Google Drive client for file operations
             csv_parser: CSV parser for legacy format
+            json_parser: JSON parser for legacy backup format
             estimate_repo: Repository for estimate persistence
             market_data_repo: Repository for market data persistence
             sync_job_repo: Repository for sync job tracking
@@ -92,7 +95,8 @@ class SyncService:
             session: SQLAlchemy async session
         """
         self._drive = drive_client
-        self._parser = csv_parser
+        self._csv_parser = csv_parser
+        self._json_parser = json_parser
         self._estimates = estimate_repo
         self._market_data = market_data_repo
         self._sync_jobs = sync_job_repo
@@ -159,13 +163,18 @@ class SyncService:
             files = await self._drive.list_files(self._folder_id)
             logger.info(f"Found {len(files)} files in Drive folder")
             
-            # Find and import estimates file
+            # Find and import estimates file (JSON backup has priority over CSV)
             estimates_file = None
             for file in files:
-                # Look for CSV file (legacy backup format)
-                if file.name.endswith('.csv') and 'History_' not in file.name:
+                if file.name.endswith('.json') and 'TickerTracker' in file.name:
                     estimates_file = file
                     break
+            
+            if not estimates_file:
+                for file in files:
+                    if file.name.endswith('.csv') and 'History_' not in file.name:
+                        estimates_file = file
+                        break
             
             if estimates_file:
                 logger.info(f"Importing estimates from {estimates_file.name}")
@@ -176,7 +185,11 @@ class SyncService:
                 checksum_before = checksum
                 job.checksum_before = checksum
                 
-                estimates_rows = self._parser.parse_estimates_csv(content)
+                if estimates_file.name.endswith('.json'):
+                    estimates_rows = self._json_parser.parse_backup_json(content.decode('utf-8'))
+                else:
+                    estimates_rows = self._csv_parser.parse_estimates_csv(content)
+                
                 logger.info(f"Parsed {len(estimates_rows)} estimate rows")
                 
                 # Import each estimate (idempotent - skip duplicates)
@@ -198,10 +211,11 @@ class SyncService:
                     
                     # Download and parse history
                     content = await self._drive.download_file(history_file.id)
-                    history_rows = self._parser.parse_history_csv(content)
                     
                     # Extract ticker from filename (e.g., History_AAPL.csv -> AAPL)
                     ticker_symbol = history_file.name.replace(history_pattern, '').replace('.csv', '')
+                    
+                    history_rows = self._csv_parser.parse_history_csv(content, default_ticker=ticker_symbol)
                     
                     # Import history data
                     imported = await self._import_history_rows(ticker_symbol, history_rows)
@@ -328,7 +342,7 @@ class SyncService:
                 job.checksum_before = checksum_before
             
             # Export estimate to CSV row
-            csv_row = self._parser.export_estimate_to_csv_row(
+            csv_row = self._csv_parser.export_estimate_to_csv_row(
                 estimate,
                 fundamentals or {}
             )
@@ -342,7 +356,7 @@ class SyncService:
             if files:
                 # Update existing file
                 # Read current file, append new row
-                current_rows = self._parser.parse_estimates_csv(current_content)
+                current_rows = self._csv_parser.parse_estimates_csv(current_content)
                 
                 # Check for conflicts (same ticker/start_date)
                 conflict = self._check_estimate_conflict(estimate, current_rows)
@@ -364,7 +378,7 @@ class SyncService:
                 
             else:
                 # Create new file
-                header = self._parser._get_estimates_header()
+                header = self._csv_parser._get_estimates_header()
                 content = (header + '\n' + csv_row).encode('utf-8-sig')
                 
                 await self._drive.upload_file(

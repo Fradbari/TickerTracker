@@ -47,6 +47,14 @@ def mock_csv_parser():
 
 
 @pytest.fixture
+def mock_json_parser():
+    """Mock LegacyJsonParser."""
+    parser = Mock()
+    parser.parse_backup_json = Mock(return_value=[])
+    return parser
+
+
+@pytest.fixture
 def mock_estimate_repo():
     """Mock EstimateRepository."""
     repo = AsyncMock()
@@ -127,6 +135,7 @@ def mock_session():
 def sync_service(
     mock_drive_client,
     mock_csv_parser,
+    mock_json_parser,
     mock_estimate_repo,
     mock_market_data_repo,
     mock_sync_job_repo,
@@ -136,6 +145,7 @@ def sync_service(
     return SyncService(
         drive_client=mock_drive_client,
         csv_parser=mock_csv_parser,
+        json_parser=mock_json_parser,
         estimate_repo=mock_estimate_repo,
         market_data_repo=mock_market_data_repo,
         sync_job_repo=mock_sync_job_repo,
@@ -151,7 +161,8 @@ class TestSyncServiceInit:
         """Test service initializes correctly."""
         assert sync_service._folder_id == "folder123"
         assert sync_service._drive is not None
-        assert sync_service._parser is not None
+        assert sync_service._csv_parser is not None
+        assert sync_service._json_parser is not None
 
 
 class TestCalculateChecksum:

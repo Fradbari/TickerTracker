@@ -266,19 +266,34 @@ class LegacyCsvParser:
         
         # Parse CSV
         reader = csv.DictReader(io.StringIO(text))
+        
+        # Create a normalized field mapping (lowercase, no spaces)
+        def normalize_key(k: str) -> str:
+            return k.lower().replace(" ", "").replace("_", "")
+            
         rows = []
         
-        for row_num, row in enumerate(reader, start=2):  # Start at 2 (after header)
+        for row_num, row in enumerate(reader, start=2):
             try:
-                # Required fields
-                ticker = row.get("Ticker", "").strip()
+                # Create a case-insensitive, space-insensitive row access
+                normalized_row = {normalize_key(k): v for k, v in row.items()}
+                
+                # Get fields using various common names
+                def get_field(names: List[str], default: Any = "") -> Any:
+                    for name in names:
+                        norm = normalize_key(name)
+                        if norm in normalized_row:
+                            return normalized_row[norm]
+                    return default
+
+                ticker = get_field(["Ticker", "symbol", "stock"]).strip()
                 if not ticker:
                     logger.warning(f"Row {row_num}: Missing ticker, skipping")
                     continue
                 
-                start_price = self._safe_decimal(row.get("Start Price", ""))
-                target_price = self._safe_decimal(row.get("Target Price", ""))
-                stop_loss_price = self._safe_decimal(row.get("Stop Loss", ""))
+                start_price = self._safe_decimal(get_field(["Start Price", "startPrice"]))
+                target_price = self._safe_decimal(get_field(["Target Price", "targetPrice", "TP"]))
+                stop_loss_price = self._safe_decimal(get_field(["Stop Loss", "stopLoss", "SL"]))
                 
                 if not all([start_price, target_price, stop_loss_price]):
                     logger.warning(f"Row {row_num}: Missing required price fields, skipping")
@@ -287,58 +302,58 @@ class LegacyCsvParser:
                 # Build LegacyEstimateRow
                 legacy_row = LegacyEstimateRow(
                     ticker=ticker,
-                    start_date=self._safe_date(row.get("Start Date", ""), date.today()),
+                    start_date=self._safe_date(get_field(["Start Date", "startDate", "Created"]), date.today()),
                     start_price=start_price,
                     target_price=target_price,
                     stop_loss_price=stop_loss_price,
-                    target_profit_percent=self._safe_decimal(row.get("Target %", ""), Decimal("0")),
-                    stop_loss_percent=self._safe_decimal(row.get("Stop Loss %", ""), Decimal("0")),
-                    direction=row.get("Direction", "LONG").strip().upper(),
-                    status=row.get("Status", "OPEN").strip().upper(),
+                    target_profit_percent=self._safe_decimal(get_field(["Target %", "targetPct", "targetProfitPercent"]), Decimal("0")),
+                    stop_loss_percent=self._safe_decimal(get_field(["Stop Loss %", "stopLossPct", "stopLossPercent"]), Decimal("0")),
+                    direction=get_field(["Direction", "type"], "LONG").strip().upper(),
+                    status=get_field(["Status", "state"], "OPEN").strip().upper(),
                     
                     # Optional closure fields
-                    close_date=self._safe_date(row.get("Close Date", "")),
-                    exit_price=self._safe_decimal(row.get("Exit Price", "")),
-                    realized_pnl=self._safe_decimal(row.get("Realized P/L", "")),
-                    realized_pnl_percent=self._safe_decimal(row.get("Realized P/L %", "")),
+                    close_date=self._safe_date(get_field(["Close Date", "closeDate", "endDate"])),
+                    exit_price=self._safe_decimal(get_field(["Exit Price", "exitPrice", "closePrice"])),
+                    realized_pnl=self._safe_decimal(get_field(["Realized P/L", "realizedPnL", "pnl"])),
+                    realized_pnl_percent=self._safe_decimal(get_field(["Realized P/L %", "pnlPct", "realizedPnLPercent"])),
                     
                     # AI fields
-                    ai_model=row.get("AI Model", "").strip() or None,
-                    ai_confidence=self._safe_decimal(row.get("AI Confidence", "")),
-                    ai_reasoning=row.get("AI Reasoning", "").strip() or None,
+                    ai_model=get_field(["AI Model", "aiName", "model"]).strip() or None,
+                    ai_confidence=self._safe_decimal(get_field(["AI Confidence", "confidence"])),
+                    ai_reasoning=get_field(["AI Reasoning", "reasoning", "notes"]).strip() or None,
                     
                     # Market data
-                    current_price=self._safe_decimal(row.get("Current Price", "")),
-                    day_change=self._safe_decimal(row.get("Day Change", "")),
-                    day_change_percent=self._safe_decimal(row.get("Day Change %", "")),
-                    volume=self._safe_int(row.get("Volume", "")),
-                    avg_volume=self._safe_int(row.get("Avg Volume", "")),
-                    market_cap=self._safe_decimal(row.get("Market Cap", "")),
+                    current_price=self._safe_decimal(get_field(["Current Price", "currentPrice"])),
+                    day_change=self._safe_decimal(get_field(["Day Change", "change"])),
+                    day_change_percent=self._safe_decimal(get_field(["Day Change %", "changePercent"])),
+                    volume=self._safe_int(get_field(["Volume", "vol"])),
+                    avg_volume=self._safe_int(get_field(["Avg Volume", "avgVolume"])),
+                    market_cap=self._safe_decimal(get_field(["Market Cap", "marketCap"])),
                     
                     # Fundamentals
-                    pe_ratio=self._safe_decimal(row.get("P/E Ratio", "")),
-                    eps=self._safe_decimal(row.get("EPS", "")),
-                    dividend_yield=self._safe_decimal(row.get("Dividend Yield", "")),
-                    dividend_rate=self._safe_decimal(row.get("Dividend Rate", "")),
-                    beta=self._safe_decimal(row.get("Beta", "")),
-                    week_52_high=self._safe_decimal(row.get("52W High", "")),
-                    week_52_low=self._safe_decimal(row.get("52W Low", "")),
-                    week_52_change_percent=self._safe_decimal(row.get("52W Change %", "")),
+                    pe_ratio=self._safe_decimal(get_field(["P/E Ratio", "peRatio", "trailingPE"])),
+                    eps=self._safe_decimal(get_field(["EPS", "trailingEps"])),
+                    dividend_yield=self._safe_decimal(get_field(["Dividend Yield", "dividendYield"])),
+                    dividend_rate=self._safe_decimal(get_field(["Dividend Rate", "dividendRate"])),
+                    beta=self._safe_decimal(get_field(["Beta"])),
+                    week_52_high=self._safe_decimal(get_field(["52W High", "fiftyTwoWeekHigh"])),
+                    week_52_low=self._safe_decimal(get_field(["52W Low", "fiftyTwoWeekLow"])),
+                    week_52_change_percent=self._safe_decimal(get_field(["52W Change %"])),
                     
                     # Technical indicators
-                    rsi_14=self._safe_decimal(row.get("RSI(14)", "")),
-                    sma_20=self._safe_decimal(row.get("SMA(20)", "")),
-                    sma_50=self._safe_decimal(row.get("SMA(50)", "")),
-                    sma_200=self._safe_decimal(row.get("SMA(200)", "")),
-                    ema_20=self._safe_decimal(row.get("EMA(20)", "")),
-                    ema_50=self._safe_decimal(row.get("EMA(50)", "")),
+                    rsi_14=self._safe_decimal(get_field(["RSI(14)", "rsi"])),
+                    sma_20=self._safe_decimal(get_field(["SMA(20)", "sma20"])),
+                    sma_50=self._safe_decimal(get_field(["SMA(50)", "sma50"])),
+                    sma_200=self._safe_decimal(get_field(["SMA(200)", "sma200"])),
+                    ema_20=self._safe_decimal(get_field(["EMA(20)", "ema20"])),
+                    ema_50=self._safe_decimal(get_field(["EMA(50)", "ema50"])),
                     
                     # Metadata
-                    user_id=row.get("User ID", "").strip() or None,
-                    notes=row.get("Notes", "").strip() or None,
-                    tags=row.get("Tags", "").strip() or None,
-                    created_at=self._safe_datetime(row.get("Created At", "")),
-                    updated_at=self._safe_datetime(row.get("Updated At", "")),
+                    user_id=get_field(["User ID", "userId"]).strip() or None,
+                    notes=get_field(["Notes", "note"]).strip() or None,
+                    tags=get_field(["Tags", "tag"]).strip() or None,
+                    created_at=self._safe_datetime(get_field(["Created At", "createdAt", "timestamp"])),
+                    updated_at=self._safe_datetime(get_field(["Updated At", "updatedAt"])),
                 )
                 
                 rows.append(legacy_row)
@@ -436,25 +451,22 @@ class LegacyCsvParser:
         
         return output.getvalue().strip()
     
-    def parse_history_csv(self, content: bytes) -> List[LegacyHistoryRow]:
+    def parse_history_csv(self, content: bytes, default_ticker: Optional[str] = None) -> List[LegacyHistoryRow]:
         """
         Parse history CSV file into LegacyHistoryRow objects.
         
         Format: Date,Ticker,Open,High,Low,Close,Volume,Adj Close
+        Accepts various naming variations (case-insensitive, space-insensitive).
         
         Args:
             content: Raw CSV content as bytes
+            default_ticker: Optional fallback ticker if column missing
             
         Returns:
             List of LegacyHistoryRow objects
             
         Raises:
             ValueError: If CSV is malformed
-            
-        Example:
-            >>> with open('History_AAPL.csv', 'rb') as f:
-            ...     rows = parser.parse_history_csv(f.read())
-            >>> print(f"Parsed {len(rows)} history rows")
         """
         logger.info("Parsing history CSV")
         
@@ -467,32 +479,48 @@ class LegacyCsvParser:
         
         # Parse CSV
         reader = csv.DictReader(io.StringIO(text))
+        
+        # Normalized field mapping
+        def normalize_key(k: str) -> str:
+            return k.lower().replace(" ", "").replace("_", "")
+            
         rows = []
         
         for row_num, row in enumerate(reader, start=2):
             try:
-                # Required fields
-                date_val = self._safe_date(row.get("Date", ""))
-                ticker = row.get("Ticker", "").strip()
-                open_price = self._safe_decimal(row.get("Open", ""))
-                high = self._safe_decimal(row.get("High", ""))
-                low = self._safe_decimal(row.get("Low", ""))
-                close = self._safe_decimal(row.get("Close", ""))
-                volume = self._safe_int(row.get("Volume", ""))
+                normalized_row = {normalize_key(k): v for k, v in row.items()}
                 
-                if not all([date_val, ticker, open_price, high, low, close, volume]):
-                    logger.warning(f"Row {row_num}: Missing required fields, skipping")
-                    continue
+                def get_field(names: List[str], default: Any = "") -> Any:
+                    for name in names:
+                        norm = normalize_key(name)
+                        if norm in normalized_row:
+                            return normalized_row[norm]
+                    return default
+
+                # Required fields
+                date_val = self._safe_date(get_field(["Date", "date", "timestamp"]))
+                ticker = get_field(["Ticker", "ticker", "symbol"], default_ticker)
+                open_price = self._safe_decimal(get_field(["Open", "open"]))
+                high = self._safe_decimal(get_field(["High", "high"]))
+                low = self._safe_decimal(get_field(["Low", "low"]))
+                close = self._safe_decimal(get_field(["Close", "close"]))
+                volume = self._safe_int(get_field(["Volume", "vol", "volume"]))
+                
+                if not all([date_val, ticker, open_price, high, low, close]):
+                    # Volume can be 0 or missing in some legacy formats, treat as optional if others present
+                    if not all([date_val, ticker, open_price, high, low, close]):
+                         logger.warning(f"Row {row_num}: Missing required fields, skipping")
+                         continue
                 
                 legacy_row = LegacyHistoryRow(
                     date=date_val,
-                    ticker=ticker,
+                    ticker=ticker.strip().upper(),
                     open=open_price,
                     high=high,
                     low=low,
                     close=close,
-                    volume=volume,
-                    adjusted_close=self._safe_decimal(row.get("Adj Close", "")),
+                    volume=volume or 0,
+                    adjusted_close=self._safe_decimal(get_field(["Adj Close", "adjClose", "adjustedClose"])),
                 )
                 
                 rows.append(legacy_row)

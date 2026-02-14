@@ -159,13 +159,40 @@ Dipendenze: TASK 2.21
 
 **Acceptance Criteria:**
 
-- [ ] Import non crea duplicati (idempotente)
+- [x] Import non crea duplicati (idempotente)
 
-- [ ] Export usa file temporaneo per atomicità
+- [x] Export usa file temporaneo per atomicità
 
-- [ ] Checksum verificato dopo ogni operazione
+- [x] Checksum verificato dopo ogni operazione
 
-- [ ] Conflitti loggati per review manuale
+- [x] Conflitti loggati per review manuale
+
+**Status:** ✅ COMPLETATO
+
+**File Modificati:**
+- `backend/src/sync/services/__init__.py` - Package exports
+- `backend/src/sync/services/sync_service.py` - SyncService class (~500 lines) con metodi per sync
+- `backend/src/sync/infra/csv_parser.py` - Aggiunto metodo _get_estimates_header()
+- `backend/src/sync/repositories/__init__.py` - Repository exports  
+- `backend/src/sync/repositories/sync_job_repository.py` - SyncJobRepository (~200 lines)
+- `backend/tests/sync/test_sync_service.py` - Test suite (~400 lines, 14 test methods)
+
+**Test Eseguiti:**
+- ✅ 14/14 test passati
+- ✅ SyncService initialization
+- ✅ Checksum calculation
+- ✅ Initial import (no files, with estimates, with history, error handling)
+- ✅ Sync estimate to Drive (new file, update existing)
+- ✅ Daily history sync
+- ✅ Conflict detection (no conflict, status conflict)
+
+**Funzionalità Implementate:**
+- `run_initial_import()`: Scarica e importa estimates + history CSV da Drive
+- `sync_estimate_to_drive()`: Esporta singola estimate in CSV con checksum
+- `run_daily_history_sync()`: Aggiorna History_*.csv per ticker attivi
+- Conflict resolution: Last-writer-wins con logging
+- SHA-256 checksum per verifica integrità
+- SyncJob tracking per tutte le operazioni
 
 Nota: la retro‑compatibilità del formato legacy è validata dai test E2E del TASK 2.23.
 

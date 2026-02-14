@@ -548,3 +548,14 @@ class LegacyCsvParser:
         # Encode to bytes with BOM
         csv_text = output.getvalue()
         return csv_text.encode('utf-8-sig')
+    
+    def _get_estimates_header(self) -> str:
+        """
+        Get CSV header row for estimates file.
+        
+        Returns:
+            CSV header row as string with all column names
+        """
+        # Get all column names in order from the map
+        columns = list(ESTIMATES_COLUMN_MAP.keys())
+        return ','.join(f'"{col}"' for col in columns)

@@ -54,7 +54,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 1.7** - Middleware Sicurezza Base & Healthcheck
 - [x] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
 
-#### Sezione 2: Backend Core & Data (18/20 completati)
+#### Sezione 2: Backend Core & Data (19/20 completati)
 - [x] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
 - [x] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
 - [x] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker
@@ -74,7 +74,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 2.19** - Caching & Backoff per MarketDataProvider
 - [x] **TASK 2.20** - Implementazione Google Drive Client *(16 tests passing)*
 - [x] **TASK 2.21** - Implementazione CSV Parser Legacy *(30 tests passing)*
-- [ ] **TASK 2.22** - Implementazione Sync Service
+- [x] **TASK 2.22** - Implementazione Sync Service *(14 tests passing)*
 - [ ] **TASK 2.23** - Test Retrocompatibilità Backup/History Legacy
 - [ ] **TASK 2.24** - Setup Background Worker APScheduler
 
@@ -153,9 +153,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 | Categoria | Completati | Totali | Percentuale |
 |-----------|------------|--------|-------------|
-| **MVP** | 19 | 46 | 41% |
+| **MVP** | 20 | 46 | 43% |
 | **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **19** | **65** | 29% |
+| **TOTALE** | **20** | **65** | 31% |
 
 ---
 

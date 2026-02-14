@@ -302,7 +302,12 @@ class EstimateHistoryService:
                 # Handle close events
                 data = event.event_data
                 state["exit_price"] = data.get("exit_price")
-                state["realized_pnl"] = data.get("pnl") or data.get("profit") or data.get("loss")
+                state["realized_pnl"] = (
+                    data.get("realized_pnl")
+                    or data.get("pnl")
+                    or data.get("profit")
+                    or data.get("loss")
+                )
                 state["closed_at"] = event.timestamp
                 
                 # Set status based on event type
@@ -312,12 +317,17 @@ class EstimateHistoryService:
                     state["status"] = "CLOSED_LOSS"
                 else:
                     # For CLOSED event, check event data for status
-                    if "status" in data:
+                    if "final_status" in data:
+                        state["status"] = data["final_status"]
+                    elif "status" in data:
                         state["status"] = data["status"]
                     else:
                         # Infer from PnL
-                        pnl = state.get("realized_pnl", 0)
-                        state["status"] = "CLOSED_WIN" if pnl > 0 else "CLOSED_LOSS" if pnl < 0 else "CLOSED_MANUAL"
+                        pnl = state.get("realized_pnl")
+                        if pnl is None:
+                            state["status"] = "CLOSED_MANUAL"
+                        else:
+                            state["status"] = "CLOSED_WIN" if pnl > 0 else "CLOSED_LOSS" if pnl < 0 else "CLOSED_MANUAL"
                         
             elif event.event_type == EstimateEventType.REOPENED:
                 # Handle reopen
@@ -461,7 +471,7 @@ class EstimateHistoryService:
             status_map = {
                 EstimateEventType.TARGET_HIT: "CLOSED_WIN",
                 EstimateEventType.STOP_HIT: "CLOSED_LOSS",
-                EstimateEventType.CLOSED: data.get("status", "CLOSED_MANUAL"),
+                EstimateEventType.CLOSED: data.get("final_status") or data.get("status", "CLOSED_MANUAL"),
             }
             
             changes.append(Change(
@@ -484,8 +494,12 @@ class EstimateHistoryService:
                     event_type=event.event_type,
                 ))
             
-            pnl_key = "pnl" if "pnl" in data else "profit" if "profit" in data else "loss"
-            if pnl_key in data:
+            pnl_key = None
+            for key in ["realized_pnl", "pnl", "profit", "loss"]:
+                if key in data:
+                    pnl_key = key
+                    break
+            if pnl_key:
                 changes.append(Change(
                     field_name="realized_pnl",
                     old_value=None,

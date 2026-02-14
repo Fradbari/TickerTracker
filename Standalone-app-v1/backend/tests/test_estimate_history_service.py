@@ -122,7 +122,8 @@ async def test_state_reconstruction(
     print("\n[3/5] Testing state reconstruction...")
     
     # Test state after creation
-    t1 = timestamps[0] + timedelta(milliseconds=50)
+    now_ts = datetime.now(timezone.utc) - timedelta(milliseconds=1)
+    t1 = min(timestamps[0] + timedelta(milliseconds=50), now_ts)
     snap1 = await history_service.get_state_at(estimate_id, t1)
     
     assert snap1 is not None, "Snapshot 1 should exist"
@@ -132,7 +133,7 @@ async def test_state_reconstruction(
     print(f"  [OK] Snapshot at T1 (Creation): Status={snap1.status}, Target={snap1.target_profit_percent}%")
     
     # Test state after update
-    t2 = timestamps[1] + timedelta(milliseconds=50)
+    t2 = min(timestamps[1] + timedelta(milliseconds=50), now_ts)
     snap2 = await history_service.get_state_at(estimate_id, t2)
     
     assert snap2.target_profit_percent == Decimal("15.0"), "Target should be 15%"
@@ -140,7 +141,7 @@ async def test_state_reconstruction(
     print(f"  [OK] Snapshot at T2 (Update): Target updated to {snap2.target_profit_percent}%")
     
     # Test state after close
-    t3 = timestamps[2] + timedelta(milliseconds=50)
+    t3 = min(timestamps[2] + timedelta(milliseconds=50), now_ts)
     snap3 = await history_service.get_state_at(estimate_id, t3)
     
     assert snap3.status == "CLOSED_WIN", "Status should be CLOSED_WIN"

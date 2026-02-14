@@ -65,6 +65,7 @@ class PriceData(BaseModel):
     adjusted_close: Optional[Decimal] = Field(None, description="Adjusted close price", decimal_places=4)
     source: str = Field(..., description="Data source identifier")
     timestamp: datetime = Field(..., description="When data was retrieved")
+    is_stale: bool = Field(False, description="Whether this data is from stale cache")
 
 
 class FundamentalsData(BaseModel):
@@ -127,6 +128,7 @@ class FundamentalsData(BaseModel):
     average_volume: Optional[int] = Field(None, description="Average daily volume")
     source: str = Field(..., description="Data source identifier")
     timestamp: datetime = Field(..., description="When data was retrieved")
+    is_stale: bool = Field(False, description="Whether this data is from stale cache")
 
 
 # ============================================================================

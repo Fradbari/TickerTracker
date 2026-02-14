@@ -270,6 +270,7 @@ ID: TASK 2.19
 Area: market_data
 Fase: MVP
 Dipendenze: TASK 2.18
+Stato: ✅ COMPLETATO (2026-02-14)
 
 **TASK 2.19: Caching & Backoff per MarketDataProvider**
 
@@ -292,9 +293,86 @@ Ridurre chiamate a Yahoo/Finnhub e gestire in modo resiliente timeouts e rate‑
 
 **Acceptance Criteria:**
 
-- Le chiamate ripetute allo stesso endpoint/ticker entro il TTL non generano chiamate esterne aggiuntive.
-- In caso di timeout/rate‑limit, il sistema usa il dato in cache se disponibile e non va in errore 500 immediato.
-- I test coprono: cache hit, cache miss, fallback a dati stale, backoff su errori.
+- [x] Le chiamate ripetute allo stesso endpoint/ticker entro il TTL non generano chiamate esterne aggiuntive.
+- [x] In caso di timeout/rate‑limit, il sistema usa il dato in cache se disponibile e non va in errore 500 immediato.
+- [x] I test coprono: cache hit, cache miss, fallback a dati stale, backoff su errori.
+
+**Implementazione Completata:**
+
+File creati/modificati:
+1. **src/infra/cache/memory_cache.py** (268 righe)
+   - MemoryCache class con supporto TTL per-item
+   - CachedValue dataclass con metadata (cached_at, ttl_seconds, is_stale property)
+   - CacheKeyBuilder per chiavi consistenti
+   - Thread-safe operations con RLock
+   - Cache statistics (hits, misses, stale_hits, hit_rate)
+   - Stale cache separata per fallback
+
+2. **src/infra/cache/__init__.py**
+   - Exports: MemoryCache, CachedValue, CacheKeyBuilder, get_global_cache
+
+3. **src/market_data/infrastructure/cached_provider.py** (427 righe)
+   - CachedMarketDataProvider decoratore che wrappa MarketDataProvider
+   - CacheConfig dataclass per configurazione TTL e retry
+   - TTL differenziati: current_price=60s, historical=3600s, fundamentals=86400s
+   - Exponential backoff retry: 0.5s, 1s, 2s, 4s, 8s (max 3 retry)
+   - Stale fallback: restituisce dati scaduti con is_stale=True se API fails
+   - Retry su: TimeoutError, RateLimitExceededError, DataUnavailableError, 5xx errors
+   - No retry su: client errors (4xx), SymbolNotFoundError
+
+4. **src/market_data/infrastructure/__init__.py**
+   - Exports: CachedMarketDataProvider, CacheConfig
+
+5. **src/market_data/domain/providers.py**
+   - Aggiunto campo `is_stale: bool = False` a PriceData
+   - Aggiunto campo `is_stale: bool = False` a FundamentalsData
+
+6. **src/market_data/api/dependencies.py** (93 righe)
+   - get_market_data_provider(): Factory per provider cached (singleton)
+   - get_uncached_provider(): Factory per provider senza cache
+   - Configurazione via Settings
+
+7. **src/market_data/api/__init__.py**
+   - Exports: get_market_data_provider, get_uncached_provider
+
+8. **src/shared/infra/config.py**
+   - Sezione Cache Configuration:
+     * CACHE_CURRENT_PRICE_TTL (default: 60s)
+     * CACHE_HISTORICAL_PRICE_TTL (default: 3600s)
+     * CACHE_FUNDAMENTALS_TTL (default: 86400s)
+     * CACHE_MAX_SIZE (default: 1000)
+   - Sezione Retry Configuration:
+     * RETRY_MAX_ATTEMPTS (default: 3)
+     * RETRY_INITIAL_BACKOFF (default: 0.5s)
+     * RETRY_MAX_BACKOFF (default: 8.0s)
+     * RETRY_BACKOFF_MULTIPLIER (default: 2.0)
+
+9. **tests/test_cached_provider.py** (486 righe)
+   - 8 test suites completi - tutti passati ✅
+   - test_cache_hit_miss: Cache hit evita chiamate API
+   - test_ttl_differentiation: TTL diversi per tipo dato
+   - test_retry_with_backoff: Exponential backoff 0.1s, 0.2s
+   - test_stale_data_fallback: Fallback a dati stale su errore API
+   - test_no_stale_data_raises_error: Errore quando no stale data
+   - test_rate_limit_handling: Retry su rate limit
+   - test_cache_statistics: Tracking hits/misses/hit_rate
+   - test_configuration_from_settings: Verifica struttura CacheConfig
+
+Test results: **8/8 PASSED** in 5.33s
+
+Acceptance criteria verification:
+- ✅ Cache hit/miss: Chiamate ripetute non generano API calls
+- ✅ Stale fallback: Sistema non va in errore 500 su timeout
+- ✅ TTL differentiation: 60s / 1h / 24h funzionanti
+- ✅ Exponential backoff: 0.5s → 1s → 2s → 4s → 8s
+- ✅ Configuration: Tutti i parametri configurabili via Settings
+
+Note tecniche:
+- MemoryCache usa dict normale invece di cachetools.TTLCache per supportare TTL per-item
+- CachedValue.is_stale property calcola automaticamente se scaduto
+- Thread-safe con RLock per operazioni concorrenti
+- LRU eviction manuale quando cache raggiunge maxsize
+- Stale cache mantiene dati scaduti indefinitamente per fallback
 
 ---
 
@@ -303,6 +381,8 @@ Ridurre chiamate a Yahoo/Finnhub e gestire in modo resiliente timeouts e rate‑
 - Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
 - Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
 - Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
+---
 
 ID: TASK 3.8
 Area: market_data

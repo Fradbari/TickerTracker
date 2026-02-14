@@ -732,10 +732,75 @@ async def get_market_data_service() -> MarketDataService:
 ```
 
 **Contratti Dati:**
-- `PriceData`: OHLCV + volume + source + timestamp
-- `FundamentalsData`: Market cap, P/E, EPS, sector, industry
+- `PriceData`: OHLCV + volume + source + timestamp + is_stale flag
+- `FundamentalsData`: Market cap, P/E, EPS, sector, industry + is_stale flag
 
 Per dettagli: [src/market_data/domain/providers.py](src/market_data/domain/providers.py)
+
+#### Caching & Retry Logic
+
+Il sistema implementa un **decorator pattern** per aggiungere caching in-memory e retry automatico a qualsiasi provider:
+
+```python
+from src.market_data.infrastructure import CachedMarketDataProvider, CacheConfig
+from src.market_data.api import get_market_data_provider
+
+# Configurazione via Settings
+config = CacheConfig(
+    current_price_ttl=60,        # 60s per prezzi correnti
+    historical_price_ttl=3600,    # 1h per dati storici
+    fundamentals_ttl=86400,       # 24h per fundamentals
+    max_retries=3,                # Retry fino a 3 volte
+    initial_backoff=0.5,          # Backoff 0.5s, 1s, 2s, 4s...
+)
+
+# Wrappa provider con cache
+base_provider = YahooMarketDataProvider()
+cached_provider = CachedMarketDataProvider(base_provider, config)
+
+# Uso trasparente
+price1 = await cached_provider.get_current_price("AAPL")  # API call
+price2 = await cached_provider.get_current_price("AAPL")  # Cache hit (no API call)
+```
+
+**Caratteristiche:**
+- ✅ **TTL Differenziati**: 60s per prezzi, 1h per storico, 24h per fundamentals
+- ✅ **Exponential Backoff**: Retry su timeout/rate-limit/5xx errors
+- ✅ **Stale Fallback**: Restituisce dati scaduti (is_stale=True) se API fails
+- ✅ **Cache Statistics**: Tracking hits/misses/hit_rate
+- ✅ **Thread-Safe**: RLock per operazioni concorrenti
+- ✅ **Configurabile**: Tutti i parametri configurabili via Settings
+
+**Configurazione Settings:**
+```python
+# In .env o config.py
+CACHE_CURRENT_PRICE_TTL=60       # 1 minuto
+CACHE_HISTORICAL_PRICE_TTL=3600  # 1 ora
+CACHE_FUNDAMENTALS_TTL=86400     # 24 ore
+CACHE_MAX_SIZE=1000              # Max 1000 items in cache
+
+RETRY_MAX_ATTEMPTS=3             # Max 3 retry
+RETRY_INITIAL_BACKOFF=0.5        # Backoff iniziale 0.5s
+RETRY_MAX_BACKOFF=8.0            # Backoff massimo 8s
+RETRY_BACKOFF_MULTIPLIER=2.0     # Moltiplicatore esponenziale
+```
+
+**Dependency Injection:**
+```python
+from src.market_data.api import get_market_data_provider
+
+@router.get("/price/{symbol}")
+async def get_price(
+    symbol: str,
+    provider: MarketDataProvider = Depends(get_market_data_provider),
+):
+    # Provider è già cached e configurato
+    price = await provider.get_current_price(symbol)
+    return {"price": price.close, "is_stale": price.is_stale}
+```
+
+Per dettagli: [src/market_data/infrastructure/cached_provider.py](src/market_data/infrastructure/cached_provider.py)
+Per cache implementation: [src/infra/cache/memory_cache.py](src/infra/cache/memory_cache.py)
 
 ## Contribuire
 

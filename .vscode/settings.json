@@ -3,6 +3,7 @@
         "&": true,
         "poetry": true,
         "py": true,
-        ".venv\\Scripts\\pip": true
+        ".venv\\Scripts\\pip": true,
+        ".\\.venv\\Scripts\\Activate.ps1": true
     }
 }

@@ -219,9 +219,44 @@ Definire un'interfaccia MarketDataProvider per disaccoppiare la logica di busine
 
 **Acceptance Criteria:**
 
-- Tutta la logica di mercato usa MarketDataProvider e non dipende da yfinance direttamente.
-- MarketDataService riceve il provider via dependency injection FastAPI.
-- I test possono usare un FakeMarketDataProvider per simulare dati senza chiamate esterne.
+- [x] Tutta la logica di mercato usa MarketDataProvider e non dipende da yfinance direttamente.
+- [x] MarketDataService riceve il provider via dependency injection FastAPI.
+- [x] I test possono usare un FakeMarketDataProvider per simulare dati senza chiamate esterne.
+
+**Stato:** ✅ COMPLETATO (2026-02-14)
+
+**Note Implementazione:**
+- Creato file `src/market_data/domain/providers.py` con interfaccia astratta `MarketDataProvider`
+- Definiti contratti Pydantic: `PriceData` (OHLCV + metadata), `FundamentalsData` (metriche finanziarie)
+- Interfaccia provider include metodi:
+  - `get_current_price(symbol)` - Prezzo corrente
+  - `get_historical_prices(symbol, start_date, end_date, interval)` - Storico
+  - `get_fundamentals(symbol)` - Dati fondamentali
+  - `search_symbol(query)` - Ricerca simboli
+- Implementato `YahooMarketDataProvider` in `services/yahoo_provider.py` usando yfinance:
+  - Supporto async con `asyncio.to_thread()` per chiamate bloccanti
+  - Gestione errori con eccezioni tipizzate: `SymbolNotFoundError`, `DataUnavailableError`
+  - Conversione automatica DataFrame -> PriceData con precisione Decimal
+  - Timeout configurabile (default 30s)
+- Implementato `FakeMarketDataProvider` in `services/provider_implementations.py` per testing:
+  - Dati configurabili via `set_price()`, `set_fundamentals()`
+  - Simulazione errori con `fail_on_symbol()`
+  - Generazione dati storici deterministici
+- Creati stub per provider futuri (tutti con NotImplementedError):
+  - `FinnhubMarketDataProvider` - Real-time data, free tier 60 calls/min
+  - `AlphaVantageMarketDataProvider` - Free tier 5 calls/min
+  - `PolygonMarketDataProvider` - Delayed free tier
+- Creato `MarketDataService` in `services/market_data_service.py`:
+  - Dependency injection del provider nel costruttore
+  - Metodi: `get_current_price()`, `sync_historical_data()`, `get_fundamentals()`, `search_symbols()`
+  - Integrazione con `MarketDataRepository` per persistenza
+  - Conversione automatica PriceData -> MarketDataRow
+- Test completo in `tests/test_market_data_provider.py` - PASSED:
+  - FakeProvider: 5 test passati (current price, historical, fundamentals, errors)
+  - YahooProvider: Interface compliance verificata
+  - Dependency injection pattern dimostrato con swapping provider
+  - Stub providers verificati
+- Exports aggiornati in `market_data/domain/__init__.py` e `market_data/services/__init__.py`
 
 ---
 

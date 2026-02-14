@@ -675,6 +675,55 @@ Ogni bounded context segue una struttura layered:
 - **services/**: Business logic e orchestrazione
 - **repositories/**: Accesso dati e persistenza
 
+### Market Data Provider Pattern
+
+Il sistema utilizza un **pattern Provider astratto** per disaccoppiare la logica di business dalle fonti di dati di mercato:
+
+```python
+# Interfaccia astratta
+class MarketDataProvider(ABC):
+    async def get_current_price(symbol: str) -> PriceData
+    async def get_historical_prices(symbol, start, end) -> List[PriceData]
+    async def get_fundamentals(symbol: str) -> FundamentalsData
+```
+
+**Provider Implementati:**
+- ✅ **YahooMarketDataProvider**: Yahoo Finance (delayed data, free)
+- ✅ **FakeMarketDataProvider**: Testing senza chiamate esterne
+- ⏸️ **FinnhubMarketDataProvider**: Stub (real-time, 60 API calls/min free)
+- ⏸️ **AlphaVantageMarketDataProvider**: Stub (5 API calls/min free)
+- ⏸️ **PolygonMarketDataProvider**: Stub (delayed free tier)
+
+**Vantaggi:**
+- **Testabilità**: FakeProvider per unit test deterministici
+- **Flessibilità**: Cambio provider senza modificare business logic
+- **Future-proof**: Facile aggiungere provider premium
+- **Dependency Injection**: Provider configurabile via FastAPI `Depends()`
+
+**Esempio uso:**
+```python
+# Nel service
+class MarketDataService:
+    def __init__(self, provider: MarketDataProvider):
+        self._provider = provider  # Iniettato
+    
+    async def get_price(self, ticker_id: UUID) -> Decimal:
+        ticker = await self._get_ticker(ticker_id)
+        price_data = await self._provider.get_current_price(ticker.symbol)
+        return price_data.close
+
+# Dependency injection in FastAPI
+async def get_market_data_service() -> MarketDataService:
+    provider = YahooMarketDataProvider(timeout=30)
+    return MarketDataService(provider, ...)
+```
+
+**Contratti Dati:**
+- `PriceData`: OHLCV + volume + source + timestamp
+- `FundamentalsData`: Market cap, P/E, EPS, sector, industry
+
+Per dettagli: [src/market_data/domain/providers.py](src/market_data/domain/providers.py)
+
 ## Contribuire
 
 Prima di committare:

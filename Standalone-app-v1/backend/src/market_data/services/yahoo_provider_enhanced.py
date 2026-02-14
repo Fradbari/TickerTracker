@@ -52,64 +52,9 @@ class EnhancedYahooMarketDataProvider(MarketDataProvider):
         self._timeout = timeout
         self._min_delay = min_delay
         self._last_request_time = 0.0
-        self._primed = False
-        
-        # Create session with custom headers and retry logic
-        self._session = self._create_session()
-    
-    def _create_session(self) -> Session:
-        """Create a requests session with optimal settings for 2026."""
-        session = Session()
-        
-        # Modern User-Agent (Chrome 132 style for 2026)
-        session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cache-Control': 'max-age=0',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-        })
-        
-        # Configure retry strategy with exponential backoff for 429
-        retry_strategy = Retry(
-            total=5,
-            backoff_factor=1.5,
-            status_forcelist=[429, 500, 502, 503, 504],
-            allowed_methods=["GET"],
-        )
-        
-        adapter = HTTPAdapter(max_retries=retry_strategy, pool_connections=10, pool_maxsize=10)
-        session.mount("http://", adapter)
-        session.mount("https://", adapter)
-        
-        return session
-    
-    async def _prime_session(self):
-        """Hit Yahoo Finance homepage to get necessary cookies and crumbs."""
-        if self._primed:
-            return
-            
-        try:
-            # Hit homepage to establish session and cookies (B cookie, Crumb)
-            await asyncio.to_thread(
-                self._session.get, 
-                "https://finance.yahoo.com", 
-                timeout=10
-            )
-            self._primed = True
-        except Exception as e:
-            # Non-critical, yfinance might still work, but log it
-            print(f"Warning: Failed to prime Yahoo session: {e}")
     
     async def _wait_for_rate_limit(self):
-        """Enforce minimum delay between requests and ensure session is primed."""
-        await self._prime_session()
-        
+        """Enforce minimum delay between requests."""
         now = time.time()
         elapsed = now - self._last_request_time
         
@@ -138,14 +83,14 @@ class EnhancedYahooMarketDataProvider(MarketDataProvider):
         
         try:
             # Create ticker with custom session
-            ticker = yf.Ticker(symbol, session=self._session)
+            ticker = yf.Ticker(symbol)
             
             # Get last 5 days to ensure we have data (markets closed on weekends)
             hist = await asyncio.to_thread(
                 ticker.history,
-                period="5day",
+                period="5d",
                 interval="1d",
-                auto_adjust=True, # Recommended for yf 1.x
+                auto_adjust=True,
             )
             
             if hist.empty:
@@ -156,8 +101,8 @@ class EnhancedYahooMarketDataProvider(MarketDataProvider):
                     raise SymbolNotFoundError(symbol, "yahoo")
                     
                 raise DataUnavailableError(
-                    f"No price data available for {symbol}. This may be due to rate limiting. "
-                    "Session is now primed, please retry in 5 seconds.",
+                    f"No price data available for {symbol}. This may be due to rate limiting or invalid ticker. "
+                    "Please wait a few seconds and try again.",
                     "yahoo"
                 )
             
@@ -175,7 +120,10 @@ class EnhancedYahooMarketDataProvider(MarketDataProvider):
             # Safely get OHLCV
             def get_val(name, default=0):
                 col_name = next((c for c in hist.columns if c.lower() == name.lower()), None)
-                return Decimal(str(last_row[col_name])) if col_name else Decimal(str(default))
+                if col_name:
+                    val = Decimal(str(last_row[col_name]))
+                    return round(val, 4)
+                return Decimal(str(default))
 
             return PriceData(
                 symbol=symbol.upper(),
@@ -211,7 +159,7 @@ class EnhancedYahooMarketDataProvider(MarketDataProvider):
         await self._wait_for_rate_limit()
         
         try:
-            ticker = yf.Ticker(symbol, session=self._session)
+            ticker = yf.Ticker(symbol)
             
             hist = await asyncio.to_thread(
                 ticker.history,
@@ -225,7 +173,7 @@ class EnhancedYahooMarketDataProvider(MarketDataProvider):
                 # In 1.1.0+, empty might mean valid symbol but blocked
                 raise DataUnavailableError(
                     f"No historical data for {symbol}. This may be due to rate limiting or invalid date range. "
-                    "Session is now primed, please retry in 5 seconds.",
+                    "Please wait a few seconds and try again.",
                     "yahoo"
                 )
             
@@ -241,7 +189,10 @@ class EnhancedYahooMarketDataProvider(MarketDataProvider):
                 # Safely get OHLCV
                 def get_row_val(name, default=0):
                     col_name = next((c for c in hist.columns if c.lower() == name.lower()), None)
-                    return Decimal(str(row[col_name])) if col_name else Decimal(str(default))
+                    if col_name:
+                        val = Decimal(str(row[col_name]))
+                        return round(val, 4)
+                    return Decimal(str(default))
 
                 results.append(
                     PriceData(
@@ -273,7 +224,7 @@ class EnhancedYahooMarketDataProvider(MarketDataProvider):
         await self._wait_for_rate_limit()
         
         try:
-            ticker = yf.Ticker(symbol, session=self._session)
+            ticker = yf.Ticker(symbol)
             info = await asyncio.to_thread(lambda: ticker.info)
             
             if not info or not isinstance(info, dict) or 'symbol' not in info:
@@ -295,7 +246,8 @@ class EnhancedYahooMarketDataProvider(MarketDataProvider):
                 if val is None or val == "":
                     return None
                 try:
-                    return Decimal(str(val))
+                    res = Decimal(str(val))
+                    return round(res, 4)
                 except (ValueError, TypeError):
                     return None
 
@@ -330,7 +282,7 @@ class EnhancedYahooMarketDataProvider(MarketDataProvider):
         
         # Simplified search - just validate if it's a real symbol
         try:
-            ticker = yf.Ticker(query.upper(), session=self._session)
+            ticker = yf.Ticker(query.upper())
             info = await asyncio.to_thread(lambda: ticker.info)
             
             if info and 'symbol' in info:

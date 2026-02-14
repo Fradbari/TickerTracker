@@ -4,6 +4,8 @@
         "poetry": true,
         "py": true,
         ".venv\\Scripts\\pip": true,
-        ".\\.venv\\Scripts\\Activate.ps1": true
+        ".\\.venv\\Scripts\\Activate.ps1": true,
+        "ForEach-Object": true,
+        "Rename-Item": true
     }
 }

@@ -69,7 +69,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 2.14** - Creazione Service EstimateService
 - [x] **TASK 2.15** - Creazione Service EstimateHistoryService
 - [x] **TASK 2.16** - Creazione API Router Estimates
-- [ ] **TASK 2.17** - Creazione API Router Market Data
+- [x] **TASK 2.17** - Creazione API Router Market Data
 - [x] **TASK 2.18** - Definizione MarketDataProvider Astratto
 - [x] **TASK 2.19** - Caching & Backoff per MarketDataProvider
 - [ ] **TASK 2.20** - Implementazione Google Drive Client

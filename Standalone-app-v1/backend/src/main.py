@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 
 from src.shared.api import health_routes
 from src.estimates.api import router as estimates_router
+from src.market_data.api import routes as market_data_routes
 from src.shared.infra.config import get_settings
 from src.shared.infra.security_middleware import setup_security_middleware
 
@@ -33,9 +34,9 @@ setup_security_middleware(app)
 # Register routers
 app.include_router(health_routes.router)
 app.include_router(estimates_router)
+app.include_router(market_data_routes.router)
 
 # TODO: Register additional bounded context routers
-# - market_data
 # - sync
 # - analytics
 

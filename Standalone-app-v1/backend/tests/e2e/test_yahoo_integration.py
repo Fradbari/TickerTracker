@@ -7,10 +7,8 @@ from src.market_data.api.dependencies import get_market_data_provider
 async def test_yahoo_current_price(provider):
     """Real API call to Yahoo Finance for current price."""
     p = provider
-    try:
-        price = await p.get_current_price("AAPL")
-    except Exception as e:
-        pytest.skip(f"Yahoo provider unavailable in this environment: {e}")
+    # Removed skip logic to see full error
+    price = await p.get_current_price("AAPL")
     assert price.close > 0
     assert "yahoo" in price.source
 

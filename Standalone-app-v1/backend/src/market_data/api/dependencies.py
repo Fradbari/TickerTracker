@@ -8,7 +8,7 @@ providers and services with proper configuration.
 from functools import lru_cache
 
 from src.market_data.domain.providers import MarketDataProvider
-from src.market_data.services.yahoo_provider import YahooMarketDataProvider
+from src.market_data.services.yahoo_provider_enhanced import EnhancedYahooMarketDataProvider
 from src.market_data.infrastructure.cached_provider import (
     CachedMarketDataProvider,
     CacheConfig,
@@ -21,7 +21,7 @@ def _get_base_provider() -> MarketDataProvider:
     """
     Get the base market data provider (singleton).
     
-    Currently uses Yahoo Finance as the primary provider.
+    Currently uses Enhanced Yahoo Finance provider with rate limit handling.
     Can be configured to use different providers based on settings.
     
     Returns:
@@ -29,9 +29,8 @@ def _get_base_provider() -> MarketDataProvider:
     """
     settings = get_settings()
     
-    # TODO: Make provider selection configurable via settings
-    # For now, always use Yahoo Finance
-    return YahooMarketDataProvider(timeout=30)
+    # Use Enhanced Yahoo Finance provider with rate limiting
+    return EnhancedYahooMarketDataProvider(timeout=30, min_delay=0.5)
 
 
 @lru_cache(maxsize=1)

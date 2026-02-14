@@ -245,11 +245,25 @@ Dipendenze: TASK 2.6, TASK 2.12
 
 **Acceptance Criteria:**
 
-- [ ] Stato ricostruito correttamente per qualsiasi timestamp
+- [x] Stato ricostruito correttamente per qualsiasi timestamp
 
-- [ ] Audit trail completo e ordinato
+- [x] Audit trail completo e ordinato
 
-- [ ] Performance accettabile per stime con molti eventi
+- [x] Performance accettabile per stime con molti eventi
+
+**Stato:** ✅ COMPLETATO (2026-02-14)
+
+**Note Implementazione:**
+- Creato `EstimateEventRepository` per accesso eventi in repositories/estimate_event_repository.py
+- Creati schemi Pydantic in schemas/history.py: `EstimateSnapshot`, `AuditEntry`, `Change`, `EstimateHistorySummary`
+- Implementato `EstimateHistoryService` con 4 metodi pubblici:
+  - `get_state_at()` - Ricostruisce stato ad un timestamp tramite replay eventi
+  - `get_audit_trail()` - Genera audit trail human-readable
+  - `get_changes_between()` - Identifica cambiamenti tra due timestamp
+  - `get_history_summary()` - Statistiche complete dello storico
+- Gestione corretta di tutti i tipi di evento: CREATED, UPDATED, PRICE_UPDATED, TARGET_HIT, STOP_HIT, CLOSED, REOPENED
+- Test completo con 5 suite che verificano tutti gli acceptance criteria
+- Performance ottimizzata con query ordinate cronologicamente e uso di indici DB
 
 ---
 

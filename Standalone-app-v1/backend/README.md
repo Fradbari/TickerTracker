@@ -628,6 +628,75 @@ if closed_estimate:
     print(f"PnL: ${closed_estimate.realized_pnl}")
 ```
 
+### EstimateHistoryService (Task 2.15)
+
+`EstimateHistoryService` implementa Event Sourcing per ricostruire lo stato storico delle stime:
+
+- Service: `backend/src/estimates/services/estimate_history_service.py`
+- Repository: `backend/src/estimates/repositories/estimate_event_repository.py`
+- Schemi: `backend/src/estimates/schemas/history.py`
+
+**Metodi principali:**
+- `get_state_at()` - Ricostruisce stato estimate ad un timestamp specifico
+- `get_audit_trail()` - Genera audit trail completo human-readable
+- `get_changes_between()` - Identifica cambiamenti tra due timestamp
+- `get_history_summary()` - Statistiche complete dello storico
+
+**Caratteristiche:**
+- Replay completo eventi per state reconstruction
+- Supporto totale per tipi evento: CREATED, UPDATED, PRICE_UPDATED, TARGET_HIT, STOP_HIT, CLOSED, REOPENED
+- Descrizioni human-readable generate automaticamente
+- Change tracking field-level con old/new values
+- Performance ottimizzata con query ordinate cronologicamente
+
+Esempio di state reconstruction:
+
+```python
+from datetime import datetime, timezone, timedelta
+
+# Ricostruisci stato 7 giorni fa
+week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+snapshot = await history_service.get_state_at(estimate_id, week_ago)
+
+print(f"Status era: {snapshot.status}")
+print(f"Target price era: ${snapshot.target_price}")
+print(f"Eventi fino a quel momento: {snapshot.event_count}")
+```
+
+Esempio di audit trail:
+
+```python
+# Ottieni audit trail completo
+audit_trail = await history_service.get_audit_trail(estimate_id)
+
+for entry in audit_trail:
+    timestamp = entry.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    actor = "System" if entry.is_system_event else f"User {entry.user_id}"
+    print(f"[{timestamp}] {actor}: {entry.description}")
+    
+    if entry.changed_fields:
+        for field in entry.changed_fields:
+            old = entry.old_values.get(field)
+            new = entry.new_values.get(field)
+            print(f"  - {field}: {old} -> {new}")
+```
+
+Esempio di change detection:
+
+```python
+# Cambiamenti negli ultimi 30 giorni
+thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+changes = await history_service.get_changes_between(
+    estimate_id,
+    thirty_days_ago,
+    datetime.now(timezone.utc)
+)
+
+for change in changes:
+    print(f"{change.field_name}: {change.old_value} -> {change.new_value}")
+    print(f"  Changed at: {change.changed_at} by event {change.event_type.value}")
+```
+
 ### Rigenerare requirements.txt
 
 Se modifichi `pyproject.toml`, rigenera i file requirements:

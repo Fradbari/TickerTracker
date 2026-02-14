@@ -1,6 +1,7 @@
 """Estimates services exports."""
 
 from src.estimates.services.estimate_service import EstimateService
+from src.estimates.services.estimate_history_service import EstimateHistoryService
 from src.estimates.services.exceptions import (
     EstimateServiceError,
     EstimateNotFoundError,
@@ -14,6 +15,7 @@ from src.estimates.services.exceptions import (
 
 __all__ = [
     "EstimateService",
+    "EstimateHistoryService",
     "EstimateServiceError",
     "EstimateNotFoundError",
     "TickerNotFoundError",

@@ -6,6 +6,12 @@ from src.estimates.schemas.commands import (
     UpdateEstimateCommand,
     CloseEstimateCommand,
 )
+from src.estimates.schemas.history import (
+    EstimateSnapshot,
+    AuditEntry,
+    Change,
+    EstimateHistorySummary,
+)
 from src.shared.schemas.pagination import Pagination, PaginatedResult, PageInfo
 
 __all__ = [
@@ -13,6 +19,10 @@ __all__ = [
     "CreateEstimateCommand",
     "UpdateEstimateCommand",
     "CloseEstimateCommand",
+    "EstimateSnapshot",
+    "AuditEntry",
+    "Change",
+    "EstimateHistorySummary",
     "Pagination",
     "PaginatedResult",
     "PageInfo",

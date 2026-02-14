@@ -3,7 +3,7 @@
 ID: TASK 2.3
 Area: market_data
 Fase: MVP
-Dipendenze: TASK 2.2
+Dipendenze: ✅ TASK 2.2 (Complete)
 
 ## TASK 2.3: Definizione Modello SQLAlchemy - Ticker
 

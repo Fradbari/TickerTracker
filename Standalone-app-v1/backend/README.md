@@ -635,7 +635,7 @@ backend/
 
 ## Implementation Progress
 
-### Phase 1: Foundation & API Structure (7/8 task - 87.5% ✨)
+### Phase 1: Foundation & Infrastructure (10/10 tasks - 100% ✨)
 
 | Task | Descrizione | Status | Tests | Implementation |
 |------|-----------|--------|-------|-----------------|
@@ -645,22 +645,33 @@ backend/
 | 1.4 | Value Object Percentage | ✅ COMPLETATO | 39 ✓ | Basis points support |
 | 1.5 | Value Object PriceTarget | ✅ COMPLETATO | 41 ✓ | LONG/SHORT validation |
 | 1.6 | Config Multi-Ambiente | ✅ COMPLETATO | 27 ✓ | Pydantic Settings + Secrets |
-| 1.7 | **Middleware Sicurezza** | ✅ **COMPLETATO** | **16 ✓** | **Headers + CORS + Rate Limit + Healthcheck** |
+| 1.7 | Middleware Sicurezza | ✅ COMPLETATO | 16 ✓ | Headers + CORS + Rate Limit |
+| 1.8 | Healthcheck Endpoints | ✅ COMPLETATO | ✓ | `/health` and `/health/db` |
+| 2.1 | **Setup Python & Poetry** | ✅ **COMPLETATO** | **✓** | **Dipendenze complete (MVP + Phase 2)** |
+| 2.2 | **Docker Compose Base** | ✅ **COMPLETATO** | **✓** | **PostgreSQL 16 + Redis 7 + Healthchecks** |
 
 **Total Tests**: 164 passing ✅
 
-### Phase 2: Estimates & Market Data (7/7 tasks - 100% ✨)
+### Phase 2: Core Domain & Persistence (14/14 tasks - 100% ✨)
 
 | Task | Descrizione | Status | Tests | Implementation |
 |------|-----------|--------|-------|----------------|
-| 2.5 | Modello SQLAlchemy - Estimate | ✅ COMPLETATO | - | Entity con DECIMAL, Enums, indici |
-| 2.6 | Modello SQLAlchemy - EstimateEvent/MarketData | ✅ COMPLETATO | - | Event Sourcing e Market Data OHLCV |
+| 2.3 | Modello Ticker | ✅ COMPLETATO | ✓ | SQLAlchemy model + indices |
+| 2.4 | Modello Estimate | ✅ COMPLETATO | ✓ | Entity con DECIMAL e Enums |
+| 2.5 | Event Sourcing - EstimateEvent | ✅ COMPLETATO | - | JSONB audit log storage |
+| 2.6 | Market Data - MarketData OHLCV | ✅ COMPLETATO | - | Prezzi storici con precisione Decimal |
+| 2.7 | Modello User & Role (RBAC) | ✅ COMPLETATO | ✓ | Gestione ruoli e permessi base |
+| 2.10 | Setup Alembic | ✅ COMPLETATO | ✓ | Database migrations (10 tabelle) |
+| 2.11 | **EstimateSummaryView CQRS** | ✅ **COMPLETATO** | **✓** | **Materialized View pre-calcolata** |
 | 2.12 | Repository Estimate | ✅ COMPLETATO | ✓ | CRUD + cursor pagination |
 | 2.13 | Repository MarketData | ✅ COMPLETATO | ✓ | Upsert batch + aggregation |
 | 2.14 | Service EstimateService | ✅ COMPLETATO | 8 ✓ | Business logic orchestration |
 | 2.15 | Service EstimateHistoryService | ✅ COMPLETATO | 5 ✓ | Event sourcing + audit trail |
 | 2.16 | API Router Estimates | ✅ COMPLETATO | ✓ | 6 REST endpoints + OpenAPI |
-| 2.18 | **Market Data Provider Abstraction** | ✅ **COMPLETATO** | **5 ✓** | **Interface + Yahoo/Fake Providers** |
+| 2.18 | Market Data Providers | ✅ COMPLETATO | 5 ✓ | Yahoo/Fake Providers + Interface |
+| 2.19 | **Caching & Resiliency** | ✅ **COMPLETATO** | **✓** | **LRU Cache + Exponential Backoff** |
+
+
 
 ## Documentazione API
 

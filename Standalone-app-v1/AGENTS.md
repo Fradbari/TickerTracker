@@ -54,9 +54,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 1.7** - Middleware Sicurezza Base & Healthcheck
 - [x] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
 
-#### Sezione 2: Backend Core & Data (15/20 completati)
+#### Sezione 2: Backend Core & Data (16/20 completati)
 - [x] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
-- [ ] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
+- [x] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
 - [x] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker
 - [x] **TASK 2.4** - Definizione Modello SQLAlchemy - Estimate
 - [x] **TASK 2.5** - Definizione Modello SQLAlchemy - EstimateEvent

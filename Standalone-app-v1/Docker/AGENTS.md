@@ -37,12 +37,14 @@ Dipendenze: TASK 2.1
 
 **Acceptance Criteria:**
 
-- [ ] `docker compose -f docker-compose.base.yml up -d` avvia entrambi i servizi
-- [ ] PostgreSQL accessibile su localhost:5432
-- [ ] Redis accessibile su localhost:6379
-- [ ] Healthcheck passa per entrambi i servizi (healthy status)
-- [ ] Dati persistono dopo restart container
-- [ ] Network ticker-network creata e condivisa
+- [x] `docker compose -f docker-compose.base.yml up -d` avvia entrambi i servizi
+- [x] PostgreSQL accessibile su localhost:5432
+- [x] Redis accessibile su localhost:6379
+- [x] Healthcheck passa per entrambi i servizi (healthy status)
+- [x] Dati persistono dopo restart container
+- [x] Network ticker-network creata e condivisa
+
+**Stato:** ✅ COMPLETATO (2026-02-04)
 
 ---
 
@@ -57,9 +59,10 @@ Dipendenze: TASK 2.1
 ID: TASK 3.12
 Area: docker
 Fase: MVP
-Dipendenze: TASK 2.2, TASK 2.20, TASK 4.1
+Dipendenze: ✅ TASK 2.2 (Complete), TASK 2.20, TASK 4.1
 
 ## **TASK 3.12: Docker Compose Ambiente Locale (Dev)**
+
 
 Priorità: Alta (MVP - richiesto per avere un ambiente locale "one‑command").
 

@@ -571,6 +571,7 @@ mypy src/
 pytest tests/                              # Tutti i test
 pytest -m unit tests/                      # Solo unit tests
 pytest -m integration tests/               # Solo integration tests
+pytest tests/e2e/test_legacy_compatibility.py -v  # Test backward compatibility sync
 pytest --cov=src --cov-report=html tests/  # Con coverage
 
 # Dependencies
@@ -650,7 +651,10 @@ backend/
 | 2.1 | **Setup Python & Poetry** | ✅ **COMPLETATO** | **✓** | **Dipendenze complete (MVP + Phase 2)** |
 | 2.2 | **Docker Compose Base** | ✅ **COMPLETATO** | **✓** | **PostgreSQL 16 + Redis 7 + Healthchecks** |
 
-**Total Tests**: 164 passing ✅
+**Total Tests**: 241 passing ✅
+- **Sync Module**: 60 tests (16 Drive Client + 30 CSV Parser + 14 Sync Service)
+- **E2E Legacy Compatibility**: 17 tests (JSON/CSV backward compatibility)
+- **Core Domain**: 164 tests (Value Objects, Services, Repositories)
 
 ### Phase 2: Core Domain & Persistence (14/14 tasks - 100% ✨)
 

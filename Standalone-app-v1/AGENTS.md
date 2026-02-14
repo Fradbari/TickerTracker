@@ -54,7 +54,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 1.7** - Middleware Sicurezza Base & Healthcheck
 - [x] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
 
-#### Sezione 2: Backend Core & Data (19/20 completati)
+#### Sezione 2: Backend Core & Data (20/20 completati)
 - [x] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
 - [x] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
 - [x] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker
@@ -75,7 +75,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 2.20** - Implementazione Google Drive Client *(16 tests passing)*
 - [x] **TASK 2.21** - Implementazione CSV Parser Legacy *(30 tests passing)*
 - [x] **TASK 2.22** - Implementazione Sync Service *(14 tests passing)*
-- [ ] **TASK 2.23** - Test Retrocompatibilità Backup/History Legacy
+- [x] **TASK 2.23** - Test Retrocompatibilità Backup/History Legacy *(17 tests passing)*
 - [ ] **TASK 2.24** - Setup Background Worker APScheduler
 
 #### Sezione 4: Frontend Setup & Features (0/13)

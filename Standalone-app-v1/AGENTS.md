@@ -54,7 +54,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 1.7** - Middleware Sicurezza Base & Healthcheck
 - [x] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
 
-#### Sezione 2: Backend Core & Data (16/20 completati)
+#### Sezione 2: Backend Core & Data (17/20 completati)
 - [x] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
 - [x] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
 - [x] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker
@@ -72,7 +72,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 2.17** - Creazione API Router Market Data
 - [x] **TASK 2.18** - Definizione MarketDataProvider Astratto
 - [x] **TASK 2.19** - Caching & Backoff per MarketDataProvider
-- [ ] **TASK 2.20** - Implementazione Google Drive Client
+- [x] **TASK 2.20** - Implementazione Google Drive Client *(16 tests passing)*
 - [ ] **TASK 2.21** - Implementazione CSV Parser Legacy
 - [ ] **TASK 2.22** - Implementazione Sync Service
 - [ ] **TASK 2.23** - Test Retrocompatibilità Backup/History Legacy

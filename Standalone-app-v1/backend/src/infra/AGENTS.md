@@ -4,6 +4,7 @@ ID: TASK 2.20
 Area: infra
 Fase: MVP
 Dipendenze: -
+**Status: ✅ COMPLETED**
 
 ## TASK 2.20: Implementazione Google Drive Client
 
@@ -11,35 +12,50 @@ Dipendenze: -
 
 **Microstep:**
 
-1\. Creare file `backend/src/infra/drive/client.py`
+1\. ✅ Creare file `backend/src/infra/drive/client.py`
 
-2\. Definire classe `GoogleDriveClient`
+2\. ✅ Definire classe `GoogleDriveClient`
 
-3\. Implementare autenticazione con Service Account usando credenziali da Settings
+3\. ✅ Implementare autenticazione con Service Account usando credenziali da Settings
 
-4\. Implementare metodo `list_files(folder_id: str) -> List[DriveFile]`
+4\. ✅ Implementare metodo `list_files(folder_id: str) -> List[DriveFile]`
 
-5\. Implementare metodo `download_file(file_id: str) -> bytes`
+5\. ✅ Implementare metodo `download_file(file_id: str) -> bytes`
 
-6\. Implementare metodo `upload_file(folder_id: str, filename: str, content: bytes, mime_type: str) -> DriveFile`
+6\. ✅ Implementare metodo `upload_file(folder_id: str, filename: str, content: bytes, mime_type: str) -> DriveFile`
 
-7\. Implementare metodo `update_file(file_id: str, content: bytes) -> DriveFile`
+7\. ✅ Implementare metodo `update_file(file_id: str, content: bytes) -> DriveFile`
 
-8\. Implementare metodo `create_temp_file(folder_id: str, filename: str) -> DriveFile` per pattern file temporaneo
+8\. ✅ Implementare metodo `create_temp_file(folder_id: str, filename: str) -> DriveFile` per pattern file temporaneo
 
-9\. Implementare metodo `delete_file(file_id: str) -> bool`
+9\. ✅ Implementare metodo `delete_file(file_id: str) -> bool`
 
-10\. Aggiungere logging e metriche per ogni operazione
+10\. ✅ Aggiungere logging e metriche per ogni operazione
 
 **Acceptance Criteria:**
 
-- [ ] Autenticazione funziona con Service Account
+- [x] Autenticazione funziona con Service Account
+- [x] Tutte le operazioni CRUD funzionano
+- [x] Errori API gestiti con eccezioni tipizzate
+- [x] Timeout configurabile
 
-- [ ] Tutte le operazioni CRUD funzionano
+**Implementation Details:**
 
-- [ ] Errori API gestiti con eccezioni tipizzate
+Files created:
+- `src/infra/drive/client.py` - GoogleDriveClient with async methods
+- `src/infra/drive/models.py` - DriveFile and DriveFileMetadata dataclasses
+- `src/infra/drive/exceptions.py` - Typed exceptions for Drive operations
+- `tests/infra/test_drive_client.py` - 16 unit tests (all passing)
 
-- [ ] Timeout configurabile
+Features:
+- Async API using asyncio.run_in_executor for blocking Google API calls
+- Service account authentication via JSON credentials
+- Full CRUD operations: list, download, upload, update, delete, create_temp
+- Comprehensive error handling with typed exceptions
+- Structured logging for all operations
+- Configurable timeout for API operations
+
+Test Coverage: 16/16 tests passing ✅
 
 ### Sync Engine & retro‑compatibilità (TASK 2.20-2.23)
 

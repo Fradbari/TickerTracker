@@ -78,13 +78,33 @@ Dipendenze: TASK 2.20
 
 **Acceptance Criteria:**
 
-- [ ] Parse gestisce file reali legacy senza errori
+- [x] Parse gestisce file reali legacy senza errori
 
-- [ ] Round-trip parse -> export -> parse produce stessi dati
+- [x] Round-trip parse -> export -> parse produce stessi dati
 
-- [ ] Colonne mancanti hanno default sensati
+- [x] Colonne mancanti hanno default sensati
 
-- [ ] Encoding gestito correttamente
+- [x] Encoding gestito correttamente
+
+**Status:** ✅ COMPLETATO
+
+**File Modificati:**
+- `backend/src/sync/infra/__init__.py` - Package marker
+- `backend/src/sync/infra/legacy_models.py` - LegacyEstimateRow, LegacyHistoryRow dataclasses (70+ fields)
+- `backend/src/sync/infra/csv_parser.py` - LegacyCsvParser class (~650 lines) con metodi parse/export
+- `backend/src/sync/infra/COLUMN_MAPPING.md` - Documentazione completa mapping colonne
+- `backend/tests/sync/__init__.py` - Test package marker
+- `backend/tests/sync/test_csv_parser.py` - Test suite (~400 lines, 30 test methods)
+
+**Test Eseguiti:**
+- ✅ 30/30 test passati
+- ✅ Safe conversions (Decimal, int, date, datetime) con edge cases
+- ✅ Parse estimates CSV (valid, empty, missing fields, UTF-8 BOM)
+- ✅ Export estimates to CSV
+- ✅ Parse history CSV (valid, missing fields)
+- ✅ Export history to CSV
+- ✅ Round-trip validation (estimates e history)
+- ✅ Edge cases (long text, special chars, negative values)
 
 Nota: la retro‑compatibilità del formato legacy è validata dai test E2E del TASK 2.23.
 

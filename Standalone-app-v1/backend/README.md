@@ -647,7 +647,20 @@ backend/
 | 1.6 | Config Multi-Ambiente | ✅ COMPLETATO | 27 ✓ | Pydantic Settings + Secrets |
 | 1.7 | **Middleware Sicurezza** | ✅ **COMPLETATO** | **16 ✓** | **Headers + CORS + Rate Limit + Healthcheck** |
 
-**Total Tests**: 159 passing ✅
+**Total Tests**: 164 passing ✅
+
+### Phase 2: Estimates & Market Data (7/7 tasks - 100% ✨)
+
+| Task | Descrizione | Status | Tests | Implementation |
+|------|-----------|--------|-------|----------------|
+| 2.5 | Modello SQLAlchemy - Estimate | ✅ COMPLETATO | - | Entity con DECIMAL, Enums, indici |
+| 2.6 | Modello SQLAlchemy - EstimateEvent/MarketData | ✅ COMPLETATO | - | Event Sourcing e Market Data OHLCV |
+| 2.12 | Repository Estimate | ✅ COMPLETATO | ✓ | CRUD + cursor pagination |
+| 2.13 | Repository MarketData | ✅ COMPLETATO | ✓ | Upsert batch + aggregation |
+| 2.14 | Service EstimateService | ✅ COMPLETATO | 8 ✓ | Business logic orchestration |
+| 2.15 | Service EstimateHistoryService | ✅ COMPLETATO | 5 ✓ | Event sourcing + audit trail |
+| 2.16 | API Router Estimates | ✅ COMPLETATO | ✓ | 6 REST endpoints + OpenAPI |
+| 2.18 | **Market Data Provider Abstraction** | ✅ **COMPLETATO** | **5 ✓** | **Interface + Yahoo/Fake Providers** |
 
 ## Documentazione API
 

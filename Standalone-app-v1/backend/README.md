@@ -569,6 +569,65 @@ aggregated = await repository.get_aggregated(
 # Restituisce List[AggregatedData] con OHLCV aggregato per settimana
 ```
 
+### EstimateService (Task 2.14)
+
+`EstimateService` orchestra la business logic per la creazione e gestione delle stime di trading:
+
+- Service: `backend/src/estimates/services/estimate_service.py`
+- Comandi: `backend/src/estimates/schemas/commands.py`
+- Eccezioni: `backend/src/estimates/services/exceptions.py`
+
+**Metodi principali:**
+- `create_estimate()` - Crea stima con calcolo automatico prezzi target/stop da percentuali
+- `update_estimate()` - Aggiorna stima esistente con ricalcolo prezzi
+- `close_estimate()` - Chiude stima manualmente con calcolo PnL
+- `check_and_update_targets()` - Verifica e chiude automaticamente su target/stop hit
+
+**Caratteristiche:**
+- Validazione completa input tramite comandi Pydantic
+- Recupero prezzo corrente da MarketDataRepository
+- Calcolo automatico di target_price e stop_loss_price da percentuali
+- Supporto completo per LONG e SHORT con logica appropriata
+- Pubblicazione eventi atomica (EstimateEvent) nella stessa transazione
+- Eccezioni business tipizzate per errori domain-specific
+- Calcolo automatico di PnL realized al momento della chiusura
+
+Esempio di creazione stima LONG:
+
+```python
+from src.estimates.schemas.commands import CreateEstimateCommand
+from decimal import Decimal
+
+# Il prezzo corrente è recuperato automaticamente dal repository
+command = CreateEstimateCommand(
+    ticker_id=ticker_uuid,
+    direction="LONG",
+    target_profit_percent=Decimal("15.0"),  # +15% sopra prezzo corrente
+    stop_loss_percent=Decimal("5.0"),       # -5% sotto prezzo corrente
+    ai_model="gpt-4",
+    ai_confidence=Decimal("75.0"),
+)
+
+estimate = await service.create_estimate(command)
+# estimate.start_price = prezzo corrente (es. 100.00)
+# estimate.target_price = 115.00 (automaticamente calcolato)
+# estimate.stop_loss_price = 95.00 (automaticamente calcolato)
+```
+
+Esempio di chiusura automatica su target:
+
+```python
+# Chiamato periodicamente da background worker
+closed_estimate = await service.check_and_update_targets(
+    estimate_id=uuid,
+    current_price=Decimal("116.50")  # Opzionale, altrimenti fetched
+)
+
+if closed_estimate:
+    print(f"Estimate closed: {closed_estimate.status}")
+    print(f"PnL: ${closed_estimate.realized_pnl}")
+```
+
 ### Rigenerare requirements.txt
 
 Se modifichi `pyproject.toml`, rigenera i file requirements:

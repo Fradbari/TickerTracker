@@ -184,13 +184,27 @@ Dipendenze: TASK 2.12
 
 **Acceptance Criteria:**
 
-- [ ] Validazione input completa
+- [x] Validazione input completa
 
-- [ ] Eventi pubblicati per ogni operazione
+- [x] Eventi pubblicati per ogni operazione
 
-- [ ] Transazione atomica (DB + evento)
+- [x] Transazione atomica (DB + evento)
 
-- [ ] Errori business sollevano eccezioni tipizzate
+- [x] Errori business sollevano eccezioni tipizzate
+
+**Stato:** ✅ COMPLETATO (2026-02-14)
+
+**Note Implementazione:**
+- Creati schemi Pydantic per comandi: `CreateEstimateCommand`, `UpdateEstimateCommand`, `CloseEstimateCommand`
+- Implementate eccezioni business tipizzate in `services/exceptions.py`
+- Service utilizza `MarketDataRepository` per recuperare prezzi correnti
+- Eventi salvati atomicamente tramite `EstimateEvent` nella stessa transazione
+- Calcolo automatico di target/stop prices da percentuali
+- Calcolo automatico di PnL per estimate chiuse
+- Metodo `check_and_update_targets()` per chiusura automatica su target/stop hit
+- Supporto completo per LONG e SHORT con logica di prezzo appropriata
+- Script di test comprensivo con 8 test: `tests/test_estimate_service.py`
+- Tutti i test passano: validazione, creazione, update, chiusura, target checking, SHORT estimates, PnL calculation
 
 ---
 

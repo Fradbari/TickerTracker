@@ -2,6 +2,7 @@
     "chat.tools.terminal.autoApprove": {
         "&": true,
         "poetry": true,
-        "py": true
+        "py": true,
+        ".venv\\Scripts\\pip": true
     }
 }

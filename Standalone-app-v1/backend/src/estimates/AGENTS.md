@@ -306,15 +306,53 @@ Dipendenze: TASK 2.14
 
 **Acceptance Criteria:**
 
-- [ ] Tutti gli endpoint documentati con OpenAPI
+- [x] Tutti gli endpoint documentati con OpenAPI
 
-- [ ] Request validation con Pydantic
+- [x] Request validation con Pydantic
 
-- [ ] Response conforme a schema ApiResponse
+- [x] Response conforme a schema ApiResponse
 
-- [ ] Errori restituiti con codici appropriati (400, 404, 500)
+- [x] Errori restituiti con codici appropriati (400, 404, 500)
 
-- [ ] Filtri funzionanti e combinabili
+- [x] Filtri funzionanti e combinabili
+
+**Stato:** ✅ COMPLETATO (2026-02-14)
+
+**Note Implementazione:**
+- Creato file `src/estimates/schemas/responses.py` con schemi DTO per API:
+  - `EstimateResponse` - Schema completo per singolo estimate
+  - `EstimateListResponse` - Schema per lista paginata
+  - `EstimateCreatedResponse` - Response per creazione
+  - `EstimateUpdatedResponse` - Response per aggiornamento
+  - `EstimateDeletedResponse` - Response per chiusura
+  - `EstimateHistoryResponse` - Response per audit trail
+- Creato file `src/estimates/api/routes.py` con router FastAPI e 6 endpoint REST:
+  - `POST /api/estimates` - Crea nuovo estimate (201)
+  - `GET /api/estimates` - Lista con filtri e paginazione (200)
+  - `GET /api/estimates/{id}` - Dettaglio singolo estimate (200)
+  - `PATCH /api/estimates/{id}` - Aggiorna estimate (200)
+  - `DELETE /api/estimates/{id}` - Chiudi estimate logicamente (200)
+  - `GET /api/estimates/{id}/history` - Recupera audit trail completo (200)
+- Router registrato in `src/main.py` con prefix `/api/estimates`
+- Dependency injection configurata per:
+  - `EstimateService` - Orchestrazione business logic
+  - `EstimateHistoryService` - Gestione storico e audit
+  - `EstimateRepository` - Accesso dati read-only
+  - `get_db()` - Session async database
+- Tutte le response wrapped in `ApiResponse[T]` con success/data/error/trace_id
+- Gestione errori completa con codici tipizzati:
+  - `TICKER_NOT_FOUND` (400)
+  - `ESTIMATE_NOT_FOUND` (404)
+  - `ESTIMATE_ALREADY_CLOSED` (400)
+  - `INVALID_PRICE` (400)
+  - `INVALID_ESTIMATE_STATE` (400)
+  - `MARKET_DATA_UNAVAILABLE` (400)
+  - `INTERNAL_ERROR` (500)
+- Filtri implementati: ticker_id, user_id, status, direction, include_deleted
+- Paginazione cursor-based con limit configurabile (1-100)
+- Documentazione OpenAPI automatica disponibile su /docs e /redoc
+- Test di verifica struttura: `tests/verify_estimate_routes.py` - PASSED
+- Documentazione API completa aggiunta a `backend/README.md` con esempi cURL
 
 ---
 

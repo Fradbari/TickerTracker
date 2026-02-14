@@ -259,6 +259,251 @@ ENABLE_RATE_LIMIT=false
 
 ---
 
+## API Endpoints
+
+### Estimates API
+
+API per gestione stime di trading con tracking completo e audit trail.
+
+#### Standard di Risposta
+
+Tutte le risposte seguono lo standard `ApiResponse[T]`:
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "error": null,
+  "trace_id": "uuid-string"
+}
+```
+
+In caso di errore:
+
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human readable message",
+    "details": { ... }
+  },
+  "trace_id": "uuid-string"
+}
+```
+
+#### Endpoints Disponibili
+
+##### 1. Crea Estimate
+
+```http
+POST /api/estimates
+Content-Type: application/json
+
+{
+  "ticker_id": "uuid",
+  "direction": "LONG",
+  "target_profit_percent": "15.0",
+  "stop_loss_percent": "5.0",
+  "ai_model": "gpt-4",
+  "ai_confidence": "75.0",
+  "ai_reasoning": "Strong bullish indicators"
+}
+```
+
+Risposta (201):
+```json
+{
+  "success": true,
+  "data": {
+    "estimate": {
+      "id": "uuid",
+      "ticker_id": "uuid",
+      "direction": "LONG",
+      "status": "OPEN",
+      "start_price": "100.00",
+      "target_price": "115.00",
+      "stop_loss_price": "95.00",
+      ...
+    },
+    "message": "Estimate created successfully"
+  },
+  "trace_id": "uuid"
+}
+```
+
+##### 2. Lista Estimates (con filtri)
+
+```http
+GET /api/estimates?ticker_id=uuid&status=OPEN&limit=20
+```
+
+Query Parameters:
+- `ticker_id` (UUID): Filtra per ticker
+- `user_id` (UUID): Filtra per utente
+- `status` (string): OPEN, CLOSED_WIN, CLOSED_LOSS, CLOSED_MANUAL, EXPIRED
+- `direction` (string): LONG, SHORT
+- `include_deleted` (bool): Includi cancellati logicamente
+- `limit` (int): Items per pagina (1-100)
+- `cursor` (string): Cursore paginazione
+
+Risposta (200):
+```json
+{
+  "success": true,
+  "data": {
+    "items": [...],
+    "total": 42,
+    "page_info": {
+      "has_next_page": true,
+      "has_previous_page": false,
+      "next_cursor": "eyJpZCI6IjEyMyJ9",
+      "previous_cursor": null
+    }
+  },
+  "trace_id": "uuid"
+}
+```
+
+##### 3. Get Estimate Dettaglio
+
+```http
+GET /api/estimates/{estimate_id}
+```
+
+Risposta (200):
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "ticker_id": "uuid",
+    "status": "OPEN",
+    "direction": "LONG",
+    "start_price": "100.00",
+    "target_price": "115.00",
+    "stop_loss_price": "95.00",
+    "exit_price": null,
+    "realized_pnl": null,
+    "created_at": "2024-01-15T10:00:00Z",
+    ...
+  },
+  "trace_id": "uuid"
+}
+```
+
+##### 4. Aggiorna Estimate
+
+```http
+PATCH /api/estimates/{estimate_id}
+Content-Type: application/json
+
+{
+  "target_profit_percent": "20.0",
+  "stop_loss_percent": "7.5",
+  "ai_model": "gpt-4-turbo"
+}
+```
+
+Risposta (200):
+```json
+{
+  "success": true,
+  "data": {
+    "estimate": { ... },
+    "message": "Estimate updated successfully"
+  },
+  "trace_id": "uuid"
+}
+```
+
+##### 5. Chiudi Estimate
+
+```http
+DELETE /api/estimates/{estimate_id}
+Content-Type: application/json
+
+{
+  "exit_price": "115.00",
+  "final_status": "CLOSED_WIN"
+}
+```
+
+Risposta (200):
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "status": "CLOSED_WIN",
+    "message": "Estimate closed successfully with status CLOSED_WIN"
+  },
+  "trace_id": "uuid"
+}
+```
+
+##### 6. Get Audit Trail
+
+```http
+GET /api/estimates/{estimate_id}/history
+```
+
+Risposta (200):
+```json
+{
+  "success": true,
+  "data": {
+    "estimate_id": "uuid",
+    "audit_trail": [
+      {
+        "event_id": "uuid",
+        "event_type": "CREATED",
+        "timestamp": "2024-01-15T10:00:00Z",
+        "user_id": "uuid",
+        "description": "Estimate created: LONG at $100.00",
+        "changes": [...]
+      },
+      ...
+    ],
+    "summary": {
+      "total_events": 5,
+      "first_event_at": "2024-01-15T10:00:00Z",
+      "last_event_at": "2024-01-20T15:30:00Z",
+      "event_type_counts": {
+        "CREATED": 1,
+        "UPDATED": 2,
+        "CLOSED": 1
+      }
+    }
+  },
+  "trace_id": "uuid"
+}
+```
+
+#### Codici di Errore
+
+| Codice | Descrizione |
+|--------|-------------|
+| `TICKER_NOT_FOUND` | Ticker ID non esiste |
+| `ESTIMATE_NOT_FOUND` | Estimate ID non trovato |
+| `ESTIMATE_ALREADY_CLOSED` | Tentato update/close su estimate già chiuso |
+| `INVALID_PRICE` | Prezzi calcolati non validi |
+| `INVALID_ESTIMATE_STATE` | Stato estimate non valido per operazione |
+| `MARKET_DATA_UNAVAILABLE` | Dati di mercato non disponibili |
+| `INTERNAL_ERROR` | Errore interno server |
+
+#### Testing API
+
+Per testare gli endpoint:
+
+1. **Swagger UI**: Avvia il server e apri http://localhost:8000/docs
+2. **ReDoc**: Documentazione alternativa su http://localhost:8000/redoc
+3. **cURL/Postman**: Usa i sample sopra
+4. **Script Python**: Vedi `tests/test_estimate_routes.py`
+
+---
+
 ## Comandi Utili
 
 ### Build Script (Windows)

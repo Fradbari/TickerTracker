@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any, Dict
 from sqlalchemy import (
     Column, String, DateTime, ForeignKey, 
-    Index, Enum as SQLEnum, CheckConstraint
+    Index, Enum as SQLEnum, CheckConstraint, Integer
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
@@ -110,6 +110,26 @@ class EstimateEvent(Base):
         doc="When the event occurred (UTC)"
     )
     
+    # Outbox pattern fields for reliable event processing
+    processed_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        doc="When event was successfully processed to Drive"
+    )
+    
+    retry_count = Column(
+        Integer,
+        nullable=False,
+        default=0,
+        doc="Number of processing retry attempts"
+    )
+    
+    error = Column(
+        String(500),
+        nullable=True,
+        doc="Last error message if processing failed"
+    )
+    
     # Relationship to Estimate
     estimate = relationship(
         "Estimate",
@@ -158,4 +178,7 @@ class EstimateEvent(Base):
             "event_data": self.event_data,
             "user_id": str(self.user_id) if self.user_id else None,
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "processed_at": self.processed_at.isoformat() if self.processed_at else None,
+            "retry_count": self.retry_count,
+            "error": self.error,
         }

@@ -58,10 +58,10 @@ def upgrade() -> None:
         ['processed_at'],
         postgresql_ops={'processed_at': 'DESC'}
     )
-    
-    # Create index on (processed_at, retry_count) for identifying failed events to retry
+
+    # Create index on (processed_at, retry_count) for identifying failed events to retry (correct plural name)
     op.create_index(
-        'ix_estimate_event_unprocessed',
+        'ix_estimate_events_unprocessed',
         'estimate_events',
         ['processed_at', 'retry_count'],
         postgresql_where=sa.text("processed_at IS NULL")
@@ -70,7 +70,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # Drop indexes
-    op.drop_index('ix_estimate_event_unprocessed', table_name='estimate_events')
+    op.drop_index('ix_estimate_events_unprocessed', table_name='estimate_events')
     op.drop_index('ix_estimate_event_processed_at', table_name='estimate_events')
     
     # Drop columns

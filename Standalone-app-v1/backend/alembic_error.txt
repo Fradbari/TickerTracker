@@ -1,0 +1,120 @@
+﻿.\.venv\Scripts\python.exe : Traceback (most recent call 
+last):
+In riga:1 car:179
++ ... tivate.ps1; .\.venv\Scripts\python.exe -m alembic 
+upgrade head 2>&1 | ...
++                 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most 
+    recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\alembic\__m
+ain__.py", line 4, in <module>
+    main(prog="alembic")
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\alembic\con
+fig.py", line 636, in main
+    CommandLine(prog=prog).main(argv=argv)
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\alembic\con
+fig.py", line 626, in main
+    self.run_cmd(cfg, options)
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\alembic\con
+fig.py", line 603, in run_cmd
+    fn(
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\alembic\com
+mand.py", line 406, in upgrade
+    script.run_env()
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\alembic\scr
+ipt\base.py", line 586, in run_env
+    util.load_python_file(self.dir, "env.py")
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\alembic\uti
+l\pyfiles.py", line 95, in load_python_file
+    module = load_module_py(module_id, path)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\alembic\uti
+l\pyfiles.py", line 113, in load_module_py
+    spec.loader.exec_module(module)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap_external>", line 995, 
+in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in 
+_call_with_frames_removed
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI 
+Studio\Standalone-app-v1\backend\alembic\env.py", line 38, 
+in <module>
+    from estimates.domain.entities import Estimate
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\src\estimates\domain\entities.py", 
+line 47, in <module>
+    class Estimate(Base):
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\sqlalchemy\
+orm\decl_api.py", line 199, in __init__
+    _as_declarative(reg, cls, dict_)
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\sqlalchemy\
+orm\decl_base.py", line 245, in _as_declarative
+    return _MapperConfig.setup_mapping(registry, cls, dict_, 
+None, {})
+           
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\sqlalchemy\
+orm\decl_base.py", line 326, in setup_mapping
+    return _ClassScanMapperConfig(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\sqlalchemy\
+orm\decl_base.py", line 577, in __init__
+    self._setup_table(table)
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\sqlalchemy\
+orm\decl_base.py", line 1762, in _setup_table
+    table_cls(
+  File "<string>", line 2, in __new__
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\sqlalchemy\
+util\deprecations.py", line 281, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\sqlalchemy\
+sql\schema.py", line 429, in __new__
+    return cls._new(*args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\francesco.dilecce\OneDrive - LUTECH 
+SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\
+Standalone-app-v1\backend\.venv\Lib\site-packages\sqlalchemy\
+sql\schema.py", line 461, in _new
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Table 'estimates' is 
+already defined for this MetaData instance.  Specify 
+'extend_existing=True' to redefine options and columns on an 
+existing Table object.

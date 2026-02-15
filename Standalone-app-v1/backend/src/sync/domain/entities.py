@@ -22,7 +22,7 @@ from sqlalchemy import (
     Index,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from shared.infra.database import Base
+from src.shared.infra.database import Base
 
 
 class SyncJobType(PyEnum):

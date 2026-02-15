@@ -2,10 +2,15 @@ import asyncio
 import os
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
 
-# Add src directory to Python path for model imports
-src_path = Path(__file__).resolve().parent.parent / 'src'
-sys.path.insert(0, str(src_path))
+# Load .env file from project root
+load_dotenv(Path(__file__).resolve().parent.parent / '.env')
+
+# Add backend directory to Python path for consistent imports
+backend_path = Path(__file__).resolve().parent.parent
+if str(backend_path) not in sys.path:
+    sys.path.insert(0, str(backend_path))
 
 from logging.config import fileConfig
 
@@ -30,16 +35,16 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from shared.infra.database import Base
+from src.shared.infra.database import Base
 
 # Import all models to register them with Base.metadata
-from market_data.domain.entities import Ticker
-from market_data.domain.market_data import MarketData
-from estimates.domain.entities import Estimate
-from estimates.domain.events import EstimateEvent
-from analytics.domain.entities import AiModelRun
-from sync.domain.entities import SyncJob
-from shared.domain.user import User, Role
+from src.market_data.domain.entities import Ticker
+from src.market_data.domain.market_data import MarketData
+from src.estimates.domain.entities import Estimate
+from src.estimates.domain.events import EstimateEvent
+from src.analytics.domain.entities import AiModelRun
+from src.sync.domain.entities import SyncJob
+from src.shared.domain.user import User, Role
 
 # Set target_metadata for autogenerate support
 target_metadata = Base.metadata

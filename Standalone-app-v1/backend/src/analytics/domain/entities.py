@@ -19,7 +19,7 @@ from sqlalchemy import (
     Index,
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from shared.infra.database import Base
+from src.shared.infra.database import Base
 
 
 class AiModelRun(Base):

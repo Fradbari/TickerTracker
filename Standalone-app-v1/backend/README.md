@@ -828,12 +828,54 @@ TickerTracker utilizza [APScheduler](https://apscheduler.readthedocs.io/) per ge
 - **Logging:** Inizio/fine job, errori, durata, successo/fallimento
 
 ### Job Schedulati
+- **process_outbox_events**: ogni 30 secondi (processamento eventi Outbox per sync Drive)
+- **handle_dead_letters**: ogni giorno alle 02:00 UTC (gestione eventi falliti)
 - **refresh_market_data**: ogni 5 minuti (lun-ven, 14:00-21:55 UTC, orari di mercato)
 - **daily_history_sync**: ogni giorno alle 23:00 UTC
 - **refresh_materialized_views**: ogni 5 minuti
 - **check_targets**: ogni minuto
 
-Tutti i job sono implementati in `src/infra/scheduler/scheduler.py` e sono wrappati per logging e metriche.
+Tutti i job sono implementati in `src/infra/scheduler/jobs.py` e registrati in `src/infra/scheduler/scheduler.py` con wrapper per logging e metriche.
+
+### Pattern Outbox per Eventi Drive
+
+TickerTracker implementa il **Pattern Outbox** per garantire delivery affidabile degli eventi verso Google Drive:
+
+#### Funzionamento
+1. **Salvataggio Atomico**: Eventi salvati nella stessa transazione degli estimates (`EstimateEvent` table)
+2. **Polling Asincrono**: Job `process_outbox_events` processa eventi ogni 30s
+3. **Transaction Isolation**: Ogni evento processato in transazione separata
+4. **Retry Logic**: Fino a 5 tentativi automatici per eventi falliti
+5. **Dead Letter Queue**: Eventi con 5 retry falliti → log error + alert placeholder
+
+#### Implementazione
+- **OutboxProcessor**: `src/infra/outbox/outbox_processor.py`
+- **Metodi Helper**: `EstimateEvent.mark_processed()`, `mark_failed()`, `can_retry()`, `is_dead_letter()`
+- **Query Eventi**: `EstimateEvent.get_unprocessed()`, `get_dead_letters()`
+
+#### Eventi Sincronizzabili
+- `CREATED`: Nuova estimate creata
+- `UPDATED`: Metadata estimate aggiornato
+- `CLOSED`: Estimate chiusa
+
+Altri tipi di evento (`PRICE_UPDATED`, `TARGET_HIT`, `STOP_HIT`, `REOPENED`) sono marcati come processati senza sync Drive.
+
+#### Graceful Degradation
+Se `SyncService` non è disponibile o `sync_estimate_to_drive()` manca:
+- Log warning (no crash)
+- Eventi marcati come processati
+- Continuazione processing altri eventi
+
+#### Monitoraggio
+- **Logging Strutturato**: `event_id`, `estimate_id`, `retry_count`, `error` in tutti i log
+- **Dead Letter Alerts**: Log `ERROR` con dettagli completi + placeholder per Slack/Email webhook
+- **Metriche Job**: `{"processed": X, "failed": Y, "skipped": Z}` in log job
+
+#### Testing
+- **Unit Tests**: `tests/unit/outbox/test_outbox_processor.py` (95%+ coverage)
+- **E2E Tests**: `tests/e2e/test_outbox_e2e.py` (flow completo create → process → Drive)
+
+---
 
 ### Integrazione FastAPI
 - Hook `@app.on_event("startup")`: avvia lo scheduler

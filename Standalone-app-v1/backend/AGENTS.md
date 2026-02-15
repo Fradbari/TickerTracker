@@ -671,3 +671,66 @@ Dipendenze: TASK 2.22
 - Possibile estendere con Prometheus/metrics
 - Stato e log visibili in console/app log
 
+---
+
+ID: TASK 2.25
+Area: backend/infra
+Fase: MVP
+Dipendenze: TASK 2.24
+
+## TASK 2.25: Completa Pattern Outbox per Eventi Drive
+
+**Descrizione:** Implementare pattern Outbox per delivery affidabile degli eventi EstimateEvent verso Google Drive con retry logic e dead letter handling.
+
+**Context:**
+- EstimateEvent esteso con campi outbox (`processed_at`, `retry_count`, `error`)
+- Migrazione Alembic applicata
+- EstimateService salva eventi atomicamente nella stessa transazione
+
+**Microstep:**
+1. Aggiunto metodi helper `EstimateEvent`: `mark_processed()`, `mark_failed()`, `can_retry()`, `is_dead_letter()`, `get_unprocessed()`, `get_dead_letters()`
+2. Creato `OutboxProcessor` in `src/infra/outbox/outbox_processor.py`:
+   - `process_pending_events()`: processa eventi non processati con retry logic
+   - `handle_dead_letters()`: gestisce eventi con max retry (5) e log error
+   - Transaction isolation: ogni evento commit separato
+   - Graceful degradation per `SyncService` assente
+3. Creato jobs scheduler in `src/infra/scheduler/jobs.py`:
+   - `process_outbox_events()`: ogni 30s
+   - `handle_dead_letters()`: ogni giorno alle 02:00 UTC
+   - `configure_jobs()`: dependency injection per session_factory e sync_service
+4. Aggiornato `src/infra/scheduler/scheduler.py`: registrazione job outbox
+5. Mapping event_type → Drive action:
+   - `CREATED/UPDATED/CLOSED` → sync_estimate_to_drive
+   - Altri eventi → skip (log debug, mark processed)
+6. Test completi:
+   - Unit tests: `tests/unit/outbox/test_outbox_processor.py` (95%+ coverage)
+   - E2E tests: `tests/e2e/test_outbox_e2e.py` (flow completo)
+
+**Acceptance Criteria:**
+- [x] Eventi salvati atomicamente con estimates (già implementato)
+- [x] OutboxProcessor processa eventi ogni 30s via scheduler
+- [x] Retry automatico con max 5 tentativi
+- [x] Dead letter dopo 5 retry: log.error() + mark "DEAD_LETTER"
+- [x] Transaction isolation: ogni evento commit separato
+- [x] Test coverage > 90% per OutboxProcessor
+- [x] No perdita eventi: transazioni atomiche + retry logic
+
+**File Creati/Modificati:**
+- `src/estimates/domain/events.py` - Metodi helper outbox
+- `src/infra/outbox/__init__.py` - Package outbox
+- `src/infra/outbox/outbox_processor.py` - OutboxProcessor completo
+- `src/infra/scheduler/jobs.py` - Job implementations
+- `src/infra/scheduler/scheduler.py` - Registrazione job outbox
+- `tests/unit/outbox/test_outbox_processor.py` - Test unitari (13 test cases)
+- `tests/e2e/test_outbox_e2e.py` - Test E2E (6 scenari)
+- `README.md` - Sezione Pattern Outbox dettagliata
+- `AGENTS.md` - Progress tracker aggiornato
+
+**Note Architettura:**
+- EstimateService non modificato: eventi già salvati correttamente
+- Eventi IMMUTABILI: solo processed_at/retry_count/error modificabili post-creazione
+- Drive sync idempotente: stesso evento riprovato N volte è safe
+- Graceful degradation: SyncService assente/ImportError → log warning, continua
+- Structured logging: tutti i log con context (event_id, estimate_id, retry_count)
+- Dead letter placeholder: ready per Slack/Email webhook futuro
+

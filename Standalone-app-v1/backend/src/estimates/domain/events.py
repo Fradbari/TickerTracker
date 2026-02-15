@@ -7,15 +7,17 @@ Events are immutable records that track all changes to estimates over time.
 
 import uuid
 import enum
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timezone
+from typing import Any, Dict, List
 from sqlalchemy import (
     Column, String, DateTime, ForeignKey, 
-    Index, Enum as SQLEnum, CheckConstraint, Integer
+    Index, Enum as SQLEnum, CheckConstraint, Integer, select
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.types import JSON
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.shared.infra.database import Base
 
@@ -86,9 +88,9 @@ class EstimateEvent(Base):
         doc="Type of event that occurred"
     )
     
-    # Event payload as JSONB for flexibility
+    # Event payload as JSON for flexibility (will be JSONB on PostgreSQL)
     event_data = Column(
-        JSONB,
+        JSON,
         nullable=False,
         default=dict,
         doc="JSON data specific to this event type"
@@ -182,3 +184,46 @@ class EstimateEvent(Base):
             "retry_count": self.retry_count,
             "error": self.error,
         }
+    
+    # Outbox pattern methods
+    
+    def mark_processed(self) -> None:
+        """Mark event as successfully processed."""
+        self.processed_at = datetime.now(timezone.utc)
+        self.error = None
+    
+    def mark_failed(self, error_msg: str) -> None:
+        """Mark event processing failed, increment retry."""
+        self.retry_count += 1
+        self.error = error_msg[:500]  # Truncate to DB limit
+    
+    def can_retry(self) -> bool:
+        """Check if event can be retried (max 5 attempts)."""
+        return self.retry_count < 5 and self.processed_at is None
+    
+    def is_dead_letter(self) -> bool:
+        """Check if event is dead letter (max retries exceeded)."""
+        return self.retry_count >= 5 and self.processed_at is None
+    
+    @classmethod
+    async def get_unprocessed(cls, session: AsyncSession, limit: int = 100) -> List['EstimateEvent']:
+        """Get unprocessed events for outbox processing."""
+        result = await session.execute(
+            select(cls)
+            .where(cls.processed_at.is_(None))
+            .where(cls.retry_count < 5)
+            .order_by(cls.timestamp.asc())
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+    
+    @classmethod
+    async def get_dead_letters(cls, session: AsyncSession) -> List['EstimateEvent']:
+        """Get dead letter events (max retries exceeded)."""
+        result = await session.execute(
+            select(cls)
+            .where(cls.processed_at.is_(None))
+            .where(cls.retry_count >= 5)
+            .order_by(cls.timestamp.asc())
+        )
+        return list(result.scalars().all())

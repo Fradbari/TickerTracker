@@ -366,13 +366,19 @@ async def import_history_rows(
                     logger.warning(f"  ⚠️  {ticker_symbol} {row.date}: high ({row.high}) < open ({row.open}), forzo high = open")
                     high_value = row.open
 
+                # Forza low = open se low > open
+                low_value = row.low
+                if row.low is not None and row.open is not None and row.low > row.open:
+                    logger.warning(f"  ⚠️  {ticker_symbol} {row.date}: low ({row.low}) > open ({row.open}), forzo low = open")
+                    low_value = row.open
+
                 # Insert market data
                 market_data = MarketData(
                     ticker_id=ticker.id,
                     date=row.date,
                     open=row.open,
                     high=high_value,
-                    low=row.low,
+                    low=low_value,
                     close=row.close,
                     volume=row.volume,
                     data_source="legacy_import",

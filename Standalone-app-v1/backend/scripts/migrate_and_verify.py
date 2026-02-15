@@ -74,13 +74,16 @@ async def verify_google_drive(drive_client: GoogleDriveClient, folder_id: str) -
         histories = []
         
         for file in files:
+            # Escludi debug_logs.json dai backup
+            if file.name == "debug_logs.json":
+                logger.info(f"  ⏭️  Escluso {file.name} dalla migrazione")
+                continue
             # Backup files: JSON or CSV (not history)
             if file.name.endswith('.json') or (file.name.endswith('.csv') and 'History_' not in file.name):
                 backups.append(file)
                 size_kb = (file.size or 0) // 1024
                 mod_time = file.modified_time.strftime('%Y-%m-%d %H:%M') if file.modified_time else 'N/A'
                 logger.info(f"  📄 {file.name} ({size_kb} KB, modificato {mod_time})")
-            
             # History files
             elif file.name.startswith('History_') and file.name.endswith('.csv'):
                 histories.append(file)

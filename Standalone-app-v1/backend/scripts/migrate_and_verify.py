@@ -170,13 +170,26 @@ async def import_estimate_row(
     session: AsyncSession,
     row: LegacyEstimateRow,
     stats: MigrationStats,
-    dry_run: bool
+    dry_run: bool,
+    source_file: str = None,
+    row_idx: int = None
 ) -> None:
     """Import a single estimate from legacy format."""
     try:
+        # Validazione ticker
+        file_info = f"file={source_file}" if source_file else "file=UNKNOWN"
+        row_info = f"row={row_idx}" if row_idx is not None else "row=?"
+        if not row.ticker or row.ticker.strip().upper() == "UNKNOWN":
+            error_msg = (
+                f"Cannot import row: missing or UNKNOWN ticker (start_date={row.start_date}, price={row.start_price}, {file_info}, {row_info})"
+            )
+            logger.error(f"  ❌ {error_msg}")
+            stats.errors.append(error_msg)
+            return
+
         # Get or create ticker
         ticker = await get_or_create_ticker(session, row.ticker, stats)
-        
+
         # Check if estimate already exists (by ticker + start_date + start_price)
         # BUT: if start_price=0, we can't use it for deduplication, so check without it
         if row.start_price > 0:
@@ -206,61 +219,60 @@ async def import_estimate_row(
                     "start_date": row.start_date
                 }
             )
-        
+
         exists = result.scalar() > 0
-        
+
         if exists:
             stats.estimates_skipped += 1
             logger.debug(f"  ⏭️  Skipped {row.ticker} (already exists)")
             return
-        
+
         # ===== HANDLE start_price = 0 =====
         corrected_start_price = row.start_price
         price_correction_method = None
-        
+
         if row.start_price <= 0:
-            logger.warning(f"  ⚠️  {row.ticker}: start_price = {row.start_price}, attempting correction...")
-            
+            logger.warning(f"  ⚠️  {row.ticker}: start_price = {row.start_price}, attempting correction... ({file_info}, {row_info})")
+
             # Try 1: Get latest market_data price before start_date
             created_at = datetime.combine(row.start_date, datetime.min.time())
             latest_price = await get_latest_price_for_ticker(session, str(ticker.id), created_at)
-            
+
             if latest_price and latest_price > 0:
                 corrected_start_price = latest_price
                 price_correction_method = f"market_data (latest: {latest_price})"
-            
+
             # Try 2: Use target_price if available and positive
             elif row.target_price and row.target_price > 0:
                 corrected_start_price = row.target_price
                 price_correction_method = f"target_price ({row.target_price})"
-            
+
             # Try 3: Use stop_loss_price if available and positive
             elif row.stop_loss_price and row.stop_loss_price > 0:
                 corrected_start_price = row.stop_loss_price
                 price_correction_method = f"stop_loss_price ({row.stop_loss_price})"
-            
+
             # Try 4: Use current_price if available
             elif row.current_price and row.current_price > 0:
                 corrected_start_price = row.current_price
                 price_correction_method = f"current_price ({row.current_price})"
-            
+
             # Give up: can't find valid price
             else:
                 error_msg = (
-                    f"Cannot import {row.ticker} (start_date={row.start_date}): "
-                    f"start_price=0 and no valid fallback price found"
+                    f"Cannot import {row.ticker} (start_date={row.start_date}): start_price=0 and no valid fallback price found ({file_info}, {row_info})"
                 )
                 logger.error(f"  ❌ {error_msg}")
                 stats.errors.append(error_msg)
                 return
-            
+
             # Log the correction
             logger.info(
                 f"  🔧 {row.ticker}: Corrected start_price from {row.start_price} to {corrected_start_price} "
                 f"using {price_correction_method}"
             )
             stats.estimates_price_corrected += 1
-        
+
         if not dry_run:
             # Map legacy status to new status enum
             try:
@@ -268,29 +280,29 @@ async def import_estimate_row(
             except KeyError:
                 logger.warning(f"  ⚠️  Unknown status '{row.status}' for {row.ticker}, defaulting to OPEN")
                 status = EstimateStatus.OPEN
-            
+
             # Map direction
             try:
                 direction = Direction[row.direction] if row.direction else Direction.LONG
             except KeyError:
                 logger.warning(f"  ⚠️  Unknown direction '{row.direction}' for {row.ticker}, defaulting to LONG")
                 direction = Direction.LONG
-            
+
             # Calculate realized_pnl from percent if available
             realized_pnl = None
             if row.realized_pnl_percent and corrected_start_price:
                 realized_pnl = corrected_start_price * (row.realized_pnl_percent / Decimal("100"))
-            
+
             # Recalculate target/stop prices if they were 0
             final_target_price = row.target_price
             final_stop_loss_price = row.stop_loss_price
-            
+
             if final_target_price <= 0 and row.target_profit_percent and corrected_start_price > 0:
                 final_target_price = corrected_start_price * (1 + row.target_profit_percent / Decimal("100"))
-            
+
             if final_stop_loss_price <= 0 and row.stop_loss_percent and corrected_start_price > 0:
                 final_stop_loss_price = corrected_start_price * (1 + row.stop_loss_percent / Decimal("100"))
-            
+
             # Create estimate
             estimate = Estimate(
                 ticker_id=ticker.id,
@@ -309,11 +321,11 @@ async def import_estimate_row(
                 closed_at=datetime.combine(row.close_date, datetime.min.time()) if row.close_date else None,
             )
             session.add(estimate)
-        
+
         stats.estimates_imported += 1
-        
+
     except Exception as e:
-        error_msg = f"Errore import estimate {row.ticker}: {e}"
+        error_msg = f"Errore import estimate {getattr(row, 'ticker', 'UNKNOWN')}: {e} ({file_info}, {row_info})"
         logger.warning(f"⚠️  {error_msg}")
         stats.errors.append(error_msg)
 
@@ -438,8 +450,8 @@ async def download_and_import(
                 logger.info(f"  📊 Trovate {len(rows)} estimates nel file")
                 
                 # Import each estimate
-                for row in rows:
-                    await import_estimate_row(session, row, stats, dry_run)
+                for idx, row in enumerate(rows):
+                    await import_estimate_row(session, row, stats, dry_run, source_file=backup_file.name, row_idx=idx+1)
                 
                 stats.backup_files_found += 1
                 

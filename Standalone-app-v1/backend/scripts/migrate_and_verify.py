@@ -356,17 +356,22 @@ async def import_history_rows(
                     {"ticker_id": str(ticker.id), "date": row.date}
                 )
                 exists = result.scalar() > 0
-                
                 if exists:
                     skipped += 1
                     continue
-                
+
+                # Forza high = open se high < open
+                high_value = row.high
+                if row.high is not None and row.open is not None and row.high < row.open:
+                    logger.warning(f"  ⚠️  {ticker_symbol} {row.date}: high ({row.high}) < open ({row.open}), forzo high = open")
+                    high_value = row.open
+
                 # Insert market data
                 market_data = MarketData(
                     ticker_id=ticker.id,
                     date=row.date,
                     open=row.open,
-                    high=row.high,
+                    high=high_value,
                     low=row.low,
                     close=row.close,
                     volume=row.volume,

@@ -45,8 +45,9 @@ def upgrade() -> None:
     op.drop_index('ix_estimate_event_unprocessed', table_name='estimate_events', postgresql_where='(processed_at IS NULL)', if_exists=True)
     op.drop_index('ix_estimate_events_unprocessed', table_name='estimate_events', if_exists=True)
     op.drop_index('ix_estimate_event_timeline', table_name='estimate_events', if_exists=True)
-    op.create_index('ix_estimate_event_timeline', 'estimate_events', ['estimate_id', 'timestamp'], unique=False, postgresql_ops={'timestamp': 'DESC'})
-    op.create_index(op.f('ix_estimates_is_deleted'), 'estimates', ['is_deleted'], unique=False)
+    # Add if_not_exists to prevent duplicate index errors
+    op.create_index('ix_estimate_event_timeline', 'estimate_events', ['estimate_id', 'timestamp'], unique=False, postgresql_ops={'timestamp': 'DESC'}, if_not_exists=True)
+    op.create_index(op.f('ix_estimates_is_deleted'), 'estimates', ['is_deleted'], unique=False, if_not_exists=True)
     # ### end Alembic commands ###
 
 

@@ -15,7 +15,8 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
-    op.create_index('ix_estimate_events_unprocessed', 'estimate_events', ['processed_at'], unique=False)
+    # Add if_not_exists to prevent duplicate index error
+    op.create_index('ix_estimate_events_unprocessed', 'estimate_events', ['processed_at'], unique=False, if_not_exists=True)
 
 def downgrade() -> None:
-    op.drop_index('ix_estimate_events_unprocessed', table_name='estimate_events')
+    op.drop_index('ix_estimate_events_unprocessed', table_name='estimate_events', if_exists=True)

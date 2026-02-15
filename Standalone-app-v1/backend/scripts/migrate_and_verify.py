@@ -373,9 +373,20 @@ async def import_history_rows(
                     low_value = row.open
 
                 # Forza low = close se low > close
+
                 if row.low is not None and row.close is not None and low_value > row.close:
                     logger.warning(f"  ⚠️  {ticker_symbol} {row.date}: low ({low_value}) > close ({row.close}), forzo low = close")
                     low_value = row.close
+
+                # Forza high = close se high < close
+                if high_value is not None and row.close is not None and high_value < row.close:
+                    logger.warning(f"  ⚠️  {ticker_symbol} {row.date}: high ({high_value}) < close ({row.close}), forzo high = close")
+                    high_value = row.close
+
+                # Forza high = close se high < close
+                if high_value is not None and row.close is not None and high_value < row.close:
+                    logger.warning(f"  ⚠️  {ticker_symbol} {row.date}: high ({high_value}) < close ({row.close}), forzo high = close")
+                    high_value = row.close
 
                 # Insert market data
                 market_data = MarketData(

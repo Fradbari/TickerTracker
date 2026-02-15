@@ -184,53 +184,38 @@ class GoogleDriveClient:
         page_size: int = 100,
     ) -> List[DriveFile]:
         """
-        List files in a Google Drive folder.
-        
-        Args:
-            folder_id: Google Drive folder ID
-            query: Optional query string to filter files (Drive API query syntax)
-            page_size: Number of files per page (max 1000, default 100)
-            
-        Returns:
-            List of DriveFile objects
-            
-        Raises:
-            DriveFolderNotFoundError: If folder doesn't exist
-            DrivePermissionError: If no permission to access folder
-            DriveError: For other API errors
-            
-        Example:
-            >>> files = await client.list_files('1ABC...')
-            >>> csv_files = await client.list_files(
-            ...     '1ABC...',
-            ...     query="mimeType='text/csv'"
-            ... )
+        List files in a Google Drive folder (fetches all pages).
         """
         try:
             logger.info(f"Listing files in folder: {folder_id}")
-            
-            # Build query
             base_query = f"'{folder_id}' in parents and trashed=false"
             if query:
                 base_query = f"{base_query} and ({query})"
-            
-            # Execute list request
+
+            all_files = []
+            page_token = None
             loop = asyncio.get_event_loop()
-            results = await loop.run_in_executor(
-                None,
-                lambda: self._service.files().list(
-                    q=base_query,
-                    pageSize=page_size,
-                    fields="files(id, name, mimeType, size, createdTime, modifiedTime, webViewLink, parents)",
-                    orderBy="modifiedTime desc"
-                ).execute()
-            )
-            
-            files = [self._parse_drive_file(f) for f in results.get('files', [])]
-            
-            logger.info(f"Found {len(files)} files in folder {folder_id}")
-            return files
-            
+            while True:
+                def _list():
+                    req = self._service.files().list(
+                        q=base_query,
+                        pageSize=page_size,
+                        fields="nextPageToken, files(id, name, mimeType, size, createdTime, modifiedTime, webViewLink, parents)",
+                        orderBy="modifiedTime desc",
+                        pageToken=page_token
+                    )
+                    return req.execute()
+
+                results = await loop.run_in_executor(None, _list)
+                files = [self._parse_drive_file(f) for f in results.get('files', [])]
+                all_files.extend(files)
+                page_token = results.get('nextPageToken')
+                if not page_token:
+                    break
+
+            logger.info(f"Found {len(all_files)} files in folder {folder_id}")
+            return all_files
+
         except HttpError as e:
             if e.resp.status == 404:
                 raise DriveFolderNotFoundError(folder_id, str(e))

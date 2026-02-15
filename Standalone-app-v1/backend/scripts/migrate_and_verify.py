@@ -15,7 +15,7 @@ Usage:
 import asyncio
 import logging
 from datetime import datetime
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from decimal import Decimal
 
 from sqlalchemy import text
@@ -47,6 +47,7 @@ class MigrationStats:
         self.history_files_found = 0
         self.estimates_imported = 0
         self.estimates_skipped = 0
+        self.estimates_price_corrected = 0
         self.tickers_created = 0
         self.market_data_imported = 0
         self.market_data_skipped = 0
@@ -128,6 +129,43 @@ async def get_or_create_ticker(session: AsyncSession, symbol: str, stats: Migrat
     return new_ticker
 
 
+async def get_latest_price_for_ticker(
+    session: AsyncSession,
+    ticker_id: str,
+    before_date: datetime
+) -> Optional[Decimal]:
+    """
+    Get the latest available price for a ticker from market_data.
+    
+    Args:
+        session: Database session
+        ticker_id: UUID of the ticker
+        before_date: Get price before or on this date
+        
+    Returns:
+        Latest close price as Decimal, or None if no data available
+    """
+    try:
+        result = await session.execute(
+            text("""
+                SELECT close FROM market_data
+                WHERE ticker_id = :ticker_id
+                AND date <= :before_date
+                ORDER BY date DESC
+                LIMIT 1
+            """),
+            {
+                "ticker_id": ticker_id,
+                "before_date": before_date.date()
+            }
+        )
+        row = result.fetchone()
+        return Decimal(str(row[0])) if row else None
+    except Exception as e:
+        logger.debug(f"Could not fetch latest price: {e}")
+        return None
+
+
 async def import_estimate_row(
     session: AsyncSession,
     row: LegacyEstimateRow,
@@ -140,25 +178,88 @@ async def import_estimate_row(
         ticker = await get_or_create_ticker(session, row.ticker, stats)
         
         # Check if estimate already exists (by ticker + start_date + start_price)
-        result = await session.execute(
-            text("""
-                SELECT COUNT(*) FROM estimates 
-                WHERE ticker_id = :ticker_id 
-                AND DATE(created_at) = :start_date
-                AND ABS(start_price - :start_price) < 0.01
-            """),
-            {
-                "ticker_id": str(ticker.id),
-                "start_date": row.start_date,
-                "start_price": float(row.start_price)
-            }
-        )
+        # BUT: if start_price=0, we can't use it for deduplication, so check without it
+        if row.start_price > 0:
+            result = await session.execute(
+                text("""
+                    SELECT COUNT(*) FROM estimates 
+                    WHERE ticker_id = :ticker_id 
+                    AND DATE(created_at) = :start_date
+                    AND ABS(start_price - :start_price) < 0.01
+                """),
+                {
+                    "ticker_id": str(ticker.id),
+                    "start_date": row.start_date,
+                    "start_price": float(row.start_price)
+                }
+            )
+        else:
+            # If start_price=0, check by ticker + date only
+            result = await session.execute(
+                text("""
+                    SELECT COUNT(*) FROM estimates 
+                    WHERE ticker_id = :ticker_id 
+                    AND DATE(created_at) = :start_date
+                """),
+                {
+                    "ticker_id": str(ticker.id),
+                    "start_date": row.start_date
+                }
+            )
+        
         exists = result.scalar() > 0
         
         if exists:
             stats.estimates_skipped += 1
             logger.debug(f"  ⏭️  Skipped {row.ticker} (already exists)")
             return
+        
+        # ===== HANDLE start_price = 0 =====
+        corrected_start_price = row.start_price
+        price_correction_method = None
+        
+        if row.start_price <= 0:
+            logger.warning(f"  ⚠️  {row.ticker}: start_price = {row.start_price}, attempting correction...")
+            
+            # Try 1: Get latest market_data price before start_date
+            created_at = datetime.combine(row.start_date, datetime.min.time())
+            latest_price = await get_latest_price_for_ticker(session, str(ticker.id), created_at)
+            
+            if latest_price and latest_price > 0:
+                corrected_start_price = latest_price
+                price_correction_method = f"market_data (latest: {latest_price})"
+            
+            # Try 2: Use target_price if available and positive
+            elif row.target_price and row.target_price > 0:
+                corrected_start_price = row.target_price
+                price_correction_method = f"target_price ({row.target_price})"
+            
+            # Try 3: Use stop_loss_price if available and positive
+            elif row.stop_loss_price and row.stop_loss_price > 0:
+                corrected_start_price = row.stop_loss_price
+                price_correction_method = f"stop_loss_price ({row.stop_loss_price})"
+            
+            # Try 4: Use current_price if available
+            elif row.current_price and row.current_price > 0:
+                corrected_start_price = row.current_price
+                price_correction_method = f"current_price ({row.current_price})"
+            
+            # Give up: can't find valid price
+            else:
+                error_msg = (
+                    f"Cannot import {row.ticker} (start_date={row.start_date}): "
+                    f"start_price=0 and no valid fallback price found"
+                )
+                logger.error(f"  ❌ {error_msg}")
+                stats.errors.append(error_msg)
+                return
+            
+            # Log the correction
+            logger.info(
+                f"  🔧 {row.ticker}: Corrected start_price from {row.start_price} to {corrected_start_price} "
+                f"using {price_correction_method}"
+            )
+            stats.estimates_price_corrected += 1
         
         if not dry_run:
             # Map legacy status to new status enum
@@ -177,15 +278,25 @@ async def import_estimate_row(
             
             # Calculate realized_pnl from percent if available
             realized_pnl = None
-            if row.realized_pnl_percent and row.start_price:
-                realized_pnl = row.start_price * (row.realized_pnl_percent / Decimal("100"))
+            if row.realized_pnl_percent and corrected_start_price:
+                realized_pnl = corrected_start_price * (row.realized_pnl_percent / Decimal("100"))
+            
+            # Recalculate target/stop prices if they were 0
+            final_target_price = row.target_price
+            final_stop_loss_price = row.stop_loss_price
+            
+            if final_target_price <= 0 and row.target_profit_percent and corrected_start_price > 0:
+                final_target_price = corrected_start_price * (1 + row.target_profit_percent / Decimal("100"))
+            
+            if final_stop_loss_price <= 0 and row.stop_loss_percent and corrected_start_price > 0:
+                final_stop_loss_price = corrected_start_price * (1 + row.stop_loss_percent / Decimal("100"))
             
             # Create estimate
             estimate = Estimate(
                 ticker_id=ticker.id,
-                start_price=row.start_price,
-                target_price=row.target_price,
-                stop_loss_price=row.stop_loss_price,
+                start_price=corrected_start_price,  # ✅ Use corrected price
+                target_price=final_target_price,
+                stop_loss_price=final_stop_loss_price,
                 target_profit_percent=row.target_profit_percent,
                 stop_loss_percent=row.stop_loss_percent,
                 direction=direction,
@@ -280,7 +391,35 @@ async def download_and_import(
     json_parser = LegacyJsonParser()
     csv_parser = LegacyCsvParser()
     
-    # Import backup files
+    # IMPORTANT: Import history files FIRST so market_data is available for price corrections
+    if histories:
+        logger.info(f"\n📈 History Files ({len(histories)}) - Importing FIRST for price fallback:")
+        for history_file in histories:
+            try:
+                # Extract ticker from filename
+                ticker_symbol = history_file.name.replace('History_', '').replace('.csv', '')
+                
+                # Download and parse
+                content = await drive_client.download_file(history_file.id)
+                rows = csv_parser.parse_history_csv(content, default_ticker=ticker_symbol)
+                
+                # Import history
+                await import_history_rows(session, ticker_symbol, rows, stats, dry_run)
+                
+                stats.history_files_found += 1
+                
+            except Exception as e:
+                error_msg = f"Errore processing history {history_file.name}: {e}"
+                logger.error(f"❌ {error_msg}")
+                stats.errors.append(error_msg)
+        
+        logger.info(f"\n✅ History import completato:")
+        logger.info(f"  • {stats.market_data_imported} record importati")
+        logger.info(f"  • {stats.market_data_skipped} record skippati")
+    else:
+        logger.warning("⚠️  Nessun file history trovato!")
+    
+    # Import backup files AFTER history (so we have market_data for fallback)
     if backups:
         logger.info(f"\n📊 Backup Files ({len(backups)}):")
         for backup_file in backups:
@@ -312,37 +451,10 @@ async def download_and_import(
         logger.info(f"\n✅ Backup import completato:")
         logger.info(f"  • {stats.estimates_imported} stime importate")
         logger.info(f"  • {stats.estimates_skipped} stime skippate (già presenti)")
+        logger.info(f"  • {stats.estimates_price_corrected} stime con prezzo corretto")
         logger.info(f"  • {stats.tickers_created} nuovi ticker creati")
     else:
         logger.warning("⚠️  Nessun file backup trovato!")
-    
-    # Import history files
-    if histories:
-        logger.info(f"\n📈 History Files ({len(histories)}):")
-        for history_file in histories:
-            try:
-                # Extract ticker from filename
-                ticker_symbol = history_file.name.replace('History_', '').replace('.csv', '')
-                
-                # Download and parse
-                content = await drive_client.download_file(history_file.id)
-                rows = csv_parser.parse_history_csv(content, default_ticker=ticker_symbol)
-                
-                # Import history
-                await import_history_rows(session, ticker_symbol, rows, stats, dry_run)
-                
-                stats.history_files_found += 1
-                
-            except Exception as e:
-                error_msg = f"Errore processing history {history_file.name}: {e}"
-                logger.error(f"❌ {error_msg}")
-                stats.errors.append(error_msg)
-        
-        logger.info(f"\n✅ History import completato:")
-        logger.info(f"  • {stats.market_data_imported} record importati")
-        logger.info(f"  • {stats.market_data_skipped} record skippati")
-    else:
-        logger.warning("⚠️  Nessun file history trovato!")
 
 
 async def verify_consistency(session: AsyncSession) -> None:
@@ -480,6 +592,7 @@ async def main(dry_run: bool = False):
         logger.info(f"\nEstimates:")
         logger.info(f"  • {stats.estimates_imported} importate")
         logger.info(f"  • {stats.estimates_skipped} skippate (già presenti)")
+        logger.info(f"  • {stats.estimates_price_corrected} con start_price corretto")
         logger.info(f"\nMarket Data:")
         logger.info(f"  • {stats.market_data_imported} record importati")
         logger.info(f"  • {stats.market_data_skipped} skippati (già presenti)")

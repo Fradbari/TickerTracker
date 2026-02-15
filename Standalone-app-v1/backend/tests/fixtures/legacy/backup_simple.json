@@ -1,0 +1,47 @@
+[
+  {
+    "ticker": "AAPL",
+    "startDate": "2026-01-15T10:00:00.000Z",
+    "startPrice": 150.00,
+    "targetPrice": 165.00,
+    "stopLossPrice": 135.00,
+    "status": "OPEN",
+    "aiModel": "Gemini",
+    "aiConfidence": 85,
+    "direction": "LONG",
+    "targetProfitPercent": 10.0,
+    "exitPrice": null,
+    "realizedPnL": null,
+    "closeDate": null
+  },
+  {
+    "ticker": "MSFT",
+    "startDate": "2025-12-01T09:30:00.000Z",
+    "startPrice": 300.00,
+    "targetPrice": 330.00,
+    "stopLossPrice": 270.00,
+    "status": "CLOSED_WIN",
+    "aiModel": "Qwen",
+    "aiConfidence": 78,
+    "direction": "LONG",
+    "targetProfitPercent": 10.0,
+    "exitPrice": 332.50,
+    "realizedPnL": 32.50,
+    "closeDate": "2026-01-20T15:30:00.000Z"
+  },
+  {
+    "ticker": "TSLA",
+    "startDate": "2025-11-10T14:00:00.000Z",
+    "startPrice": 200.00,
+    "targetPrice": 180.00,
+    "stopLossPrice": 220.00,
+    "status": "CLOSED_LOSS",
+    "aiModel": "Gemini",
+    "aiConfidence": 62,
+    "direction": "SHORT",
+    "targetProfitPercent": 10.0,
+    "exitPrice": 222.00,
+    "realizedPnL": -22.00,
+    "closeDate": "2025-12-15T16:00:00.000Z"
+  }
+]

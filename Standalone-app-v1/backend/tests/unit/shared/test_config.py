@@ -21,15 +21,19 @@ from src.shared.infra.config import Settings, get_settings
 class TestSettingsCreation:
     """Test Settings class instantiation and field validation."""
 
-    def test_create_settings_with_defaults(self):
+    def test_create_settings_with_defaults(self, monkeypatch):
         """Test creating Settings instance with all default values."""
-        settings = Settings()
+        # Clear env vars that e2e conftest's load_dotenv(.env.e2e) injects into os.environ
+        for key in ["LOG_LEVEL", "DATABASE_URL", "CACHE_CURRENT_PRICE_TTL", "RETRY_MAX_ATTEMPTS"]:
+            monkeypatch.delenv(key, raising=False)
+        # _env_file=None prevents .env file pollution so we test pure code defaults
+        settings = Settings(_env_file=None)
 
         assert settings.ENVIRONMENT == "local"
         assert settings.DEBUG is True
         assert settings.LOG_LEVEL == "INFO"
         assert settings.YAHOO_CACHE_TTL == 3600
-        assert settings.DATABASE_URL.get_secret_value() == "sqlite:///./test.db"
+        assert settings.DATABASE_URL.get_secret_value() == "postgresql+asyncpg://tickertracker:devpassword@localhost:5432/tickertracker_dev"
 
     def test_environment_field_validation(self):
         """Test ENVIRONMENT field only accepts valid values."""
@@ -312,9 +316,13 @@ class TestConfigurationValidation:
         settings_string = Settings(YAHOO_CACHE_TTL="7200")
         assert settings_string.YAHOO_CACHE_TTL == 7200
 
-    def test_optional_fields_with_empty_defaults(self):
+    def test_optional_fields_with_empty_defaults(self, monkeypatch):
         """Test optional fields with empty string defaults."""
-        settings = Settings()
+        # Clear env vars that e2e conftest's load_dotenv(.env.e2e) injects into os.environ
+        for key in ["LOG_LEVEL", "DATABASE_URL", "CACHE_CURRENT_PRICE_TTL", "RETRY_MAX_ATTEMPTS"]:
+            monkeypatch.delenv(key, raising=False)
+        # _env_file=None prevents .env file pollution so we test pure code defaults
+        settings = Settings(_env_file=None)
 
         # These should have empty string defaults
         assert settings.GEMINI_API_KEY.get_secret_value() == ""

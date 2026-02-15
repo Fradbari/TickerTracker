@@ -85,9 +85,15 @@ def check_indices():
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--skip-head-check', action='store_true', help='Salta il controllo sulla migration più recente')
+    args = parser.parse_args()
+
     get_current_revision()
     migrations = list_all_migrations()
-    check_last_migration(migrations)
+    if not args.skip_head_check:
+        check_last_migration(migrations)
     check_indices()
     print("\n== Verifica migrazioni Alembic completata ==")
 

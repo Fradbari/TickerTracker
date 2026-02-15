@@ -6,6 +6,7 @@
         ".venv\\Scripts\\pip": true,
         ".\\.venv\\Scripts\\Activate.ps1": true,
         "ForEach-Object": true,
-        "Rename-Item": true
+        "Rename-Item": true,
+        "alembic": true
     }
 }

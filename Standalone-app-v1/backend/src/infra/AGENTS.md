@@ -123,39 +123,168 @@ Area: infra
 Fase: MVP
 Dipendenze: TASK 2.24
 
-## TASK 2.25: Implementazione Pattern Outbox per Eventi
+# @workspace — TASK 2.25: Completa Pattern Outbox per Eventi Drive
 
-**Descrizione:** Creare pattern outbox per pubblicazione affidabile eventi verso Drive.
+## Context
+- ✅ **EstimateEvent** esteso con campi outbox (`processed_at`, `retry_count`, `error`) — commit `d271aef`
+- ✅ **Migrazione Alembic** applicata
+- ✅ **EstimateService** salva eventi **atomicamente** nella stessa transazione
 
-**Microstep:**
+---
 
-1\. Creare modello SQLAlchemy `OutboxEvent`: `id`, `event_type`, `payload` (JSONB), `created_at`, `processed_at` (nullable), `error` (nullable), `retry_count`
+## Implementazione Richiesta
 
-2\. Creare migrazione Alembic
+### 1) AGGIUNGI METODI HELPER `EstimateEvent`
+**File:** `src/estimates/domain/events.py`
 
-3\. Modificare `EstimateService` per salvare eventi in outbox nella stessa transazione del DB
+```python
+def mark_processed(self) -> None:
+    """Mark event as successfully processed."""
+    self.processed_at = datetime.now(timezone.utc)
+    self.error = None
 
-4\. Creare `OutboxProcessor` che:
+def mark_failed(self, error_msg: str) -> None:
+    """Mark event processing failed, increment retry."""
+    self.retry_count += 1
+    self.error = error_msg[:500]  # Truncate to DB limit
 
-- Legge eventi non processati
+def can_retry(self) -> bool:
+    """Check if event can be retried (max 5 attempts)."""
+    return self.retry_count < 5 and self.processed_at is None
 
-- Esegue azione (es. sync verso Drive)
+def is_dead_letter(self) -> bool:
+    """Check if event is dead letter (max retries exceeded)."""
+    return self.retry_count >= 5 and self.processed_at is None
 
-- Marca come processato o incrementa retry_count
+@classmethod
+async def get_unprocessed(cls, session: AsyncSession, limit: int = 100) -> List['EstimateEvent']:
+    """Get unprocessed events for outbox processing."""
+    result = await session.execute(
+        select(cls)
+        .where(cls.processed_at.is_(None))
+        .where(cls.retry_count < 5)
+        .order_by(cls.timestamp.asc())
+        .limit(limit)
+    )
+    return result.scalars().all()
 
-5\. Schedulare `OutboxProcessor` ogni 30 secondi
+@classmethod
+async def get_dead_letters(cls, session: AsyncSession) -> List['EstimateEvent']:
+    """Get dead letter events (max retries exceeded)."""
+    result = await session.execute(
+        select(cls)
+        .where(cls.processed_at.is_(None))
+        .where(cls.retry_count >= 5)
+        .order_by(cls.timestamp.asc())
+    )
+    return result.scalars().all()
+```
 
-6\. Implementare dead letter: dopo N retry, marca come failed e alerta
+---
 
-**Acceptance Criteria:**
+### 2) OUTBOX PROCESSOR SERVICE
+**File:** `src/infra/outbox/outbox_processor.py`
 
-- [ ] Eventi salvati atomicamente con dati business
+```python
+class OutboxProcessor:
+    def __init__(self, session_factory: async_sessionmaker, sync_service: SyncService):
+        self._session_factory = session_factory
+        self._sync_service = sync_service
 
-- [ ] Processor riprova eventi falliti
+    async def process_pending_events(self) -> dict:
+        """
+        Process unprocessed events with Drive sync.
+        Returns: {"processed": int, "failed": int, "skipped": int}
+        """
+        # Get unprocessed events
+        # For each event:
+        #   - Try sync_estimate_to_drive if event_type in [CREATED, UPDATED, CLOSED]
+        #   - On success: mark_processed() and commit
+        #   - On failure: mark_failed(error) and commit
+        #   - Each event in separate transaction for isolation
+        # Log metrics
 
-- [ ] Dead letter per eventi irrecuperabili
+    async def handle_dead_letters(self) -> int:
+        """
+        Handle dead letter events (log + mark).
+        Returns: count of dead letters found
+        """
+        # Get dead letters
+        # For each: log.error with full details (estimate_id, event_type, error)
+        # Mark error as "DEAD_LETTER: <original_error>"
+        # Prepare for future alerting (Slack/Email hook placeholder)
+```
 
-- [ ] Nessuna perdita di eventi
+---
+
+### 3) SCHEDULER INTEGRATION
+**File:** `src/infra/scheduler/jobs.py`  
+- Job `process_outbox_events()`: istanzia `OutboxProcessor`, chiama `process_pending_events()`  
+- Log strutturato: `{"job": "outbox", "processed": X, "failed": Y}`
+
+**File:** `src/infra/scheduler/scheduler.py`  
+- Register: `IntervalTrigger(seconds=30)` per `process_outbox_events`  
+- Register: `CronTrigger(hour=2, minute=0)` per `handle_dead_letters`
+
+---
+
+### 4) SYNC SERVICE INTEGRATION
+**File:** `src/infra/outbox/outbox_processor.py`
+
+Implementa mapping **event_type → Drive action**:
+- `CREATED` / `UPDATED` → `sync_service.sync_estimate_to_drive(estimate_id)`
+- `CLOSED` → idem (Drive deve riflettere stato)
+- Altri eventi → **skip** (log **debug**)
+
+Gestisci `ImportError` per `SyncService` con **graceful degradation** (log **warning**, **skip** processing).
+
+---
+
+### 5) TESTS OBBLIGATORI
+
+**File:** `tests/unit/outbox/test_outbox_processor.py`
+```python
+# test_process_single_event_success: mock SyncService, verify mark_processed
+# test_process_event_failure_increments_retry: mock exception, verify retry_count++
+# test_dead_letter_after_5_failures: simulate 5 failures, verify is_dead_letter
+# test_event_isolation: 10 eventi, 1 fail non blocca altri 9
+# test_get_unprocessed_excludes_processed: verify query logic
+```
+
+**File:** `tests/integration/test_outbox_e2e.py`
+```python
+# test_create_estimate_persists_unprocessed_event: create estimate, verify event with processed_at is NULL
+# test_outbox_processor_processes_event: insert event, run processor, verify processed_at set
+# test_retry_logic: simulate Drive error, verify retry_count incremented
+```
+
+---
+
+## Acceptance Criteria VINCOLANTI
+- Eventi salvati **atomicamente** con estimates (già implementato)
+- `OutboxProcessor` processa eventi **ogni 30s** via scheduler
+- **Retry automatico** con **max 5** tentativi (no exponential backoff necessario)
+- **Dead letter** dopo 5 retry: `log.error()` + mark `"DEAD_LETTER: <error>"`
+- **Transaction isolation**: ogni evento **commit separato**
+- **Test coverage > 80%** per `OutboxProcessor` e metodi helper
+- **No perdita eventi**: transazioni atomiche + retry logic garantiscono delivery
+
+---
+
+## Note Critiche Architettura
+- **EstimateService non modificare**: eventi già salvati correttamente
+- Eventi **IMMUTABILI**: `processed_at` / `retry_count` / `error` sono gli **unici** campi modificabili post‑creazione
+- **Drive sync idempotente**: stesso evento riprovato *N* volte deve essere safe
+- **Graceful degradation**: se `SyncService` non esiste/importabile, `OutboxProcessor` log warning e continua
+- **Structured logging**: tutti i log devono avere context (`event_id`, `estimate_id`, `retry_count`)
+
+---
+
+## Dipendenze Verificate
+- ✅ `EstimateEvent` con campi outbox (**commit `d271aef`**)
+- ✅ **Alembic migration** (**commit `d271aef`**)
+- ✅ **APScheduler** (TASK **2.24**)
+- ⚠️ `SyncService.sync_estimate_to_drive()` **potrebbe non esistere**: gestire `ImportError`
 
 ---
 

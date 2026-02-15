@@ -372,6 +372,11 @@ async def import_history_rows(
                     logger.warning(f"  ⚠️  {ticker_symbol} {row.date}: low ({row.low}) > open ({row.open}), forzo low = open")
                     low_value = row.open
 
+                # Forza low = close se low > close
+                if row.low is not None and row.close is not None and low_value > row.close:
+                    logger.warning(f"  ⚠️  {ticker_symbol} {row.date}: low ({low_value}) > close ({row.close}), forzo low = close")
+                    low_value = row.close
+
                 # Insert market data
                 market_data = MarketData(
                     ticker_id=ticker.id,

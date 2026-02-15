@@ -9,7 +9,7 @@ load_dotenv()
 
 # Database connection settings
 DATABASE_URL = os.getenv("DATABASE_URL")
-EXPECTED_TABLES = ["estimates", "estimate_events", "tickers", "daily_candles", "sync_jobs"]
+EXPECTED_TABLES = ["estimates", "estimate_events", "tickers", "market_data", "sync_jobs"]
 
 def format_status(exists):
     return "✅" if exists else "❌"

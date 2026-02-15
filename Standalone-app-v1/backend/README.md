@@ -817,6 +817,48 @@ async def get_price(
 Per dettagli: [src/market_data/infrastructure/cached_provider.py](src/market_data/infrastructure/cached_provider.py)
 Per cache implementation: [src/infra/cache/memory_cache.py](src/infra/cache/memory_cache.py)
 
+## Background Worker & Job Scheduling (APScheduler)
+
+TickerTracker utilizza [APScheduler](https://apscheduler.readthedocs.io/) per gestire job schedulati di sync, refresh e controllo target.
+
+### Scheduler Principale
+- **Tipo:** AsyncIOScheduler (timezone UTC)
+- **Avvio:** Automatico su startup FastAPI
+- **Shutdown:** Graceful su shutdown FastAPI
+- **Logging:** Inizio/fine job, errori, durata, successo/fallimento
+
+### Job Schedulati
+- **refresh_market_data**: ogni 5 minuti (lun-ven, 14:00-21:55 UTC, orari di mercato)
+- **daily_history_sync**: ogni giorno alle 23:00 UTC
+- **refresh_materialized_views**: ogni 5 minuti
+- **check_targets**: ogni minuto
+
+Tutti i job sono implementati in `src/infra/scheduler/scheduler.py` e sono wrappati per logging e metriche.
+
+### Integrazione FastAPI
+- Hook `@app.on_event("startup")`: avvia lo scheduler
+- Hook `@app.on_event("shutdown")`: shutdown graceful
+- Errori nei job non bloccano l'applicazione
+
+### Esempio Avvio Manuale (dev)
+
+```bash
+# Attiva venv
+.\Standalone-app-v1\backend\.venv\Scripts\activate
+# Avvia server
+py -m uvicorn src.main:app --reload
+```
+
+### Dipendenze
+- `apscheduler` (in requirements.txt)
+
+### Stato Job e Metriche
+- Logging automatico inizio/fine job
+- Durata e successo/fallimento visibili nei log
+- Possibile estendere con Prometheus/metrics
+
+---
+
 ## Contribuire
 
 Prima di committare:

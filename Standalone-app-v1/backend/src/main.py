@@ -15,7 +15,11 @@ from src.shared.api import health_routes
 from src.estimates.api import router as estimates_router
 from src.market_data.api import routes as market_data_routes
 from src.shared.infra.config import get_settings
+
 from src.shared.infra.security_middleware import setup_security_middleware
+
+# APScheduler integration
+from src.infra.scheduler import scheduler as app_scheduler
 
 # Get application settings
 settings = get_settings()
@@ -39,6 +43,16 @@ app.include_router(market_data_routes.router)
 # TODO: Register additional bounded context routers
 # - sync
 # - analytics
+
+
+# APScheduler startup/shutdown hooks
+@app.on_event("startup")
+async def start_scheduler_event():
+    app_scheduler.start_scheduler()
+
+@app.on_event("shutdown")
+async def shutdown_scheduler_event():
+    app_scheduler.shutdown_scheduler()
 
 
 @app.get("/", tags=["root"])

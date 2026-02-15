@@ -630,3 +630,44 @@ python scripts/refresh_estimate_summary_view.py --stats
 SELECT * FROM estimate_summary_view WHERE status = 'OPEN' ORDER BY created_at DESC;
 ```
 
+---
+
+ID: TASK 2.24
+Area: backend/infra
+Fase: MVP
+Dipendenze: TASK 2.22
+
+## TASK 2.24: Setup Background Worker (APScheduler)
+
+**Descrizione:** Configurare worker per job schedulati di sync e aggiornamento.
+
+**Microstep:**
+1. Installata dipendenza `apscheduler` (requirements.txt)
+2. Creato file `src/infra/scheduler/scheduler.py` con AsyncIOScheduler (UTC)
+3. Definiti job:
+   - `refresh_market_data`: ogni 5 minuti (lun-ven, 14-21 UTC)
+   - `daily_history_sync`: ogni giorno alle 23:00 UTC
+   - `refresh_materialized_views`: ogni 5 minuti
+   - `check_targets`: ogni minuto
+4. Logging automatico inizio/fine job, errori, durata, successo/fallimento
+5. Hook FastAPI startup/shutdown per avvio/shutdown scheduler
+6. Errori nei job non bloccano l'applicazione
+
+**Acceptance Criteria:**
+- [x] Scheduler parte con l'applicazione
+- [x] Job eseguono agli orari configurati
+- [x] Shutdown graceful dei job in corso
+- [x] Errori nei job non crashano l'applicazione
+
+**File Creati/Modificati:**
+- `src/infra/scheduler/scheduler.py` - Implementazione scheduler e job
+- `src/main.py` - Integrazione hook startup/shutdown
+- `requirements.txt` - Aggiornato con apscheduler
+- `README.md` - Sezione Background Worker
+- `AGENTS.md` - Progress tracker aggiornato
+
+**Note:**
+- Tutti i job sono wrappati per logging e metriche
+- Possibile estendere con Prometheus/metrics
+- Stato e log visibili in console/app log
+

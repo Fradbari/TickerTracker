@@ -38,7 +38,7 @@ def list_all_migrations():
 def check_last_migration(migrations):
     print("\n== Verifica ultima migrazione ==")
     if not migrations:
-        print("❌ Nessuna migrazione trovata!")
+        print("[ERRORE] Nessuna migrazione trovata!")
         sys.exit(1)
     last = migrations[0]  # history --verbose is in reverse order (latest first)
     # Accept merge heads if one of the merged revisions is add_outbox_pattern_fields or outbox_pattern_001
@@ -50,9 +50,9 @@ def check_last_migration(migrations):
             for m in migrations[:3]  # check top 3 for safety
         ))
     ):
-        print(f"✅ Ultima migrazione (o merge): {last['msg']} ({last['rev']})")
+        print(f"[OK] Ultima migrazione (o merge): {last['msg']} ({last['rev']})")
     else:
-        print(f"❌ Ultima migrazione non è 'add_outbox_pattern_fields': {last['msg']} ({last['rev']})")
+        print(f"[ERRORE] Ultima migrazione non e' 'add_outbox_pattern_fields': {last['msg']} ({last['rev']})")
         sys.exit(1)
 
 
@@ -71,13 +71,13 @@ def check_indices():
                 found_ix1 = any(ix['name'] == 'ix_estimate_events_unprocessed' for ix in indices)
                 found_ix2 = any(ix['name'] == 'ix_estimate_event_timeline' for ix in indices)
                 if found_ix1:
-                    print("✅ Indice ix_estimate_events_unprocessed presente")
+                    print("[OK] Indice ix_estimate_events_unprocessed presente")
                 else:
-                    print("❌ Indice ix_estimate_events_unprocessed mancante")
+                    print("[ERRORE] Indice ix_estimate_events_unprocessed mancante")
                 if found_ix2:
-                    print("✅ Indice ix_estimate_event_timeline presente")
+                    print("[OK] Indice ix_estimate_event_timeline presente")
                 else:
-                    print("❌ Indice ix_estimate_event_timeline mancante")
+                    print("[ERRORE] Indice ix_estimate_event_timeline mancante")
                 if not (found_ix1 and found_ix2):
                     sys.exit(1)
             await conn.run_sync(sync_check_indices)

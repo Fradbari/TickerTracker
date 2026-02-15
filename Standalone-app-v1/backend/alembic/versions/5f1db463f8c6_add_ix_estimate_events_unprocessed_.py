@@ -1,7 +1,7 @@
 """add ix_estimate_events_unprocessed index (clean)
 
 Revision ID: 5f1db463f8c6
-Revises: manual_ix_estimate_events_unprocessed
+Revises: 3a9f8e7d2c1b
 Create Date: 2026-02-15 16:55:45.536662
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '5f1db463f8c6'
-down_revision: Union[str, None] = 'manual_ix_estimate_events_unprocessed'
+down_revision: Union[str, None] = '3a9f8e7d2c1b'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

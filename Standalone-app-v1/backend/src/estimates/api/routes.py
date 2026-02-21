@@ -8,7 +8,7 @@ following the ApiResponse wrapper pattern and dependency injection.
 from typing import Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.shared.infra.database import get_db
@@ -39,6 +39,7 @@ from src.estimates.schemas import (
     EstimateHistoryResponse,
 )
 from src.market_data.repositories.market_data_repository import MarketDataRepository
+from src.infra.security.rate_limit import limiter, is_whitelisted
 
 
 # Router configuration
@@ -128,7 +129,10 @@ async def get_estimate_repository(
     Returns the created estimate with calculated prices.
     """,
 )
+@limiter.limit("30/minute", exempt_when=is_whitelisted)
 async def create_estimate(
+    request: Request,
+    response: Response,
     command: CreateEstimateCommand,
     service: EstimateService = Depends(get_estimate_service),
 ) -> ApiResponse[EstimateCreatedResponse]:

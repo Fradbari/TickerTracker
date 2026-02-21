@@ -112,9 +112,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [ ] **TASK 2.27** - Creazione API Router Analytics *(da definire)*
 - [ ] **TASK 2.28** - Implementazione AI Prompt Service *(da definire)*
 
-#### Sezione 3: Sicurezza & Observability (1/11)
+#### Sezione 3: Sicurezza & Observability (2/11)
 - [x] **TASK 3.1** - Implementazione Security Middleware
-- [ ] **TASK 3.2** - Implementazione Rate Limiting
+- [x] **TASK 3.2** - Implementazione Rate Limiting
 - [ ] **TASK 3.3** - Implementazione Input Validation Avanzata
 - [ ] **TASK 3.4** - Implementazione Encryption at Rest
 - [ ] **TASK 3.5** - Setup Structured Logging con Correlation ID

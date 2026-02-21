@@ -160,6 +160,36 @@ class Settings(BaseSettings):
         description="Enable structured per-request logging in SecurityMiddleware",
     )
 
+    # ========== Rate Limiting - slowapi/Redis (Task 3.2) ==========
+    REDIS_URL: str = Field(
+        default="redis://localhost:6379/0",
+        description="Redis connection URL for slowapi rate limit storage (DB 0)",
+    )
+    RATE_LIMIT_SLOWAPI_ENABLED: bool = Field(
+        default=True,
+        description="Enable slowapi per-endpoint rate limiting (set False in single-user local dev)",
+    )
+    RATE_LIMIT_DEFAULT: str = Field(
+        default="100/minute",
+        description="Default rate limit applied to all endpoints (slowapi format: '100/minute')",
+    )
+    RATE_LIMIT_CHAT: str = Field(
+        default="10/minute",
+        description="Rate limit for /api/chat endpoint (AI requests are expensive)",
+    )
+    RATE_LIMIT_ESTIMATES_POST: str = Field(
+        default="30/minute",
+        description="Rate limit for POST /api/estimates (write endpoints are heavier)",
+    )
+    RATE_LIMIT_MARKET_PRICE: str = Field(
+        default="60/minute",
+        description="Rate limit for GET /api/market/price/{ticker}",
+    )
+    RATE_LIMIT_WHITELIST_IPS: list[str] = Field(
+        default=["127.0.0.1", "::1"],
+        description="IPs exempt from rate limiting (loopback by default, add admin IPs here)",
+    )
+
     # ========== Pydantic Configuration ==========
     model_config = SettingsConfigDict(
         env_file=".env",

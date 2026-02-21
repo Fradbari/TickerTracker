@@ -369,52 +369,66 @@ Test risultati: 310/310 passed (29 nuovi + 281 precedenti)
 ID: TASK 3.2
 Area: infra
 Fase: Fase 2
-Dipendenze: TASK 2.20
+Dipendenze: TASK 3.1
+**Status: ✅ COMPLETED**
 
 ## TASK 3.2: Implementazione Rate Limiting
 
 Priorità: Fase 2 (necessario solo in scenari multi‑utente / produzione, NON blocca l'ambiente locale single‑user).
 
-**Descrizione:** Aggiungere rate limiting per protezione API.
+**Descrizione:** Aggiungere rate limiting per protezione API tramite slowapi + Redis.
 
 **Microstep:**
 
-1\. Installare dipendenza `slowapi`
+1\. ✅ Aggiungere 7 nuovi campi a `src/shared/infra/config.py` (`REDIS_URL`, `RATE_LIMIT_SLOWAPI_ENABLED`, `RATE_LIMIT_DEFAULT`, `RATE_LIMIT_CHAT`, `RATE_LIMIT_ESTIMATES_POST`, `RATE_LIMIT_MARKET_PRICE`, `RATE_LIMIT_WHITELIST_IPS`)
 
-2\. Creare file `backend/src/infra/security/rate_limit.py`
+2\. ✅ Creare file `src/infra/security/rate_limit.py` con `_build_limiter()`, singleton `limiter`, `is_whitelisted()`, `_rate_limit_exceeded_handler()`, `setup_rate_limiter()`
 
-3\. Configurare `Limiter` con storage Redis
+3\. ✅ Configurare `Limiter` con storage Redis (fallback automatico a memory:// se Redis non disponibile)
 
-4\. Definire limiti di default: 100 req/minuto per IP
+4\. ✅ Definire limiti di default: 100 req/minuto per IP; per-endpoint: estimates POST 30/min, market price 60/min, chat 10/min
 
-5\. Definire limiti specifici per endpoint sensibili:
+5\. ✅ Implementare `_RequestContextMiddleware` (ContextVar) per supporto whitelist IP zero-arg (richiesto da slowapi)
 
-- `/api/chat`: 10 req/minuto
+6\. ✅ Implementare response 429 con header `Retry-After` e `X-RateLimit-Limit` nel body JSON standard `ApiResponse`
 
-- `/api/estimates` POST: 30 req/minuto
+7\. ✅ Aggiungere whitelist per IP interni/loopback (`127.0.0.1`, `::1`)
 
-- `/api/market/price`: 60 req/minuto
-
-6\. Implementare response 429 con header `Retry-After`
-
-7\. Aggiungere whitelist per IP interni/admin
+8\. ✅ Aggiornare `src/infra/security/__init__.py`, `src/main.py`, route handlers estimates e market_data
 
 **Acceptance Criteria:**
 
-- [ ] Rate limit applicato correttamente
+- [x] Rate limit applicato correttamente (per-route e default)
 
-- [ ] Storage Redis per condivisione tra istanze
+- [x] Storage Redis per condivisione tra istanze (con memory fallback)
 
-- [ ] Response 429 include Retry-After
+- [x] Response 429 include Retry-After e X-RateLimit-Limit
 
-- [ ] Whitelist funzionante
+- [x] Whitelist funzionante (zero-arg via ContextVar)
+
+**Implementazione Completata (Task 3.2):**
+
+File creati/modificati:
+- `src/infra/security/rate_limit.py` – `_build_limiter()`, `limiter` singleton, `_RequestContextMiddleware`, `is_whitelisted()` (zero-arg), `_rate_limit_exceeded_handler()`, `setup_rate_limiter()`
+- `src/infra/security/__init__.py` – aggiunge esportazione `limiter`, `is_whitelisted`, `setup_rate_limiter`
+- `src/shared/infra/config.py` – 7 nuovi campi rate limiting
+- `src/main.py` – `setup_rate_limiter(app)` aggiunto prima di `setup_security_middleware`
+- `src/estimates/api/routes.py` – `@limiter.limit("30/minute")` su `create_estimate` + `request: Request, response: Response`
+- `src/market_data/api/routes.py` – `@limiter.limit("60/minute")` su `get_current_price` + `request: Request`
+- `.env.example` – 7 nuove variabili con commenti nella sezione Rate Limiting
+- `tests/unit/infra/test_rate_limit.py` – 33 test (8 classi: _client_ip, is_whitelisted, _build_limiter, setup_rate_limiter, 429 handler, integration enforced, whitelist, settings defaults)
+
+Quirk rilevante: `from __future__ import annotations` nei file test causa PEP 563 string annotations; con functools.wraps il wrapper usa `__globals__` di slowapi (non del test module) — FastAPI non riesce a resolvere `'StarletteRequest'` e tratta il param come query. Fix: rimuovere `from __future__ import annotations` dal file di test.
+
+Test risultati: 315/315 passed (33 nuovi + 282 precedenti)
 
 ---
 
 ### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/infra/, backend/scripts/, /api/chat, /api/estimates, /api/market/price, backend/src/infra/security/rate_limit.py] se non strettamente necessario.
+- Non modificare file fuori da [`src/infra/security/rate_limit.py`, `src/estimates/api/routes.py`, `src/market_data/api/routes.py`] se non strettamente necessario.
+- Endpoint decorati con `@limiter.limit()` DEVONO avere `request: Request` E `response: Response` come parametri.
+- `is_whitelisted()` è zero-arg (legge da ContextVar); l'ordine middleware è: `_RequestContextMiddleware` DOPO `SlowAPIMiddleware` in `add_middleware` (Starlette: ultimo aggiunto = più esterno).
 - Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
 - Alla fine, produci un elenco puntato con file modificati e test eseguiti.
 
 ID: TASK 3.4

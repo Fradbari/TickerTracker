@@ -12,7 +12,7 @@ All endpoints use MarketDataProvider (TASK 2.18-2.19) for data retrieval.
 
 from datetime import date, datetime
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from src.market_data.domain.providers import (
@@ -24,6 +24,7 @@ from src.market_data.domain.providers import (
 )
 from src.market_data.api.dependencies import get_market_data_provider
 from src.shared.schemas.api_response import ApiResponse
+from src.infra.security.rate_limit import limiter, is_whitelisted
 
 
 # ============================================================================
@@ -117,7 +118,9 @@ router = APIRouter(prefix="/api/market", tags=["Market Data"])
     description="Returns the most recent price data for the specified ticker symbol. "
                 "Includes OHLCV data and metadata (source, timestamp, stale flag)."
 )
+@limiter.limit("60/minute", exempt_when=is_whitelisted)
 async def get_current_price(
+    request: Request,
     ticker: str,
     response: Response,
     provider: MarketDataProvider = Depends(get_market_data_provider),

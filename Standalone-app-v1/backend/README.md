@@ -284,25 +284,41 @@ Per aggiungere altri origin:
 CORS_ORIGINS=https://example.com,https://other-domain.com
 ```
 
-### Rate Limiting
+### Rate Limiting (Task 3.2)
 
-Rate limit semplice in memoria: **60 richieste/minuto per IP**
+Rate limiting Redis-backed tramite **slowapi**, con limiti per-endpoint e IP whitelist.
 
-Per disabilitare in sviluppo locale:
+| Endpoint | Limite di default |
+|---|---|
+| Tutti gli endpoint | `100/minute` |
+| `POST /api/estimates` | `30/minute` |
+| `GET /api/market/price/{ticker}` | `60/minute` |
+| `POST /api/chat` | `10/minute` |
+
+**Configurazione chiave `.env`:**
 
 ```env
-ENABLE_RATE_LIMIT=false
+REDIS_URL=redis://localhost:6379/0
+RATE_LIMIT_SLOWAPI_ENABLED=true
+RATE_LIMIT_DEFAULT=100/minute
+RATE_LIMIT_WHITELIST_IPS=["127.0.0.1","::1"]
 ```
+
+In assenza di Redis raggiungibile il sistema effettua il fallback automatico a storage in-memory senza interrompere il servizio.
+
+Le risposte 429 includono gli header `Retry-After` e `X-RateLimit-Limit` e un body JSON nel formato API standard.
+
+**Nota per i route handler:** endpoint decorati con `@limiter.limit()` **devono** avere sia `request: Request` che `response: Response` come parametri (richiesto da slowapi per l'iniezione degli header).
 
 ### Middleware Execution Order
 
 I middleware vengono eseguiti nel seguente ordine (dal più esterno al più interno):
 
 ```
-Request → SecurityMiddleware [3.1] → RateLimitMiddleware → CORSMiddleware → SecurityHeadersMiddleware → Routes
+Request → _RequestContextMiddleware [3.2] → SlowAPIMiddleware [3.2] → SecurityMiddleware [3.1] → RateLimitMiddleware [1.7] → CORSMiddleware → SecurityHeadersMiddleware → Routes
 ```
 
-`SecurityMiddleware` è il middleware più esterno: valida l'API Key prima che qualsiasi altro middleware elabori la richiesta.
+`_RequestContextMiddleware` popola la ContextVar con il request corrente (necessaria per la whitelist IP zero-arg); `SlowAPIMiddleware` applica i rate limit; `SecurityMiddleware` valida l'API Key.
 
 ---
 
@@ -653,7 +669,8 @@ backend/
 │   │   │   ├── drive/
 │   │   │   ├── logging/
 │   │   │   ├── security/
-│   │   │   │   └── middleware.py      # ✅ [3.1] SecurityMiddleware (API key, CSP, request logging, 29 tests)
+│   │   │   │   ├── middleware.py      # ✅ [3.1] SecurityMiddleware (API key, CSP, request logging, 29 tests)
+│   │   │   │   └── rate_limit.py     # ✅ [3.2] Rate Limiting slowapi+Redis (33 tests)
 │   │   │   └── yahoo/
 │   │   ├── api/          # API layer
 │   │   │   └── health_routes.py       # ✅ [1.7] Health Check Endpoints
@@ -664,7 +681,8 @@ backend/
 ├── tests/                # Test
 │   ├── unit/             # Unit tests
 │   │   ├── infra/
-│   │   │   └── test_security_middleware.py # ✅ 29 tests ✓ [3.1]
+│   │   │   ├── test_security_middleware.py # ✅ 29 tests ✓ [3.1]
+│   │   │   └── test_rate_limit.py          # ✅ 33 tests ✓ [3.2]
 │   │   └── shared/
 │   │       ├── domain/
 │   │       │   ├── test_money.py           # ✅ 36 tests ✓
@@ -725,13 +743,14 @@ backend/
 | 2.18 | Market Data Providers | ✅ COMPLETATO | 5 ✓ | Yahoo/Fake Providers + Interface |
 | 2.19 | **Caching & Resiliency** | ✅ **COMPLETATO** | **✓** | **LRU Cache + Exponential Backoff** |
 
-### Phase 3: Security & Observability (1/11 tasks - 9%)
+### Phase 3: Security & Observability (2/11 tasks - 18%)
 
 | Task | Descrizione | Status | Tests | Implementation |
 |------|-----------|--------|-------|----------------|
 | 3.1 | **Security Middleware Avanzato** | ✅ **COMPLETATO** | **29 ✓** | **API Key auth, CSP, HSTS condizionale, request logging structlog** |
+| 3.2 | **Rate Limiting** | ✅ **COMPLETATO** | **33 ✓** | **slowapi + Redis, per-endpoint limits, IP whitelist, Retry-After headers** |
 
-**Total Tests**: 310 passing ✅ (aggiornato con Task 3.1)
+**Total Tests**: 315 passing ✅ (aggiornato con Task 3.2)
 
 
 

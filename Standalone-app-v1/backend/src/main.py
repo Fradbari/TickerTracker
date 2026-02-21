@@ -17,6 +17,7 @@ from src.market_data.api import routes as market_data_routes
 from src.shared.infra.config import get_settings
 
 from src.shared.infra.security_middleware import setup_security_middleware
+from src.infra.security.rate_limit import setup_rate_limiter
 
 # APScheduler integration
 from src.infra.scheduler import scheduler as app_scheduler
@@ -32,7 +33,10 @@ app = FastAPI(
     debug=settings.DEBUG,
 )
 
-# Setup security middleware
+# Setup slowapi rate limiter (BEFORE include_router so state is ready)
+setup_rate_limiter(app)
+
+# Setup security middleware (adds SecurityMiddleware as outermost layer)
 setup_security_middleware(app)
 
 # Register routers

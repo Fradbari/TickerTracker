@@ -1,0 +1,130 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend
+configfile: pyproject.toml
+plugins: anyio-4.12.1, Faker-22.0.0, asyncio-0.23.3, cov-4.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 46 items
+
+tests/unit/shared/test_lineage.py::TestDataSourceFromLegacy::test_data_source_from_legacy_yahoo PASSED [  2%]
+tests/unit/shared/test_lineage.py::TestDataSourceFromLegacy::test_data_source_from_legacy_yahoo_finance PASSED [  4%]
+tests/unit/shared/test_lineage.py::TestDataSourceFromLegacy::test_data_source_from_legacy_manual PASSED [  6%]
+tests/unit/shared/test_lineage.py::TestDataSourceFromLegacy::test_data_source_from_legacy_manual_entry PASSED [  8%]
+tests/unit/shared/test_lineage.py::TestDataSourceFromLegacy::test_data_source_from_legacy_finnhub PASSED [ 10%]
+tests/unit/shared/test_lineage.py::TestDataSourceFromLegacy::test_data_source_unknown_defaults_to_yahoo PASSED [ 13%]
+tests/unit/shared/test_lineage.py::TestDataSourceFromLegacy::test_data_source_from_legacy_case_insensitive PASSED [ 15%]
+tests/unit/shared/test_lineage.py::TestDataSourceFromLegacy::test_data_source_str_mixin PASSED [ 17%]
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_fresh_data PASSED [ 19%]
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_stale_data PASSED [ 21%]
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_missing_volume PASSED [ 23%]
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_missing_ohlc PASSED [ 26%]
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_no_source_ts PASSED [ 28%]
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_clamped_to_one PASSED [ 30%]
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_returns_decimal PASSED [ 32%]
+tests/unit/shared/test_lineage.py::TestMarketDataInheritsLineage::test_market_data_inherits_mixin PASSED [ 34%]
+tests/unit/shared/test_lineage.py::TestMarketDataInheritsLineage::test_lineage_mixin_fields_exist PASSED [ 36%]
+tests/unit/shared/test_lineage.py::TestMarketDataInheritsLineage::test_market_data_does_not_have_ingested_at PASSED [ 39%]
+tests/unit/shared/test_lineage.py::TestMarketDataInheritsLineage::test_market_data_has_source_timestamp PASSED [ 41%]
+tests/unit/shared/test_lineage.py::TestMarketDataInheritsLineage::test_market_data_has_compute_quality_score PASSED [ 43%]
+tests/unit/market_data/test_quality_monitor.py::TestRulePositivePrices::test_pass_all_positive PASSED [ 45%]
+tests/unit/market_data/test_quality_monitor.py::TestRulePositivePrices::test_fail_zero_close PASSED [ 47%]
+tests/unit/market_data/test_quality_monitor.py::TestRulePositivePrices::test_fail_negative_open PASSED [ 50%]
+tests/unit/market_data/test_quality_monitor.py::TestRulePositivePrices::test_multiple_issues PASSED [ 52%]
+tests/unit/market_data/test_quality_monitor.py::TestRuleNoLargeGaps::test_pass_consecutive_days PASSED [ 54%]
+tests/unit/market_data/test_quality_monitor.py::TestRuleNoLargeGaps::test_fail_gap_of_8 PASSED [ 56%]
+tests/unit/market_data/test_quality_monitor.py::TestRuleNoLargeGaps::test_pass_weekend_gap_of_3 PASSED [ 58%]
+tests/unit/market_data/test_quality_monitor.py::TestRuleDailyChangeLt50::test_pass_normal_change PASSED [ 60%]
+tests/unit/market_data/test_quality_monitor.py::TestRuleDailyChangeLt50::test_fail_large_spike PASSED [ 63%]
+tests/unit/market_data/test_quality_monitor.py::TestRuleDailyChangeLt50::test_fail_large_drop PASSED [ 65%]
+tests/unit/market_data/test_quality_monitor.py::TestRulePositiveVolume::test_pass_positive_volume PASSED [ 67%]
+tests/unit/market_data/test_quality_monitor.py::TestRulePositiveVolume::test_fail_zero_volume PASSED [ 69%]
+tests/unit/market_data/test_quality_monitor.py::TestRulePositiveVolume::test_fail_negative_volume PASSED [ 71%]
+tests/unit/market_data/test_quality_monitor.py::test_quality_issue_str PASSED [ 73%]
+tests/unit/market_data/test_quality_monitor.py::test_quality_issue_detected_at_auto PASSED [ 76%]
+tests/unit/market_data/test_quality_monitor.py::test_run_checks_empty_data_returns_empty PASSED [ 78%]
+tests/unit/market_data/test_quality_monitor.py::test_run_checks_healthy_data PASSED [ 80%]
+tests/unit/market_data/test_quality_monitor.py::test_run_checks_detects_bad_data PASSED [ 82%]
+tests/unit/market_data/test_quality_monitor.py::test_run_checks_detects_gap PASSED [ 84%]
+tests/unit/market_data/test_quality_monitor.py::test_run_all_checks_no_tickers PASSED [ 86%]
+tests/unit/market_data/test_quality_monitor.py::test_run_all_checks_with_multiple_tickers PASSED [ 89%]
+tests/unit/market_data/test_quality_monitor.py::test_run_all_checks_includes_issues PASSED [ 91%]
+tests/unit/market_data/test_quality_monitor.py::test_daily_quality_check_job PASSED [ 93%]
+tests/unit/market_data/test_quality_monitor.py::test_default_rules_count PASSED [ 95%]
+tests/unit/market_data/test_quality_monitor.py::test_default_rules_names PASSED [ 97%]
+tests/unit/market_data/test_quality_monitor.py::test_default_rules_has_critical PASSED [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\pydantic\_internal\_config.py:295
+.venv\Lib\site-packages\pydantic\_internal\_config.py:295
+.venv\Lib\site-packages\pydantic\_internal\_config.py:295
+.venv\Lib\site-packages\pydantic\_internal\_config.py:295
+.venv\Lib\site-packages\pydantic\_internal\_config.py:295
+.venv\Lib\site-packages\pydantic\_internal\_config.py:295
+  C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend\.venv\Lib\site-packages\pydantic\_internal\_config.py:295: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.10/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_fresh_data
+  C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend\tests\unit\shared\test_lineage.py:86: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    source_ts = datetime.utcnow()
+
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_fresh_data
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_stale_data
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_missing_volume
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_missing_volume
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_missing_ohlc
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_clamped_to_one
+  C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend\src\shared\domain\lineage.py:195: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    delta = datetime.utcnow() - source_ts.replace(tzinfo=None)
+
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_stale_data
+  C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend\tests\unit\shared\test_lineage.py:99: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    source_ts = datetime.utcnow() - timedelta(days=30)
+
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_missing_volume
+  C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend\tests\unit\shared\test_lineage.py:113: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    source_ts = datetime.utcnow()  # Fresh data
+
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_missing_ohlc
+  C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend\tests\unit\shared\test_lineage.py:133: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    source_ts = datetime.utcnow()
+
+tests/unit/shared/test_lineage.py::TestComputeQualityScore::test_compute_quality_score_clamped_to_one
+  C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend\tests\unit\shared\test_lineage.py:158: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    source_ts=datetime.utcnow(),
+
+tests/unit/market_data/test_quality_monitor.py::test_quality_issue_str
+tests/unit/market_data/test_quality_monitor.py::test_quality_issue_detected_at_auto
+tests/unit/market_data/test_quality_monitor.py::test_run_checks_detects_bad_data
+tests/unit/market_data/test_quality_monitor.py::test_run_checks_detects_gap
+tests/unit/market_data/test_quality_monitor.py::test_run_all_checks_includes_issues
+  <string>:7: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/unit/market_data/test_quality_monitor.py::test_quality_issue_detected_at_auto
+  C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend\tests\unit\market_data\test_quality_monitor.py:279: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    before = datetime.utcnow()
+
+tests/unit/market_data/test_quality_monitor.py::test_quality_issue_detected_at_auto
+  C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend\tests\unit\market_data\test_quality_monitor.py:281: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    after = datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform win32, python 3.12.3-final-0 -----------
+Name                                              Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------------------
+src\market_data\domain\__init__.py                    4      0   100%
+src\market_data\domain\entities.py                   17      0   100%
+src\market_data\domain\market_data.py                28      5    82%   180, 185, 190-192
+src\market_data\domain\providers.py                  75     17    77%   173, 200, 220, 242, 253, 264, 280-282, 289-290, 297-302
+src\shared\domain\__init__.py                         3      0   100%
+src\shared\domain\lineage.py                         37      1    97%   199
+src\shared\domain\user.py                            30      0   100%
+src\shared\domain\value_objects\__init__.py           4      4     0%   3-7
+src\shared\domain\value_objects\money.py             52     52     0%   1-189
+src\shared\domain\value_objects\percentage.py        46     46     0%   1-176
+src\shared\domain\value_objects\price_target.py      65     65     0%   1-224
+-------------------------------------------------------------------------------
+TOTAL                                               361    190    47%
+
+======================= 46 passed, 24 warnings in 3.99s =======================

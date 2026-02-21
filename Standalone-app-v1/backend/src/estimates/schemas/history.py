@@ -83,21 +83,21 @@ class EstimateSnapshot(BaseModel):
     status: str = Field(..., description="Status at this point in time")
     
     # Prices (using Decimal for financial precision)
-    start_price: Decimal = Field(..., description="Entry price", decimal_places=4)
-    target_price: Decimal = Field(..., description="Target profit price", decimal_places=4)
-    stop_loss_price: Decimal = Field(..., description="Stop loss price", decimal_places=4)
+    start_price: Decimal = Field(..., description="Entry price")
+    target_price: Decimal = Field(..., description="Target profit price")
+    stop_loss_price: Decimal = Field(..., description="Stop loss price")
     
     # Percentages
-    target_profit_percent: Decimal = Field(..., description="Target profit %", decimal_places=4)
-    stop_loss_percent: Decimal = Field(..., description="Stop loss %", decimal_places=4)
+    target_profit_percent: Decimal = Field(..., description="Target profit %")
+    stop_loss_percent: Decimal = Field(..., description="Stop loss %")
     
     # Exit information
-    exit_price: Optional[Decimal] = Field(None, description="Exit price if closed", decimal_places=4)
-    realized_pnl: Optional[Decimal] = Field(None, description="Realized PnL if closed", decimal_places=4)
+    exit_price: Optional[Decimal] = Field(None, description="Exit price if closed")
+    realized_pnl: Optional[Decimal] = Field(None, description="Realized PnL if closed")
     
     # AI metadata
     ai_model: Optional[str] = Field(None, description="AI model used for estimate")
-    ai_confidence: Optional[Decimal] = Field(None, description="AI confidence score", decimal_places=2)
+    ai_confidence: Optional[Decimal] = Field(None, description="AI confidence score")
     ai_reasoning: Optional[str] = Field(None, description="AI reasoning/explanation")
     
     # Timestamps

@@ -483,42 +483,41 @@ ID: TASK 3.5
 Area: infra
 Fase: Fase 2
 Dipendenze: TASK 2.20
+Status: ✅ COMPLETATO
 
 ## TASK 3.5: Setup Structured Logging con Correlation ID
 
 **Descrizione:** Configurare logging strutturato JSON con correlation ID per tracing.
 
-**Microstep:**
+**Implementazione completata:**
 
-1\. Installare dipendenza `structlog`
+- `src/infra/logging/config.py` — modulo principale con:
+  - `correlation_id: ContextVar[str]` — ContextVar con default `""`
+  - `add_correlation_id(logger, method, event_dict)` — processor custom structlog
+  - `configure_logging(log_level="INFO") -> None` — configura structlog con 9 processors (JSON output), guard `_configured` per idempotenza
+  - `CorrelationIDMiddleware(BaseHTTPMiddleware)` — legge `X-Correlation-ID` o genera UUID4, imposta ContextVar, propaga header nella response
+- `src/infra/logging/__init__.py` — esporta `configure_logging`, `CorrelationIDMiddleware`, `correlation_id`, `add_correlation_id`
+- `src/main.py` — `configure_logging(log_level=settings.LOG_LEVEL)` chiamata prima di creare `app`; `app.add_middleware(CorrelationIDMiddleware)` aggiunto per ULTIMO (outermost)
+- `src/infra/security/encryption.py` — migrato da `logging.getLogger` a `structlog.get_logger`, `logger.error` → `_logger.warning`
 
-2\. Creare file `backend/src/infra/logging/config.py`
+**File modificati:**
+- `src/infra/logging/config.py` (NUOVO)
+- `src/infra/logging/__init__.py` (aggiornato export)
+- `src/main.py` (aggiornato: configure_logging + CorrelationIDMiddleware)
+- `src/infra/security/encryption.py` (migrato a structlog)
+- `tests/unit/infra/test_logging.py` (NUOVO — 18 test)
 
-3\. Configurare structlog con processors: add_log_level, TimeStamper(ISO), JSONRenderer
-
-4\. Creare ContextVar `correlation_id` per request tracing
-
-5\. Creare middleware che:
-
-- Legge header `X-Correlation-ID` o genera nuovo UUID
-
-- Imposta ContextVar
-
-- Aggiunge correlation_id alla response
-
-6\. Creare processor structlog che aggiunge correlation_id a ogni log
-
-7\. Configurare livelli log da Settings (DEBUG in dev, INFO in prod)
+**Test:** 18/18 ✅ | Suite completa: 432/432 ✅
 
 **Acceptance Criteria:**
 
-- [ ] Tutti i log sono JSON
+- [x] Tutti i log sono JSON
 
-- [ ] Correlation ID presente in ogni log entry
+- [x] Correlation ID presente in ogni log entry (via ContextVar processor)
 
-- [ ] Correlation ID propagato in response header
+- [x] Correlation ID propagato in response header (`X-Correlation-ID`)
 
-- [ ] Livello log configurabile per ambiente
+- [x] Livello log configurabile per ambiente (`LOG_LEVEL` da Settings)
 
 ---
 

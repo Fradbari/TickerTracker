@@ -18,12 +18,17 @@ from src.shared.infra.config import get_settings
 
 from src.shared.infra.security_middleware import setup_security_middleware
 from src.infra.security.rate_limit import setup_rate_limiter
+from src.infra.logging.config import configure_logging, CorrelationIDMiddleware
 
 # APScheduler integration
 from src.infra.scheduler import scheduler as app_scheduler
 
 # Get application settings
 settings = get_settings()
+
+# Configure structured JSON logging BEFORE creating the app so that all
+# subsequent log calls (including FastAPI startup) are formatted correctly.
+configure_logging(log_level=settings.LOG_LEVEL)
 
 # Create FastAPI application
 app = FastAPI(
@@ -38,6 +43,10 @@ setup_rate_limiter(app)
 
 # Setup security middleware (adds SecurityMiddleware as outermost layer)
 setup_security_middleware(app)
+
+# Add CorrelationIDMiddleware LAST so Starlette places it outermost:
+# execution order → CorrelationID → Security → RequestContext → SlowAPI → app
+app.add_middleware(CorrelationIDMiddleware)
 
 # Register routers
 app.include_router(health_routes.router)

@@ -61,15 +61,15 @@ Notes
 from __future__ import annotations
 
 import base64
-import logging
 from typing import Any, Optional
 
+import structlog
 from cryptography.fernet import Fernet, InvalidToken
 from sqlalchemy import String
 from sqlalchemy.engine import Dialect
 from sqlalchemy.types import TypeDecorator
 
-logger = logging.getLogger(__name__)
+_logger = structlog.get_logger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -187,9 +187,10 @@ class EncryptedString(TypeDecorator):
         try:
             plaintext: bytes = fernet.decrypt(value.encode("utf-8"))
         except InvalidToken as exc:
-            logger.error(
+            _logger.warning(
                 "Failed to decrypt database value — possible key mismatch or "
-                "data corruption.  Returning None to avoid crashing the request."
+                "data corruption.",
+                exc_info=True,
             )
             raise DecryptionError(
                 "Ciphertext is invalid or has been tampered with. "

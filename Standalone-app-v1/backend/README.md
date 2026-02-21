@@ -675,11 +675,13 @@ backend/
 │   │   ├── api/          # API layer
 │   │   │   └── health_routes.py       # ✅ [1.7] Health Check Endpoints
 │   │   ├── schemas/      # Modelli Pydantic condivisi
-│   │   │   └── api_response.py     # ✅ [1.2] Risposta API standardizzata
+│   │   │   ├── api_response.py     # ✅ [1.2] Risposta API standardizzata
+│   │   │   ├── pagination.py
+│   │   │   └── validators.py       # ✅ [3.3] Input validators (ticker, text, price, percentage, date range)
 │   │   └── services/     # Servizi condivisi
 │   └── main.py           # ✅ [1.7] Entry point FastAPI
 ├── tests/                # Test
-│   ├── unit/             # Unit tests
+│   │   ├── unit/             # Unit tests
 │   │   ├── infra/
 │   │   │   ├── test_security_middleware.py # ✅ 29 tests ✓ [3.1]
 │   │   │   └── test_rate_limit.py          # ✅ 33 tests ✓ [3.2]
@@ -689,7 +691,8 @@ backend/
 │   │       │   ├── test_percentage.py      # ✅ 39 tests ✓
 │   │       │   └── test_price_target.py    # ✅ 41 tests ✓
 │   │       ├── test_config.py              # ✅ 27 tests ✓
-│   │       └── test_middleware.py          # ✅ 16 tests ✓
+│   │       ├── test_middleware.py          # ✅ 16 tests ✓
+│   │       └── test_validators.py          # ✅ 63 tests ✓ [3.3]
 │   ├── integration/      # Integration tests
 │   └── e2e/              # End-to-end tests
 ├── alembic/              # Migrazioni database
@@ -743,14 +746,15 @@ backend/
 | 2.18 | Market Data Providers | ✅ COMPLETATO | 5 ✓ | Yahoo/Fake Providers + Interface |
 | 2.19 | **Caching & Resiliency** | ✅ **COMPLETATO** | **✓** | **LRU Cache + Exponential Backoff** |
 
-### Phase 3: Security & Observability (2/11 tasks - 18%)
+### Phase 3: Security & Observability (3/11 tasks - 27%)
 
 | Task | Descrizione | Status | Tests | Implementation |
 |------|-----------|--------|-------|----------------|
 | 3.1 | **Security Middleware Avanzato** | ✅ **COMPLETATO** | **29 ✓** | **API Key auth, CSP, HSTS condizionale, request logging structlog** |
 | 3.2 | **Rate Limiting** | ✅ **COMPLETATO** | **33 ✓** | **slowapi + Redis, per-endpoint limits, IP whitelist, Retry-After headers** |
+| 3.3 | **Input Validation Avanzata** | ✅ **COMPLETATO** | **63 ✓** | **sanitize_ticker, sanitize_text, validate_price, validate_percentage, validate_date_range; applicati a estimates/filters schemas** |
 
-**Total Tests**: 315 passing ✅ (aggiornato con Task 3.2)
+**Total Tests**: 378 passing ✅ (aggiornato con Task 3.3)
 
 
 

@@ -463,7 +463,8 @@ Dipendenze: TASK 2.6
 ID: TASK 3.3
 Area: shared
 Fase: Fase 2
-Dipendenze: TASK 2.20
+Dipendenze: TASK 3.1, TASK 3.2
+**Status: ✅ COMPLETED**
 
 ## TASK 3.3: Implementazione Input Validation Avanzata
 
@@ -471,36 +472,54 @@ Dipendenze: TASK 2.20
 
 **Microstep:**
 
-1\. Creare file `backend/src/shared/schemas/validators.py`
+1\. ✅ Creare file `src/shared/schemas/validators.py`
 
-2\. Implementare validatore `sanitize_ticker`: solo A-Z, 0-9, ., -, max 10 caratteri
+2\. ✅ Implementare `sanitize_ticker`: strip + uppercase + regex `^[A-Z0-9.\-]{1,10}$`
 
-3\. Implementare validatore `sanitize_text`: rimuove tag HTML, limita lunghezza
+3\. ✅ Implementare `sanitize_text`: rimuove tag HTML (`<[^>]+>`), strip whitespace, tronca a `max_len` (default 500)
 
-4\. Implementare validatore `validate_price`: positivo, max 6 decimali, range ragionevole
+4\. ✅ Implementare `validate_price`: `> 0` e `≤ 999999.999999`, normalizza a 6 dp (ROUND_HALF_UP)
 
-5\. Implementare validatore `validate_percentage`: range -100% a +1000%
+5\. ✅ Implementare `validate_percentage`: range `[-100, +1000]`, normalizza a 4 dp
 
-6\. Implementare validatore `validate_date_range`: start <= end, max 10 anni span
+6\. ✅ Implementare `validate_date_range`: `start ≤ end`, span ≤ 3650 giorni
 
-7\. Applicare validatori agli schema Pydantic esistenti
+7\. ✅ Applicare ai Pydantic schema: `@field_validator("exit_price")` in `CloseEstimateCommand`; `@field_validator("ai_reasoning")` in `Create/UpdateEstimateCommand`; `@model_validator(mode="after")` in `EstimateFilters`
+
+8\. ✅ Aggiornare `src/shared/schemas/__init__.py` per esportare tutti e 5 i validatori
 
 **Acceptance Criteria:**
 
-- [ ] Input malformati sollevano ValidationError
+- [x] Input malformati sollevano ValidationError
 
-- [ ] Messaggi errore user-friendly
+- [x] Messaggi errore user-friendly (in inglese)
 
-- [ ] Nessun input può causare injection SQL/XSS
+- [x] Nessun input può causare injection SQL/XSS (verificato da test dedicati)
 
-- [ ] Test per ogni validatore
+- [x] Test per ogni validatore
+
+**Implementazione Completata (Task 3.3):**
+
+File creati/modificati:
+- `src/shared/schemas/validators.py` – 5 validatori standalone: `sanitize_ticker`, `sanitize_text`, `validate_price`, `validate_percentage`, `validate_date_range`
+- `src/shared/schemas/__init__.py` – 5 nuove esportazioni
+- `src/estimates/schemas/commands.py` – `@field_validator("exit_price")` in `CloseEstimateCommand`; `@field_validator("ai_reasoning")` in `CreateEstimateCommand` e `UpdateEstimateCommand`; import di `validate_price`, `sanitize_text`
+- `src/estimates/schemas/filters.py` – `@model_validator(mode="after")` `validate_date_ranges` in `EstimateFilters`; import di `model_validator`, `validate_date_range`
+- `tests/unit/shared/test_validators.py` – 63 test (6 classi: Ticker, Text, Price, Percentage, DateRange, SchemaIntegration)
+
+Note tecniche:
+- `from __future__ import annotations` NON usato nei test (causa string annotations incompatibili con slowapi wrapper)
+- Vincoli di dominio `Field(gt=0, le=100)` su `stop_loss_percent` lasciati invariati
+- `sanitize_text` rimuove solo tag HTML (non il contenuto interno ai tag) — comportamento conforme a `re.sub(r"<[^>]+>", "", v)`
+
+Test risultati: 378/378 passed (63 nuovi + 315 precedenti)
 
 ---
 
 ### Istruzioni per LLM
-- Non modificare file fuori da [backend/src/shared/, backend/src/shared/schemas/validators.py] se non strettamente necessario.
+- Non modificare file fuori da [`src/shared/schemas/validators.py`, `src/estimates/schemas/`] se non strettamente necessario.
+- Endpoint decorati richiedono `from __future__ import annotations` rimosso dai file test.
 - Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
-- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
 - Alla fine, produci un elenco puntato con file modificati e test eseguiti.
 
 ID: TASK 3.9

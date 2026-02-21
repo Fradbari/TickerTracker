@@ -9,6 +9,7 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, Field, field_validator
+from src.shared.schemas.validators import sanitize_text, validate_price
 
 
 class CreateEstimateCommand(BaseModel):
@@ -65,6 +66,14 @@ class CreateEstimateCommand(BaseModel):
         if v.upper() not in ("LONG", "SHORT"):
             raise ValueError("Direction must be 'LONG' or 'SHORT'")
         return v.upper()
+
+    @field_validator("ai_reasoning")
+    @classmethod
+    def validate_ai_reasoning(cls, v: Optional[str]) -> Optional[str]:
+        """Strip HTML and trim ai_reasoning to 2000 characters."""
+        if v is None:
+            return v
+        return sanitize_text(v, max_len=2000)
     
     class Config:
         json_schema_extra = {
@@ -138,6 +147,14 @@ class UpdateEstimateCommand(BaseModel):
         if v is not None and v <= 0:
             raise ValueError("Percentages must be positive")
         return v
+
+    @field_validator("ai_reasoning")
+    @classmethod
+    def validate_ai_reasoning(cls, v: Optional[str]) -> Optional[str]:
+        """Strip HTML and trim ai_reasoning to 2000 characters."""
+        if v is None:
+            return v
+        return sanitize_text(v, max_len=2000)
     
     class Config:
         json_schema_extra = {
@@ -170,7 +187,13 @@ class CloseEstimateCommand(BaseModel):
     exit_price: Decimal = Field(..., gt=0, description="Actual exit price")
     reason: str = Field(..., description="Reason for closing")
     user_id: Optional[UUID] = Field(default=None, description="User closing the estimate")
-    
+
+    @field_validator("exit_price")
+    @classmethod
+    def validate_exit_price(cls, v: Decimal) -> Decimal:
+        """Validate exit_price is a positive, in-range price value."""
+        return validate_price(v)
+
     @field_validator("reason")
     @classmethod
     def validate_reason(cls, v: str) -> str:

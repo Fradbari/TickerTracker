@@ -7,7 +7,8 @@ Provides type-safe filtering options for EstimateRepository.
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+from src.shared.schemas.validators import validate_date_range
 
 
 class EstimateFilters(BaseModel):
@@ -44,7 +45,16 @@ class EstimateFilters(BaseModel):
     max_confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Max AI confidence")
     
     include_deleted: bool = Field(default=False, description="Include soft-deleted records")
-    
+
+    @model_validator(mode="after")
+    def validate_date_ranges(self) -> "EstimateFilters":
+        """Validate that date ranges are logically ordered and within 10 years."""
+        if self.created_after is not None and self.created_before is not None:
+            validate_date_range(self.created_after, self.created_before)
+        if self.closed_after is not None and self.closed_before is not None:
+            validate_date_range(self.closed_after, self.closed_before)
+        return self
+
     class Config:
         json_schema_extra = {
             "example": {

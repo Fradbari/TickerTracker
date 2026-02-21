@@ -120,7 +120,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 3.5** - Setup Structured Logging con Correlation ID
 - [x] **TASK 3.6** - Implementazione Metriche Prometheus
 - [x] **TASK 3.7** - Implementazione Health Checks Completi
-- [ ] **TASK 3.8** - Implementazione Data Quality Monitor
+- [x] **TASK 3.8** - Implementazione Data Quality Monitor
 - [ ] **TASK 3.9** - Implementazione Data Lineage Tracking
 - [ ] **TASK 3.10** - Setup OpenTelemetry Tracing *(da definire)*
 - [ ] **TASK 3.11** - Implementazione Circuit Breaker *(da definire)*

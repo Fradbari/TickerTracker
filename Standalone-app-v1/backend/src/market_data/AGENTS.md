@@ -423,13 +423,48 @@ Priorità: Fase 2 (opzionale per ambiente locale single‑user; implementare sol
 
 **Acceptance Criteria:**
 
-- [ ] Regole coprono scenari comuni di data corruption
+- [x] Regole coprono scenari comuni di data corruption
+- [x] Issue loggati con dettagli sufficienti per debug
+- [x] Alert per issue severity=critical
+- [x] Report giornaliero generato
 
-- [ ] Issue loggati con dettagli sufficienti per debug
+**Stato:** ✅ COMPLETATO (2026-02-21)
 
-- [ ] Alert per issue severity=critical
+**Note Implementazione:**
 
-- [ ] Report giornaliero generato
+File creati/modificati:
+1. **src/market_data/services/quality_monitor.py** (324 righe)
+   - `QualityRule` dataclass: `name`, `description`, `check_fn`, `severity`
+   - `QualityIssue` dataclass: `ticker`, `rule_name`, `severity`, `message`, `detected_at` (auto-UTC)
+   - `__str__` su QualityIssue: `[SEVERITY] ticker / rule_name: message`
+   - 4 regole di default in `DEFAULT_RULES`:
+     - `positive_prices` (critical) — open/high/low/close > 0
+     - `no_large_gaps` (warning) — gap ≤ 5 giorni calendario tra righe consecutive
+     - `daily_change_lt50` (warning) — variazione close-to-close ≤ ±50%
+     - `positive_volume` (warning) — volume > 0
+   - `DataQualityMonitor`:
+     - Costruttore: `rules`, `lookback_days=60`, `session_factory` (opzionale, default `AsyncSessionLocal`)
+     - `run_checks(ticker)` — carica 60gg di history dal DB e applica tutte le regole
+     - `run_all_checks()` — recupera tutti i simboli dal DB, esegue run_checks in parallelo con asyncio.gather
+     - Logging structlog: WARNING per severity=warning, ERROR+alert=True per critical
+     - `_log_summary()` — report giornaliero con ticker_with_issues, critical_count, warning_count
+
+2. **src/market_data/services/\_\_init\_\_.py**
+   - Aggiunto export: `DataQualityMonitor`, `QualityIssue`, `QualityRule`
+
+3. **src/infra/scheduler/jobs.py**
+   - Aggiunto `daily_quality_check()` job asincrono che istanzia `DataQualityMonitor()` e chiama `run_all_checks()`
+
+4. **src/infra/scheduler/scheduler.py**
+   - Registrato job `daily_quality_check` con `CronTrigger(hour=6, minute=0, timezone=UTC)`
+
+5. **tests/unit/market_data/test_quality_monitor.py** (26 test — tutti PASSED)
+   - 4 classi per test delle regole (positive_prices, no_large_gaps, daily_change_lt50, positive_volume)
+   - Test DataQualityMonitor: run_checks con dati OK/KO/vuoti, run_all_checks multi-ticker
+   - Test job scheduler (daily_quality_check)
+   - Test completezza DEFAULT_RULES
+
+Test results: **495/495 PASSED** (26 nuovi test aggiunti, zero regressioni, +0 failed)
 
 ---
 

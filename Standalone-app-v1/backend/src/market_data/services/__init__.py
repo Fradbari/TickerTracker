@@ -8,6 +8,7 @@ from .provider_implementations import (
     AlphaVantageMarketDataProvider,
     PolygonMarketDataProvider,
 )
+from .quality_monitor import DataQualityMonitor, QualityIssue, QualityRule
 
 __all__ = [
     "MarketDataService",
@@ -16,4 +17,7 @@ __all__ = [
     "FinnhubMarketDataProvider",
     "AlphaVantageMarketDataProvider",
     "PolygonMarketDataProvider",
+    "DataQualityMonitor",
+    "QualityIssue",
+    "QualityRule",
 ]

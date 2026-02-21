@@ -146,3 +146,40 @@ async def check_targets():
     """
     logger.debug("check_targets job executed (placeholder)")
     # TODO: Implement target/stop checking logic
+
+
+async def daily_quality_check():
+    """
+    Run data-quality checks for all market-data tickers.
+
+    Instantiates DataQualityMonitor with default rules and calls
+    run_all_checks(), which loads the last 60 days of OHLCV data per
+    ticker and applies all registered QualityRules.
+
+    Issues are logged automatically by the monitor:
+    - WARNING for severity='warning' issues
+    - ERROR  for severity='critical' issues (includes alert flag)
+
+    Runs daily at 06:00 UTC (after European pre-market opens).
+    """
+    try:
+        from src.market_data.services.quality_monitor import DataQualityMonitor
+
+        monitor = DataQualityMonitor()
+        report = await monitor.run_all_checks()
+
+        total_issues = sum(len(v) for v in report.values())
+        critical = sum(
+            1
+            for issues in report.values()
+            for issue in issues
+            if issue.severity == "critical"
+        )
+        logger.info(
+            "[daily_quality_check] completed: %d tickers, %d issues (%d critical)",
+            len(report),
+            total_issues,
+            critical,
+        )
+    except Exception as exc:
+        logger.exception("[daily_quality_check] unexpected error: %s", exc)

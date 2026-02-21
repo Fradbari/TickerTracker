@@ -765,8 +765,9 @@ backend/
 | 3.5 | **Structured Logging + Correlation ID** | ✅ **COMPLETATO** | **18 ✓** | **configure_logging (JSON structlog), CorrelationIDMiddleware, ContextVar, add_correlation_id processor** |
 | 3.6 | **Metriche Prometheus** | ✅ **COMPLETATO** | **24 ✓** | **GET /metrics, Counter/Gauge/Histogram business+technical metrics, @track_duration decorator, /metrics in API_KEY_EXEMPT_PATHS** |
 | 3.7 | **Health Checks Completi** | ✅ **COMPLETATO** | **13 ✓** | **HealthService (DB/Redis/Yahoo/Drive), GET /health + /health/ready + /health/live, JSONResponse, 503 on UNHEALTHY** |
+| 3.8 | **Data Quality Monitor** | ✅ **COMPLETATO** | **26 ✓** | **DataQualityMonitor (positive_prices/no_large_gaps/daily_change_lt50/positive_volume), run_checks/run_all_checks, daily job 06:00 UTC, structlog alert su critical** |
 
-**Total Tests**: 469 passing ✅ (aggiornato con Task 3.7)
+**Total Tests**: 495 passing ✅ (aggiornato con Task 3.8)
 
 
 

@@ -94,7 +94,15 @@ def create_scheduler():
         id="check_targets",
         replace_existing=True
     )
-    
+
+    # Job: daily_quality_check (ogni giorno alle 06:00 UTC)
+    scheduler.add_job(
+        job_wrapper(jobs.daily_quality_check, "daily_quality_check"),
+        CronTrigger(hour=6, minute=0, timezone=UTC),
+        id="daily_quality_check",
+        replace_existing=True,
+    )
+
     return scheduler
 
 # FastAPI integration

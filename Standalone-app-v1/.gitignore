@@ -38,6 +38,8 @@ build/
 # Test coverage
 .coverage
 htmlcov/
+backend/.env
+backend/ticker-tracker-480915-d0dd49e8dc9c.json
 .pytest_cache/
 
 # Node modules

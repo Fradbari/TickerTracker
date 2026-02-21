@@ -38,6 +38,8 @@ env/
 # Testing
 .pytest_cache/
 .coverage
+.env
+ticker-tracker-480915-d0dd49e8dc9c.json
 .coverage.*
 htmlcov/
 .tox/

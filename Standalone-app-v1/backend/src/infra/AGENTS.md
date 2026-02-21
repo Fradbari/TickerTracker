@@ -335,13 +335,28 @@ Priorità: Fase 2 (necessario solo in scenari multi‑utente / produzione, NON b
 
 **Acceptance Criteria:**
 
-- [ ] Headers presenti in tutte le response
+- [x] Headers presenti in tutte le response
 
-- [ ] API key validata se configurata
+- [x] API key validata se configurata
 
-- [ ] Logging strutturato per ogni request
+- [x] Logging strutturato per ogni request
 
-- [ ] Middleware non rallenta significativamente (<1ms overhead)
+- [x] Middleware non rallenta significativamente (<1ms overhead)
+
+**Implementazione Completata (Task 3.1):**
+
+File creati/modificati:
+- `src/infra/security/middleware.py` – `SecurityMiddleware(BaseHTTPMiddleware)`:
+  headers statici + HSTS condizionale (HTTPS only) + CSP configurabile +
+  validazione `X-API-Key` con exempt paths + logging strutturato (structlog)
+- `src/infra/security/__init__.py` – esporta `SecurityMiddleware`, `register_security_middleware`
+- `src/shared/infra/config.py` – nuovi campi: `ENABLE_API_KEY_AUTH`, `API_KEY`,
+  `API_KEY_EXEMPT_PATHS`, `CSP_POLICY`, `REQUEST_LOG_ENABLED`
+- `src/shared/infra/security_middleware.py` – `setup_security_middleware` chiama
+  `register_security_middleware` come layer più esterno (ultimo registrato)
+- `tests/unit/infra/test_security_middleware.py` – 29 test, tutti verdi
+
+Test risultati: 310/310 passed (29 nuovi + 281 precedenti)
 
 ---
 

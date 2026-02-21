@@ -130,6 +130,36 @@ class Settings(BaseSettings):
         description="Additional CORS origins (comma-separated or list in env)",
     )
 
+    # ========== Security Middleware (Task 3.1) ==========
+    ENABLE_API_KEY_AUTH: bool = Field(
+        default=False,
+        description="Enable X-API-Key header validation (for multi-user/production only)",
+    )
+    API_KEY: SecretStr = Field(
+        default=SecretStr(""),
+        description="Required API key value when ENABLE_API_KEY_AUTH=true",
+    )
+    API_KEY_EXEMPT_PATHS: list[str] = Field(
+        default=["/health", "/health/ready", "/health/db", "/docs", "/openapi.json", "/redoc"],
+        description="Paths exempt from API key validation",
+    )
+    CSP_POLICY: str = Field(
+        default=(
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; "
+            "font-src 'self'; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'"
+        ),
+        description="Content-Security-Policy header value (empty string to disable)",
+    )
+    REQUEST_LOG_ENABLED: bool = Field(
+        default=True,
+        description="Enable structured per-request logging in SecurityMiddleware",
+    )
+
     # ========== Pydantic Configuration ==========
     model_config = SettingsConfigDict(
         env_file=".env",

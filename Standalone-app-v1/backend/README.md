@@ -225,15 +225,52 @@ spec:
 
 ## Security Features
 
-L'applicazione include security middleware di base:
+L'applicazione include un sistema di security middleware multi-livello:
 
-### Security Headers
+### Security Headers ✅ [1.7] + [3.1]
 
 Tutte le risposte HTTP includono header di sicurezza standard:
 - `X-Content-Type-Options: nosniff` - Previene MIME sniffing
 - `X-Frame-Options: DENY` - Previene clickjacking
 - `X-XSS-Protection: 1; mode=block` - Protezione XSS
-- `Strict-Transport-Security` - Enforce HTTPS in produzione
+- `Strict-Transport-Security` - Enforce HTTPS (solo su connessioni HTTPS)
+- `Content-Security-Policy` - Configurable CSP policy
+
+### API Key Authentication ✅ [3.1]
+
+Autenticazione via API Key opzionale (disabilitata in sviluppo locale).  
+Quando abilitata, ogni richiesta deve includere l'header `X-API-Key`.
+
+```env
+ENABLE_API_KEY_AUTH=true
+API_KEY=your-secret-api-key-here
+
+# Percorsi esenti da autenticazione (separati da virgola)
+API_KEY_EXEMPT_PATHS=/health,/health/ready,/health/db,/docs,/openapi.json,/redoc
+```
+
+La validazione usa `secrets.compare_digest` per resistere a timing attacks.
+
+### Content Security Policy ✅ [3.1]
+
+CSP policy configurabile tramite variabile d'ambiente:
+
+```env
+CSP_POLICY=default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'
+```
+
+Impostare `CSP_POLICY=` (vuoto) per disabilitare l'header.
+
+### Structured Request Logging ✅ [3.1]
+
+Ogni richiesta viene loggata via `structlog` con campi strutturati:
+- `method`, `path`, `status_code`, `duration_ms`
+- `client_ip` (con supporto `X-Forwarded-For` per proxy multipli)
+- `request_id` (per tracciamento distribuito)
+
+```env
+REQUEST_LOG_ENABLED=true   # Disabilitare in test per ridurre noise
+```
 
 ### CORS Configuration
 
@@ -256,6 +293,16 @@ Per disabilitare in sviluppo locale:
 ```env
 ENABLE_RATE_LIMIT=false
 ```
+
+### Middleware Execution Order
+
+I middleware vengono eseguiti nel seguente ordine (dal più esterno al più interno):
+
+```
+Request → SecurityMiddleware [3.1] → RateLimitMiddleware → CORSMiddleware → SecurityHeadersMiddleware → Routes
+```
+
+`SecurityMiddleware` è il middleware più esterno: valida l'API Key prima che qualsiasi altro middleware elabori la richiesta.
 
 ---
 
@@ -606,6 +653,7 @@ backend/
 │   │   │   ├── drive/
 │   │   │   ├── logging/
 │   │   │   ├── security/
+│   │   │   │   └── middleware.py      # ✅ [3.1] SecurityMiddleware (API key, CSP, request logging, 29 tests)
 │   │   │   └── yahoo/
 │   │   ├── api/          # API layer
 │   │   │   └── health_routes.py       # ✅ [1.7] Health Check Endpoints
@@ -615,6 +663,8 @@ backend/
 │   └── main.py           # ✅ [1.7] Entry point FastAPI
 ├── tests/                # Test
 │   ├── unit/             # Unit tests
+│   │   ├── infra/
+│   │   │   └── test_security_middleware.py # ✅ 29 tests ✓ [3.1]
 │   │   └── shared/
 │   │       ├── domain/
 │   │       │   ├── test_money.py           # ✅ 36 tests ✓
@@ -674,6 +724,14 @@ backend/
 | 2.16 | API Router Estimates | ✅ COMPLETATO | ✓ | 6 REST endpoints + OpenAPI |
 | 2.18 | Market Data Providers | ✅ COMPLETATO | 5 ✓ | Yahoo/Fake Providers + Interface |
 | 2.19 | **Caching & Resiliency** | ✅ **COMPLETATO** | **✓** | **LRU Cache + Exponential Backoff** |
+
+### Phase 3: Security & Observability (1/11 tasks - 9%)
+
+| Task | Descrizione | Status | Tests | Implementation |
+|------|-----------|--------|-------|----------------|
+| 3.1 | **Security Middleware Avanzato** | ✅ **COMPLETATO** | **29 ✓** | **API Key auth, CSP, HSTS condizionale, request logging structlog** |
+
+**Total Tests**: 310 passing ✅ (aggiornato con Task 3.1)
 
 
 

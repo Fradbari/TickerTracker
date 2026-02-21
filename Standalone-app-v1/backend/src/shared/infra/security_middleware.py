@@ -140,16 +140,22 @@ def setup_security_middleware(app: FastAPI) -> None:
     """Setup security middleware per l'applicazione FastAPI.
 
     Aggiunge in ordine:
-    1. SecurityHeadersMiddleware - Aggiunge security headers
+    1. SecurityHeadersMiddleware - Aggiunge security headers base
     2. CORS middleware - Configura CORS per il frontend
     3. RateLimitMiddleware - Rate limiting per IP (opzionale)
+    4. SecurityMiddleware (Task 3.1) - API key, CSP, HSTS condizionale, request logging
+
+    La registrazione è in ordine inverso rispetto all'esecuzione (Starlette wraps
+    in reverse): SecurityMiddleware viene aggiunta per ultima → diventa il layer
+    più esterno → si esegue PRIMA di tutti, garantendo che la validazione API key
+    avvenga prima di qualsiasi elaborazione della richiesta.
 
     Args:
         app: FastAPI application instance
     """
     settings = get_settings()
 
-    # 1. Security headers middleware
+    # 1. Security headers middleware (base, legacy – Task 1.7)
     app.add_middleware(SecurityHeadersMiddleware)
 
     # 2. CORS middleware
@@ -173,3 +179,10 @@ def setup_security_middleware(app: FastAPI) -> None:
             RateLimitMiddleware,
             requests_per_minute=settings.RATE_LIMIT_REQUESTS_PER_MINUTE,
         )
+
+    # 4. SecurityMiddleware (Task 3.1) – outermost layer
+    #    Registered last so it executes first on inbound requests.
+    #    Handles: API-key validation, CSP, conditional HSTS, request logging.
+    from src.infra.security.middleware import register_security_middleware  # noqa: PLC0415
+
+    register_security_middleware(app)

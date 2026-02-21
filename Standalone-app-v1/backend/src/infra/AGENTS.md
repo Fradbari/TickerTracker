@@ -590,6 +590,7 @@ ID: TASK 3.7
 Area: infra
 Fase: Fase 2
 Dipendenze: TASK 2.20
+Status: ✅ COMPLETATO
 
 ## TASK 3.7: Implementazione Health Checks Completi
 
@@ -597,7 +598,46 @@ Priorità: Fase 2 (opzionale per ambiente locale single‑user; implementare sol
 
 **Descrizione:** Creare endpoint health check per tutte le dipendenze.
 
-**Microstep:**
+**Implementazione completata:**
+
+- `src/infra/health/health_service.py` (NUOVO) — logica health check isolata dal layer HTTP:
+  - `ComponentHealth` — dataclass (name/status/latency_ms/message)
+  - `SystemHealth` — dataclass aggregato + property `is_ready`
+  - `HealthService.check_database()` — SELECT 1 su AsyncSessionLocal, timeout 3s, UNHEALTHY on fail
+  - `HealthService.check_redis()` — ping redis.asyncio, timeout 2s, DEGRADED on fail
+  - `HealthService.check_yahoo()` — AAPL fast_info via run_in_executor, timeout 5s, DEGRADED on fail/price=0
+  - `HealthService.check_drive()` — GoogleDriveClient.list_files, timeout 5s, DEGRADED if not conf. o errore
+  - `HealthService.check_all()` — asyncio.gather(return_exceptions=True) + aggregazione status
+- `src/infra/health/__init__.py` (NUOVO) — esporta HealthService, ComponentHealth, SystemHealth
+- `src/shared/api/health_routes.py` (RISCRITTO) — 3 endpoint JSONResponse:
+  - `GET /health` — full system check, 200/503
+  - `GET /health/ready` — DB-only readiness probe, 200/503
+  - `GET /health/live` — liveness probe, sempre 200, uptime
+
+**Regole status aggregato:**
+- DB UNHEALTHY → sistema UNHEALTHY
+- Qualsiasi non-DB degradato → sistema DEGRADED
+- Tutti HEALTHY → sistema HEALTHY
+
+**File modificati/creati:**
+- `src/infra/health/health_service.py` (NUOVO)
+- `src/infra/health/__init__.py` (NUOVO)
+- `src/shared/api/health_routes.py` (RISCRITTO)
+- `tests/unit/infra/test_health_service.py` (NUOVO — 13 test)
+- `tests/unit/shared/test_middleware.py` (aggiornato: 8 test allineati al nuovo formato risposta)
+
+**Test:** 13/13 ✅ | Suite completa: 469/469 ✅
+
+**Acceptance Criteria:**
+
+- [x] GET /health ritorna 503 se DB è down, 200 altrimenti
+- [x] GET /health/ready controlla solo DB (readiness probe)
+- [x] GET /health/live risponde sempre 200 (liveness probe)
+- [x] Checks eseguiti in parallelo con asyncio.gather
+- [x] Timeout per-componente configurati (3s DB, 2s Redis, 5s Yahoo/Drive)
+- [x] Drive check gracefully degraded se DRIVE_FOLDER_ID non configurato
+
+---
 
 1\. Creare file `backend/src/infra/health/health_service.py`
 

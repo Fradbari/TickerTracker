@@ -1,99 +1,122 @@
 """
-Health check endpoints for application monitoring and Docker health probes.
+Health check endpoints for application monitoring and Kubernetes probes (Task 3.7).
 
-Endpoints:
-- GET /health - Basic health check (always returns 200 OK)
-- GET /health/ready - Readiness check (all dependencies OK)
+Endpoints
+---------
+GET /health       Full system health — aggregates all component checks.
+                  HTTP 200 even if DEGRADED; HTTP 503 if UNHEALTHY.
+
+GET /health/ready Kubernetes readiness probe — verifies DB only.
+                  HTTP 200 if database is HEALTHY; HTTP 503 otherwise.
+
+GET /health/live  Kubernetes liveness probe — always HTTP 200.
+                  No external check: if this responds, the process is alive.
+
+Architecture
+------------
+Route handlers are thin: they delegate all check logic to
+``src.infra.health.health_service.HealthService``.  This keeps the router
+import-safe (no DB imports at module level) and the service fully unit-testable
+without an HTTP layer.
 """
 
-from typing import Any
-from uuid import uuid4
+import time
 
 from fastapi import APIRouter
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.responses import JSONResponse
 
-from src.shared.schemas.api_response import ApiResponse, success_response
+from src.infra.health.health_service import (
+    HealthService,
+    SystemHealth,
+)
 
-# Health check router
+# ---------------------------------------------------------------------------
+# Router — MUST stay here with this prefix; already registered in main.py.
+# ---------------------------------------------------------------------------
+
 router = APIRouter(prefix="/health", tags=["health"])
 
+# Capture process start time for the /health/live uptime field.
+_process_start: float = time.monotonic()
 
-@router.get("", response_model=ApiResponse[dict[str, str]])
-async def health_check() -> ApiResponse[dict[str, str]]:
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _system_health_to_dict(health: SystemHealth) -> dict:
+    """Convert SystemHealth (dataclass) to a plain JSON-serialisable dict."""
+    return {
+        "status": health.status,
+        "version": health.version,
+        "uptime_seconds": health.uptime_seconds,
+        "ready": health.is_ready,
+        "components": [
+            {
+                "name": c.name,
+                "status": c.status,
+                "latency_ms": c.latency_ms,
+                "message": c.message,
+            }
+            for c in health.components
+        ],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("")
+async def health_check() -> JSONResponse:
     """
-    Basic health check endpoint.
+    Full system health check.
 
-    Always returns 200 OK if the application is running.
-    Suitable for Docker HEALTHCHECK or load balancer probes.
+    Runs all component checks IN PARALLEL (database, Redis, Yahoo Finance,
+    Google Drive) and returns the aggregated result.
 
-    Returns:
-        ApiResponse: {success: true, data: {status: "ok"}}
+    HTTP 200 if status is HEALTHY or DEGRADED (system is functional).
+    HTTP 503 if status is UNHEALTHY (critical dependency is DOWN).
+
+    Exempt from API key authentication (see config.API_KEY_EXEMPT_PATHS).
     """
-    return success_response(data={"status": "ok"}, trace_id=str(uuid4()))
+    health = await HealthService().check_all()
+    http_status = 503 if health.status == "UNHEALTHY" else 200
+    return JSONResponse(content=_system_health_to_dict(health), status_code=http_status)
 
 
-@router.get("/ready", response_model=ApiResponse[dict[str, Any]])
-async def ready_check() -> ApiResponse[dict[str, Any]]:
+@router.get("/ready")
+async def ready_check() -> JSONResponse:
     """
-    Readiness check endpoint.
+    Kubernetes readiness probe.
 
-    Returns 200 OK when the application is ready to handle requests.
-    Should check all critical dependencies (database, cache, etc.).
-
-    Future: Add checks for cache, external APIs, etc.
-
-    Returns:
-        ApiResponse: {success: true, data: {status: "ready", checks: {...}}}
+    Verifies only the database (the single critical dependency).
+    HTTP 200 if HEALTHY; HTTP 503 otherwise.
     """
-    # TODO: Check database connection
-    # TODO: Check Redis connection
-    # TODO: Check external API connectivity
+    db_health = await HealthService().check_database()
+    is_ready = db_health.status == "HEALTHY"
+    payload: dict = {
+        "ready": is_ready,
+        "database": db_health.status,
+        "latency_ms": db_health.latency_ms,
+    }
+    if db_health.message:
+        payload["message"] = db_health.message
+    return JSONResponse(content=payload, status_code=200 if is_ready else 503)
 
-    return success_response(
-        data={
-            "status": "ready",
-            "checks": {
-                "database": "pending",
-                "cache": "pending",
-                "external_apis": "pending",
-            },
-        },
-        trace_id=str(uuid4()),
+
+@router.get("/live")
+async def liveness_check() -> JSONResponse:
+    """
+    Kubernetes liveness probe.
+
+    No external checks — if this endpoint responds the process is alive.
+    Always returns HTTP 200.
+    """
+    uptime = round(time.monotonic() - _process_start, 2)
+    return JSONResponse(
+        content={"alive": True, "uptime_seconds": uptime},
+        status_code=200,
     )
-
-
-# TODO: Implement database check when database is configured
-# For now, this is a placeholder that shows the pattern
-async def get_db_session() -> AsyncSession:
-    """Dependency to get database session.
-
-    TODO: Implement when database is configured in Phase 2.
-    """
-    # This will be implemented in Phase 2 when database is configured
-    raise NotImplementedError("Database not configured yet")
-
-
-# Uncomment this once database is configured in Phase 2
-# @router.get("/db", response_model=ApiResponse)
-# async def db_health_check(db: AsyncSession = Depends(get_db_session)) -> ApiResponse:
-#     """
-#     Database connectivity check.
-#
-#     Executes a simple SELECT 1 query to verify database is reachable.
-#     Returns 500 if database is unavailable.
-#
-#     Returns:
-#         ApiResponse: {status: "ok", database: "connected"}
-#
-#     Raises:
-#         HTTPException: 500 if database is unreachable
-#     """
-#     try:
-#         result = await db.execute(text("SELECT 1"))
-#         result.fetchone()
-#         return create_response(data={"status": "ok", "database": "connected"})
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=500,
-#             detail=f"Database connection failed: {str(e)}"
-#         )

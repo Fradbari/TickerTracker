@@ -112,15 +112,14 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [ ] **TASK 2.27** - Creazione API Router Analytics *(da definire)*
 - [ ] **TASK 2.28** - Implementazione AI Prompt Service *(da definire)*
 
-#### Sezione 3: Sicurezza & Observability (6/11)
+#### Sezione 3: Sicurezza & Observability (7/11)
 - [x] **TASK 3.1** - Implementazione Security Middleware
 - [x] **TASK 3.2** - Implementazione Rate Limiting
 - [x] **TASK 3.3** - Implementazione Input Validation Avanzata
 - [x] **TASK 3.4** - Implementazione Encryption at Rest
 - [x] **TASK 3.5** - Setup Structured Logging con Correlation ID
 - [x] **TASK 3.6** - Implementazione Metriche Prometheus
-- [ ] **TASK 3.6** - Implementazione Metriche Prometheus
-- [ ] **TASK 3.7** - Implementazione Health Checks Completi
+- [x] **TASK 3.7** - Implementazione Health Checks Completi
 - [ ] **TASK 3.8** - Implementazione Data Quality Monitor
 - [ ] **TASK 3.9** - Implementazione Data Lineage Tracking
 - [ ] **TASK 3.10** - Setup OpenTelemetry Tracing *(da definire)*

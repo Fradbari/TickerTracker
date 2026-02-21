@@ -10,6 +10,7 @@ Tests cover:
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from unittest.mock import AsyncMock, patch
 
 from src.shared.api.health_routes import router as health_router
 from src.shared.infra.security_middleware import (
@@ -169,69 +170,96 @@ class TestRateLimitMiddleware:
 
 
 class TestHealthCheckEndpoints:
-    """Test health check endpoints."""
+    """Test health check endpoints (updated for Task 3.7 JSONResponse format)."""
+
+    def _make_system_health_healthy(self):
+        from src.infra.health.health_service import ComponentHealth, SystemHealth
+        return SystemHealth(
+            status="HEALTHY",
+            version="3.0.0",
+            uptime_seconds=1.0,
+            components=[
+                ComponentHealth("database", "HEALTHY", 1.0),
+                ComponentHealth("redis", "HEALTHY", 1.0),
+                ComponentHealth("yahoo_finance", "HEALTHY", 1.0),
+                ComponentHealth("google_drive", "HEALTHY", 1.0),
+            ],
+        )
 
     def test_health_endpoint_returns_ok(self):
-        """Test /health endpoint returns OK status."""
+        """Test /health endpoint returns 200 status when healthy."""
         app = FastAPI()
         app.include_router(health_router)
 
-        client = TestClient(app)
-        response = client.get("/health")
+        health = self._make_system_health_healthy()
+        with patch(
+            "src.infra.health.health_service.HealthService.check_all",
+            AsyncMock(return_value=health),
+        ):
+            client = TestClient(app)
+            response = client.get("/health")
 
         assert response.status_code == 200
         data = response.json()
-        assert data["success"] is True
-        assert data["data"]["status"] == "ok"
+        assert data["status"] == "HEALTHY"
 
     def test_health_endpoint_response_structure(self):
-        """Test /health endpoint response follows ApiResponse structure."""
+        """Test /health endpoint response has required fields."""
         app = FastAPI()
         app.include_router(health_router)
 
-        client = TestClient(app)
-        response = client.get("/health")
+        health = self._make_system_health_healthy()
+        with patch(
+            "src.infra.health.health_service.HealthService.check_all",
+            AsyncMock(return_value=health),
+        ):
+            client = TestClient(app)
+            response = client.get("/health")
 
         assert response.status_code == 200
         data = response.json()
-
-        # Check ApiResponse structure
-        assert "success" in data
-        assert "data" in data
-        assert "trace_id" in data
-        assert "error" in data
-        assert data["success"] is True
+        assert "status" in data
+        assert "version" in data
+        assert "uptime_seconds" in data
+        assert "components" in data
 
     def test_ready_endpoint_returns_ready(self):
-        """Test /health/ready endpoint returns ready status."""
+        """Test /health/ready endpoint returns 200 when DB is healthy."""
+        from src.infra.health.health_service import ComponentHealth
         app = FastAPI()
         app.include_router(health_router)
 
-        client = TestClient(app)
-        response = client.get("/health/ready")
+        db_healthy = ComponentHealth("database", "HEALTHY", 1.0)
+        with patch(
+            "src.infra.health.health_service.HealthService.check_database",
+            AsyncMock(return_value=db_healthy),
+        ):
+            client = TestClient(app)
+            response = client.get("/health/ready")
 
         assert response.status_code == 200
         data = response.json()
-        assert data["success"] is True
-        assert data["data"]["status"] == "ready"
+        assert data["ready"] is True
 
     def test_ready_endpoint_includes_checks(self):
-        """Test /health/ready includes dependency checks."""
+        """Test /health/ready response includes database field."""
+        from src.infra.health.health_service import ComponentHealth
         app = FastAPI()
         app.include_router(health_router)
 
-        client = TestClient(app)
-        response = client.get("/health/ready")
+        db_healthy = ComponentHealth("database", "HEALTHY", 1.0)
+        with patch(
+            "src.infra.health.health_service.HealthService.check_database",
+            AsyncMock(return_value=db_healthy),
+        ):
+            client = TestClient(app)
+            response = client.get("/health/ready")
 
         assert response.status_code == 200
         data = response.json()
-
-        # Check readiness includes checks
-        assert "checks" in data["data"]
-        checks = data["data"]["checks"]
-        assert "database" in checks
-        assert "cache" in checks
-        assert "external_apis" in checks
+        assert "database" in data
+        assert "latency_ms" in data
+        assert "ready" in data
 
 
 class TestSecurityHeadersMiddlewareIntegration:
@@ -243,68 +271,63 @@ class TestSecurityHeadersMiddlewareIntegration:
         setup_security_middleware(app)
         app.include_router(health_router)
 
+        with patch(
+            "src.shared.api.health_routes.HealthService.check_all",
+            new_callable=lambda: (lambda *a, **k: None),  # placeholder
+        ):
+            pass  # will use live liveness endpoint instead
+
         client = TestClient(app)
-        response = client.get("/health", headers={"Origin": "http://localhost:3000"})
+        response = client.get("/health/live", headers={"Origin": "http://localhost:3000"})
 
-        # Check response
         assert response.status_code == 200
-
-        # Check security headers
         assert response.headers.get("x-content-type-options") == "nosniff"
         assert response.headers.get("x-frame-options") == "DENY"
-
-        # Check CORS headers
         assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
 
     def test_health_check_with_security_headers(self):
-        """Test health check endpoint includes all security headers."""
+        """Test /health/live endpoint includes all security headers."""
         app = FastAPI()
         setup_security_middleware(app)
         app.include_router(health_router)
 
         client = TestClient(app)
-        response = client.get("/health")
+        response = client.get("/health/live")
 
         assert response.status_code == 200
-
-        # Verify health check data
         data = response.json()
-        assert data["data"]["status"] == "ok"
-
-        # Verify security headers
+        assert data["alive"] is True
         assert "x-content-type-options" in response.headers
         assert "x-frame-options" in response.headers
 
 
 class TestDockerHealthProbe:
-    """Test Docker health probe compatibility."""
+    """Test Docker / Kubernetes health probe compatibility."""
 
     def test_health_endpoint_suitable_for_docker_healthcheck(self):
-        """Test /health endpoint is suitable for Docker HEALTHCHECK."""
+        """Test /health/live is suitable for Docker HEALTHCHECK (always 200)."""
         app = FastAPI()
         app.include_router(health_router)
 
         client = TestClient(app)
-
-        # Docker expects:
-        # - 200 status code when healthy
-        # - Response within timeout
-        # - Consistent response structure
-
-        response = client.get("/health")
+        response = client.get("/health/live")
 
         assert response.status_code == 200
-        assert response.json()["data"]["status"] == "ok"
+        assert response.json()["alive"] is True
 
     def test_ready_endpoint_suitable_for_kubernetes_readiness(self):
-        """Test /health/ready endpoint is suitable for Kubernetes readiness probe."""
+        """Test /health/ready is suitable for Kubernetes readiness probe."""
+        from src.infra.health.health_service import ComponentHealth
         app = FastAPI()
         app.include_router(health_router)
 
-        client = TestClient(app)
-
-        # Kubernetes expects readiness probe to return 200 when ready
-        response = client.get("/health/ready")
+        db_healthy = ComponentHealth("database", "HEALTHY", 1.0)
+        with patch(
+            "src.infra.health.health_service.HealthService.check_database",
+            AsyncMock(return_value=db_healthy),
+        ):
+            client = TestClient(app)
+            response = client.get("/health/ready")
 
         assert response.status_code == 200
-        assert response.json()["data"]["status"] == "ready"
+        assert response.json()["ready"] is True

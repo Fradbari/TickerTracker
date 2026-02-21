@@ -754,7 +754,7 @@ backend/
 | 2.18 | Market Data Providers | ✅ COMPLETATO | 5 ✓ | Yahoo/Fake Providers + Interface |
 | 2.19 | **Caching & Resiliency** | ✅ **COMPLETATO** | **✓** | **LRU Cache + Exponential Backoff** |
 
-### Phase 3: Security & Observability (6/11 tasks - 55%)
+### Phase 3: Security & Observability (7/11 tasks - 64%)
 
 | Task | Descrizione | Status | Tests | Implementation |
 |------|-----------|--------|-------|----------------|
@@ -764,8 +764,9 @@ backend/
 | 3.4 | **Encryption at Rest** | ✅ **COMPLETATO** | **35 ✓** | **EncryptedString TypeDecorator (Fernet AES-128), rotate_key, EncryptionConfigError, DecryptionError** |
 | 3.5 | **Structured Logging + Correlation ID** | ✅ **COMPLETATO** | **18 ✓** | **configure_logging (JSON structlog), CorrelationIDMiddleware, ContextVar, add_correlation_id processor** |
 | 3.6 | **Metriche Prometheus** | ✅ **COMPLETATO** | **24 ✓** | **GET /metrics, Counter/Gauge/Histogram business+technical metrics, @track_duration decorator, /metrics in API_KEY_EXEMPT_PATHS** |
+| 3.7 | **Health Checks Completi** | ✅ **COMPLETATO** | **13 ✓** | **HealthService (DB/Redis/Yahoo/Drive), GET /health + /health/ready + /health/live, JSONResponse, 503 on UNHEALTHY** |
 
-**Total Tests**: 456 passing ✅ (aggiornato con Task 3.6)
+**Total Tests**: 469 passing ✅ (aggiornato con Task 3.7)
 
 
 

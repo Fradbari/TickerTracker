@@ -531,6 +531,7 @@ ID: TASK 3.6
 Area: infra
 Fase: Fase 2
 Dipendenze: TASK 2.20
+Status: ✅ COMPLETATO
 
 ## TASK 3.6: Implementazione Metriche Prometheus
 
@@ -538,45 +539,44 @@ Priorità: Fase 2 (opzionale per ambiente locale single‑user; implementare sol
 
 **Descrizione:** Esporre metriche business e tecniche per monitoring.
 
-**Microstep:**
+**Implementazione completata:**
 
-1\. Installare dipendenza `prometheus-client`
+- `src/infra/metrics/metrics.py` (NUOVO) — metriche business:
+  - `estimates_created_total` (Counter, labels: ticker/ai_model)
+  - `estimates_closed_total` (Counter, labels: ticker/outcome)
+  - `active_estimates_total` (Gauge, labels: status)
+  - `current_portfolio_pnl` (Gauge, no labels)
+  metriche tecniche:
+  - `api_request_duration_seconds` (Histogram, labels: endpoint/method/status, 12 buckets 5ms→30s)
+  - `yahoo_api_calls_total` (Counter, labels: endpoint/status)
+  - `drive_sync_operations_total` (Counter, labels: operation/status)
+  - `cache_hits_total` / `cache_misses_total` (Counter, labels: cache_name)
+  helper:
+  - `track_duration(histogram, **label_values)` — decorator, supporta async+sync, timer in finally
+- `src/infra/metrics/routes.py` (NUOVO) — `GET /metrics` con `generate_latest()` e `CONTENT_TYPE_LATEST`
+- `src/infra/metrics/__init__.py` (NUOVO) — esporta tutte le metriche + track_duration + router
+- `src/main.py` aggiornato — `app.include_router(metrics_router)`
+- `src/shared/infra/config.py` aggiornato — `/metrics` aggiunto a `API_KEY_EXEMPT_PATHS` default list
 
-2\. Creare file `backend/src/infra/metrics/metrics.py`
+**File modificati:**
+- `src/infra/metrics/metrics.py` (NUOVO)
+- `src/infra/metrics/routes.py` (NUOVO)
+- `src/infra/metrics/__init__.py` (NUOVO)
+- `src/main.py` (aggiornato: metrics_router)
+- `src/shared/infra/config.py` (aggiornato: /metrics exempt)
+- `tests/unit/infra/test_metrics.py` (NUOVO — 24 test)
 
-3\. Definire metriche business:
-
-- `Counter` estimates_created_total (labels: ticker, ai_model)
-
-- `Counter` estimates_closed_total (labels: ticker, outcome)
-
-- `Gauge` active_estimates_total (labels: status)
-
-- `Gauge` current_portfolio_pnl
-
-4\. Definire metriche tecniche:
-
-- `Histogram` api_request_duration_seconds (labels: endpoint, method, status)
-
-- `Counter` yahoo_api_calls_total (labels: endpoint, status)
-
-- `Counter` drive_sync_operations_total (labels: operation, status)
-
-- `Counter` cache_hits_total / cache_misses_total (labels: cache_name)
-
-5\. Creare endpoint `GET /metrics` che espone metriche in formato Prometheus
-
-6\. Creare helper decorator `@track_duration` per misurare latenza
+**Test:** 24/24 ✅ | Suite completa: 456/456 ✅
 
 **Acceptance Criteria:**
 
-- [ ] Endpoint /metrics restituisce formato Prometheus valido
+- [x] Endpoint /metrics restituisce formato Prometheus valido
 
-- [ ] Metriche aggiornate in tempo reale
+- [x] Metriche aggiornate in tempo reale (update diretto su Counter/Gauge/Histogram)
 
-- [ ] Labels permettono drill-down
+- [x] Labels permettono drill-down (ticker, ai_model, endpoint, method, status, cache_name, …)
 
-- [ ] Histogram ha bucket appropriati per latenze
+- [x] Histogram ha bucket appropriati per latenze (12 bucket: 5ms – 30s)
 
 ---
 

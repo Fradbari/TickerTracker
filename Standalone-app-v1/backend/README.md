@@ -669,6 +669,9 @@ backend/
 │   │   │   ├── drive/
 │   │   │   ├── logging/
 │   │   │   │   └── config.py         # ✅ [3.5] configure_logging (JSON structlog), CorrelationIDMiddleware (18 tests)
+│   │   │   ├── metrics/
+│   │   │   │   ├── metrics.py        # ✅ [3.6] Counter/Gauge/Histogram business+technical, @track_duration (24 tests)
+│   │   │   │   └── routes.py         # ✅ [3.6] GET /metrics Prometheus scrape endpoint
 │   │   │   ├── security/
 │   │   │   │   ├── middleware.py      # ✅ [3.1] SecurityMiddleware (API key, CSP, request logging, 29 tests)
 │   │   │   │   ├── rate_limit.py     # ✅ [3.2] Rate Limiting slowapi+Redis (33 tests)
@@ -688,7 +691,8 @@ backend/
 │   │   │   ├── test_security_middleware.py # ✅ 29 tests ✓ [3.1]
 │   │   │   ├── test_rate_limit.py          # ✅ 33 tests ✓ [3.2]
 │   │   │   ├── test_encryption.py          # ✅ 35 tests ✓ [3.4]
-│   │   │   └── test_logging.py             # ✅ 18 tests ✓ [3.5]
+│   │   │   ├── test_logging.py             # ✅ 18 tests ✓ [3.5]
+│   │   │   └── test_metrics.py             # ✅ 24 tests ✓ [3.6]
 │   │   └── shared/
 │   │       ├── domain/
 │   │       │   ├── test_money.py           # ✅ 36 tests ✓
@@ -750,7 +754,7 @@ backend/
 | 2.18 | Market Data Providers | ✅ COMPLETATO | 5 ✓ | Yahoo/Fake Providers + Interface |
 | 2.19 | **Caching & Resiliency** | ✅ **COMPLETATO** | **✓** | **LRU Cache + Exponential Backoff** |
 
-### Phase 3: Security & Observability (5/11 tasks - 45%)
+### Phase 3: Security & Observability (6/11 tasks - 55%)
 
 | Task | Descrizione | Status | Tests | Implementation |
 |------|-----------|--------|-------|----------------|
@@ -758,9 +762,10 @@ backend/
 | 3.2 | **Rate Limiting** | ✅ **COMPLETATO** | **33 ✓** | **slowapi + Redis, per-endpoint limits, IP whitelist, Retry-After headers** |
 | 3.3 | **Input Validation Avanzata** | ✅ **COMPLETATO** | **63 ✓** | **sanitize_ticker, sanitize_text, validate_price, validate_percentage, validate_date_range** |
 | 3.4 | **Encryption at Rest** | ✅ **COMPLETATO** | **35 ✓** | **EncryptedString TypeDecorator (Fernet AES-128), rotate_key, EncryptionConfigError, DecryptionError** |
-| 3.5 | **Structured Logging + Correlation ID** | ✅ **COMPLETATO** | **18 ✓** | **configure_logging (JSON structlog), CorrelationIDMiddleware (X-Correlation-ID), ContextVar, add_correlation_id processor** |
+| 3.5 | **Structured Logging + Correlation ID** | ✅ **COMPLETATO** | **18 ✓** | **configure_logging (JSON structlog), CorrelationIDMiddleware, ContextVar, add_correlation_id processor** |
+| 3.6 | **Metriche Prometheus** | ✅ **COMPLETATO** | **24 ✓** | **GET /metrics, Counter/Gauge/Histogram business+technical metrics, @track_duration decorator, /metrics in API_KEY_EXEMPT_PATHS** |
 
-**Total Tests**: 432 passing ✅ (aggiornato con Task 3.5)
+**Total Tests**: 456 passing ✅ (aggiornato con Task 3.6)
 
 
 

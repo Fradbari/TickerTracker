@@ -19,6 +19,7 @@ from src.shared.infra.config import get_settings
 from src.shared.infra.security_middleware import setup_security_middleware
 from src.infra.security.rate_limit import setup_rate_limiter
 from src.infra.logging.config import configure_logging, CorrelationIDMiddleware
+from src.infra.metrics.routes import router as metrics_router
 
 # APScheduler integration
 from src.infra.scheduler import scheduler as app_scheduler
@@ -52,6 +53,7 @@ app.add_middleware(CorrelationIDMiddleware)
 app.include_router(health_routes.router)
 app.include_router(estimates_router)
 app.include_router(market_data_routes.router)
+app.include_router(metrics_router)  # ✅ [3.6] GET /metrics — Prometheus scrape endpoint
 
 # TODO: Register additional bounded context routers
 # - sync

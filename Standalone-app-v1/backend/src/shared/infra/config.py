@@ -140,7 +140,7 @@ class Settings(BaseSettings):
         description="Required API key value when ENABLE_API_KEY_AUTH=true",
     )
     API_KEY_EXEMPT_PATHS: list[str] = Field(
-        default=["/health", "/health/ready", "/health/db", "/docs", "/openapi.json", "/redoc"],
+        default=["/health", "/health/ready", "/health/db", "/docs", "/openapi.json", "/redoc", "/metrics"],
         description="Paths exempt from API key validation",
     )
     CSP_POLICY: str = Field(

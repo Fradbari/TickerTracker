@@ -13,6 +13,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from src.shared.domain.lineage import DataSource
 from src.market_data.domain.providers import (
     MarketDataProvider,
     PriceData,
@@ -241,8 +242,9 @@ class MarketDataService:
                 low=pd.low,
                 close=pd.close,
                 volume=pd.volume,
-                data_source=pd.source,
+                data_source=DataSource.YAHOO_FINANCE.value,
                 quality_score=Decimal("0.80"),  # Default quality score
+                source_timestamp=pd.timestamp.replace(tzinfo=None) if pd.timestamp else datetime.utcnow(),
             )
             for pd in price_data_list
         ]

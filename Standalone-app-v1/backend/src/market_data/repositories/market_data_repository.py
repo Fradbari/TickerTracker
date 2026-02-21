@@ -7,6 +7,8 @@ from decimal import Decimal
 from typing import Dict, List, Optional
 from uuid import UUID
 
+from src.shared.domain.lineage import DataSource
+
 from sqlalchemy import and_, bindparam, func, insert, select, text, update
 from sqlalchemy.types import Date
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -27,8 +29,9 @@ class MarketDataRow:
         low: Decimal,
         close: Decimal,
         volume: int,
-        data_source: str = "yahoo",
+        data_source: str = DataSource.YAHOO_FINANCE.value,
         quality_score: Optional[Decimal] = None,
+        source_timestamp: Optional[datetime] = None,
     ):
         self.ticker_id = ticker_id
         self.date = date
@@ -39,6 +42,7 @@ class MarketDataRow:
         self.volume = volume
         self.data_source = data_source
         self.quality_score = quality_score or Decimal("0.80")
+        self.source_timestamp = source_timestamp
 
 
 class AggregatedData:
@@ -110,7 +114,8 @@ class MarketDataRepository:
                         "volume": row.volume,
                         "data_source": row.data_source,
                         "quality_score": row.quality_score,
-                        "ingested_at": func.now(),
+                        "source_timestamp": row.source_timestamp,
+                        "ingestion_timestamp": func.now(),
                     }
                     for row in data_rows
                 ]
@@ -126,7 +131,8 @@ class MarketDataRepository:
                         MarketData.volume: stmt.excluded.volume,
                         MarketData.data_source: stmt.excluded.data_source,
                         MarketData.quality_score: stmt.excluded.quality_score,
-                        MarketData.ingested_at: func.now(),
+                        MarketData.source_timestamp: stmt.excluded.source_timestamp,
+                        MarketData.ingestion_timestamp: func.now(),
                     },
                 )
 

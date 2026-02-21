@@ -3,6 +3,13 @@ Data Quality Monitor — TASK 3.8
 
 Monitors data quality for all tracked market-data tickers.
 
+TASK 3.9 alignment
+------------------
+- ``DataSource`` enum is imported for consistent source identification.
+- The ``MarketData`` model now uses ``ingestion_timestamp`` (renamed from
+  ``ingested_at``).  The quality-check rules operate on OHLCV fields only
+  and are not affected by this rename.
+
 Architecture
 ------------
 - ``QualityRule``  : named, callable rule with a severity level.
@@ -38,6 +45,7 @@ import structlog
 
 from src.market_data.domain.entities import Ticker
 from src.market_data.domain.market_data import MarketData
+from src.shared.domain.lineage import DataSource  # noqa: F401 — available for future rules
 from src.shared.infra.database import AsyncSessionLocal
 
 Severity = Literal["warning", "critical"]

@@ -23,6 +23,7 @@ from src.market_data.domain.providers import (
     DataUnavailableError,
 )
 from src.market_data.api.dependencies import get_market_data_provider
+from src.market_data.schemas.lineage import MarketDataLineageSchema
 from src.shared.schemas.api_response import ApiResponse
 from src.infra.security.rate_limit import limiter, is_whitelisted
 
@@ -54,6 +55,9 @@ class HistoricalPricePoint(BaseModel):
     low: str
     close: str
     volume: int
+    lineage: Optional[MarketDataLineageSchema] = Field(
+        None, description="Data lineage metadata (present when ?include_lineage=true)"
+    )
 
 
 class HistoryResponse(BaseModel):
@@ -177,6 +181,7 @@ async def get_historical_prices(
     start_date: date = Query(..., description="Start date (inclusive)"),
     end_date: date = Query(..., description="End date (inclusive)"),
     interval: str = Query("1d", pattern="^(1d|1w|1m)$", description="Data interval"),
+    include_lineage: bool = Query(False, description="Include data lineage metadata"),
     provider: MarketDataProvider = Depends(get_market_data_provider),
 ):
     """
@@ -214,6 +219,12 @@ async def get_historical_prices(
                 low=str(p.low),
                 close=str(p.close),
                 volume=p.volume,
+                lineage=MarketDataLineageSchema(
+                    data_source=p.source,
+                    source_timestamp=p.timestamp,
+                    ingestion_timestamp=datetime.utcnow(),
+                    quality_score=None,
+                ) if include_lineage else None,
             )
             for p in price_history
         ]

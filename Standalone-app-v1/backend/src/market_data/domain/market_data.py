@@ -2,41 +2,44 @@
 Market data domain entities - MarketData model for OHLCV historical data.
 
 This module defines the SQLAlchemy model for historical market data (OHLCV).
+Data lineage tracking (data_source, source_timestamp, ingestion_timestamp,
+quality_score) is provided by the ``LineageTracked`` mixin (TASK 3.9).
 """
 
-from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
 from sqlalchemy import (
-    Column, Date, DateTime, ForeignKey, 
-    Index, CheckConstraint, DECIMAL, BigInteger, String
+    Column, Date, ForeignKey,
+    Index, CheckConstraint, DECIMAL, BigInteger,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
 from src.shared.infra.database import Base
+from src.shared.domain.lineage import LineageTracked
 
 
-class MarketData(Base):
+class MarketData(LineageTracked, Base):
     """
     Market data entity representing OHLCV (Open-High-Low-Close-Volume) historical data.
-    
+
     This table stores daily market data for tickers with data lineage tracking.
     Uses composite primary key (ticker_id, date) to ensure no duplicates per ticker/day.
-    
+
+    Lineage columns (from ``LineageTracked`` mixin — TASK 3.9):
+        data_source:         DataSource enum value stored as VARCHAR(50)
+        source_timestamp:    When data was generated at the source (nullable)
+        ingestion_timestamp: When data entered our system (server-side auto-set)
+        quality_score:       0.00–1.00; computed from freshness and completeness
+
     Attributes:
-        ticker_id: Reference to the ticker (part of composite PK)
-        date: Trading date (part of composite PK)
-        open: Opening price for the day
-        high: Highest price during the day
-        low: Lowest price during the day
-        close: Closing price for the day
-        volume: Trading volume (number of shares/units traded)
-        data_source: Source of the data (e.g., 'yahoo', 'finnhub', 'manual')
-        ingested_at: Timestamp when data was ingested into the system
-        quality_score: Data quality score from 0.00 to 1.00 (1.00 = highest quality)
-    
+        ticker_id:           Reference to the ticker (part of composite PK)
+        date:                Trading date (part of composite PK)
+        open:                Opening price for the day
+        high:                Highest price during the day
+        low:                 Lowest price during the day
+        close:               Closing price for the day
+        volume:              Trading volume (number of shares/units traded)
+
     Data Quality Score Guidelines:
         1.00 = Official exchange data
         0.80-0.99 = Reliable third-party provider (e.g., Yahoo Finance)
@@ -93,28 +96,9 @@ class MarketData(Base):
         doc="Trading volume (number of shares/units traded)"
     )
     
-    # Data Lineage fields for audit and quality tracking
-    data_source = Column(
-        String(50),
-        nullable=False,
-        default="yahoo",
-        doc="Source of the data (e.g., 'yahoo', 'finnhub', 'manual')"
-    )
-    
-    ingested_at = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now(),
-        doc="Timestamp when data was ingested into the system"
-    )
-    
-    quality_score = Column(
-        DECIMAL(3, 2),
-        nullable=True,
-        default=Decimal("0.80"),
-        doc="Data quality score from 0.00 to 1.00 (1.00 = highest quality)"
-    )
-    
+    # NOTE: data_source, source_timestamp, ingestion_timestamp, quality_score
+    # are inherited from the LineageTracked mixin (TASK 3.9).
+
     # Relationship to Ticker
     ticker = relationship(
         "Ticker",

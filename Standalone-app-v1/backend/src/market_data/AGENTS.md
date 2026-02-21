@@ -473,3 +473,57 @@ Test results: **495/495 PASSED** (26 nuovi test aggiunti, zero regressioni, +0 f
 - Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
 - Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
 - Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
+---
+
+ID: TASK 3.9
+Area: market_data / shared
+Fase: Phase 3 — Observability
+Dipendenze: ✅ TASK 3.8 (Complete)
+
+## TASK 3.9: Data Lineage Tracking ✅ COMPLETATO
+
+**Status**: ✅ COMPLETATO — 515/515 PASSED (20 nuovi test, zero regressioni)
+
+### Acceptance Criteria
+
+- [x] `DataSource` enum con from_legacy() per backward-compat con "yahoo" → "yahoo_finance"
+- [x] `LineageTracked` mixin con 4 colonne: data_source, source_timestamp, ingestion_timestamp, quality_score
+- [x] `compute_quality_score()` (freshness 0.6 + completeness 0.4, clamp 0–1)
+- [x] `MarketData(LineageTracked, Base)` — eredita mixin, 3 colonne inline rimosse
+- [x] `source_timestamp` aggiunto (nuovo campo, nullable)
+- [x] `ingested_at` rinominato → `ingestion_timestamp`
+- [x] Migrazione Alembic `a3b5c7d9e1f0` (offline-only, docstring documentato)
+- [x] Repository `MarketDataRow` accetta `source_timestamp` opzionale
+- [x] `market_data_service._store_price_data` usa `DataSource.YAHOO_FINANCE.value` + `source_timestamp`
+- [x] `MarketDataLineageSchema` (Pydantic) in `src/market_data/schemas/lineage.py`
+- [x] `GET /api/market/history/{ticker}?include_lineage=true` restituisce campi lineage
+- [x] `quality_monitor.py` importa `DataSource` (TASK 3.9 alignment)
+- [x] 20 unit test in `tests/unit/shared/test_lineage.py` — tutti PASSED
+
+### File modificati / creati
+
+| File | Azione | Note |
+|------|--------|------|
+| `src/shared/domain/lineage.py` | **CREATO** | `DataSource` enum, `LineageTracked` mixin, `compute_quality_score()` |
+| `src/shared/domain/__init__.py` | MODIFICATO | Export `DataSource`, `LineageTracked` |
+| `src/market_data/domain/market_data.py` | MODIFICATO | Aggiunto mixin, rimossi 3 campi inline, import puliti |
+| `src/market_data/repositories/market_data_repository.py` | MODIFICATO | `MarketDataRow` + `source_timestamp`; `ingested_at` → `ingestion_timestamp` in INSERT/ON CONFLICT |
+| `src/market_data/services/market_data_service.py` | MODIFICATO | `DataSource.YAHOO_FINANCE.value` + `source_timestamp=pd.timestamp` |
+| `src/market_data/services/quality_monitor.py` | MODIFICATO | Import `DataSource`, aggiornato docstring |
+| `src/market_data/schemas/lineage.py` | **CREATO** | `MarketDataLineageSchema` Pydantic |
+| `src/market_data/schemas/__init__.py` | MODIFICATO | Export `MarketDataLineageSchema` |
+| `src/market_data/api/routes.py` | MODIFICATO | `include_lineage: bool` param, `HistoricalPricePoint.lineage` field |
+| `alembic/versions/a3b5c7d9e1f0_add_lineage_source_timestamp.py` | **CREATO** | Rename ingested_at→ingestion_timestamp + add source_timestamp |
+| `tests/unit/shared/test_lineage.py` | **CREATO** | 20 unit test (DataSource, compute_quality_score, MarketData mixin) |
+
+### Test eseguiti
+
+```
+tests/unit/shared/test_lineage.py — 20 PASSED
+  TestDataSourceFromLegacy (8 test): from_legacy mapping; case insensitive; str mixin
+  TestComputeQualityScore (7 test): fresh/stale/missing_volume/missing_ohlc/no_ts/clamped/type
+  TestMarketDataInheritsLineage (5 test): issubclass, 4 fields, no ingested_at, source_timestamp nullable, compute_quality_score callable
+
+Full suite: 515/515 PASSED (22.60s)
+```

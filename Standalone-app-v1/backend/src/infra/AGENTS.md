@@ -435,38 +435,41 @@ ID: TASK 3.4
 Area: infra
 Fase: Fase 2
 Dipendenze: TASK 2.20
+Status: ✅ COMPLETATO
 
 ## TASK 3.4: Implementazione Encryption at Rest
 
 **Descrizione:** Creare tipo SQLAlchemy per campi cifrati nel database.
 
-**Microstep:**
+**Implementazione completata:**
 
-1\. Creare file `backend/src/infra/security/encryption.py`
+- `src/infra/security/encryption.py` — `EncryptedString(TypeDecorator)` con `impl = String`, `cache_ok = True`
+- Cifratura simmetrica via `cryptography.fernet.Fernet` (AES-128-CBC + HMAC-SHA256)
+- Formato chiave: 64 char hex (32 bytes raw) → `base64.urlsafe_b64encode` → Fernet key
+- `process_bind_param`: `None` passthrough + `fernet.encrypt(value.encode()).decode()`
+- `process_result_value`: `None` passthrough + `fernet.decrypt(value.encode()).decode()` con guard su `InvalidToken`
+- Chiave letta lazy da `_get_settings().ENCRYPTION_KEY.get_secret_value()` (SecretStr in config)
+- `rotate_key(old_key_hex, new_key_hex, ciphertext) -> str`: re-cifra senza esporre il plaintext su disco
+- `EncryptionConfigError(RuntimeError)`: chiave vuota, non-hex, lunghezza errata
+- `DecryptionError(RuntimeError)`: ciphertext manomesso o chiave errata
+- `src/infra/security/__init__.py` aggiornato con tutti gli export (rate_limit + encryption)
 
-2\. Implementare classe `EncryptedString` che estende `TypeDecorator`
+**File modificati:**
+- `src/infra/security/encryption.py` (NUOVO)
+- `src/infra/security/__init__.py` (aggiornato export)
+- `tests/unit/infra/test_encryption.py` (NUOVO — 35 test)
 
-3\. Usare `cryptography.fernet` per cifratura simmetrica
-
-4\. Implementare `process_bind_param`: cifra prima di salvare
-
-5\. Implementare `process_result_value`: decifra dopo lettura
-
-6\. Chiave di cifratura da Settings (SecretStr)
-
-7\. Documentare campi che usano questo tipo
-
-8\. Implementare utility per rotazione chiave
+**Test:** 35/35 ✅ | Suite completa: 414/414 ✅
 
 **Acceptance Criteria:**
 
-- [ ] Dati cifrati nel DB non leggibili direttamente
+- [x] Dati cifrati nel DB non leggibili direttamente
 
-- [ ] Lettura/scrittura trasparente per l'applicazione
+- [x] Lettura/scrittura trasparente per l'applicazione
 
-- [ ] Chiave gestita in modo sicuro
+- [x] Chiave gestita in modo sicuro (SecretStr + lazy load)
 
-- [ ] Procedura rotazione documentata
+- [x] Procedura rotazione documentata (rotate_key utility + ENCRYPTION_KEY in .env.example)
 
 ---
 

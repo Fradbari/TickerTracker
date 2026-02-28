@@ -66,27 +66,38 @@ const wrong = createMoney(0.1 + 0.2, "USD")
 
 ```
 frontend/
-├── src/
-│   ├── shared/
-│   │   └── utils/
-│   │       ├── decimal.ts          # Money operations (14+ functions)
-│   │       ├── percentage.ts        # Percentage operations (12+ functions)
-│   │       ├── financial.ts         # Barrel export for clean imports
-│   │       ├── __tests__/
-│   │       │   ├── decimal.test.ts  # 40+ Money operation tests
-│   │       │   └── percentage.test.ts # 50+ Percentage operation tests
-│   │       └── index.ts             # Utils re-export
-│   ├── app/                         # Application components
-│   ├── features/                    # Feature modules
-│   │   ├── chat-ai/                # AI chat feature
-│   │   ├── market-data/            # Market data display
-│   │   ├── portfolio/              # Portfolio management
-│   │   └── estimates/              # Price estimates
-│   └── shared/                      # Shared components & hooks
+├── index.html                       # Vite HTML entry point
+├── vite.config.ts                   # Vite + Tailwind + Vitest config
+├── tsconfig.json                    # TypeScript strict + path aliases
+├── postcss.config.js                # PostCSS (autoprefixer only)
 ├── package.json
-├── tsconfig.json
-├── tsconfig.node.json
-└── vite.config.ts
+└── src/
+    ├── vite-env.d.ts                # import.meta.env type declarations
+    ├── main.tsx                     # React entry: QueryClient + Router + App
+    ├── App.tsx                      # Route definitions
+    ├── styles/
+    │   └── globals.css              # Tailwind v4 (@import "tailwindcss")
+    ├── shared/
+    │   ├── api/
+    │   │   ├── client.ts            # Axios instance with interceptors
+    │   │   └── index.ts             # Barrel export
+    │   ├── types/
+    │   │   ├── api.ts               # ApiResponse<T> + unwrapResponse<T>
+    │   │   └── index.ts             # Barrel export
+    │   └── utils/
+    │       ├── decimal.ts           # Money operations (14+ functions)
+    │       ├── percentage.ts        # Percentage operations (12+ functions)
+    │       ├── financial.ts         # Barrel export for clean imports
+    │       └── __tests__/
+    │           ├── decimal.test.ts  # 47 Money tests
+    │           └── percentage.test.ts # 48 Percentage tests
+    ├── app/                         # Router, layout, providers (TASK 4.16)
+    ├── features/                    # Feature modules (TASK 4.2+)
+    │   ├── estimates/
+    │   ├── portfolio/
+    │   ├── market-data/
+    │   └── chat-ai/
+    └── shared/                      # Shared components & hooks (TASK 4.5+)
 ```
 
 ## Quick Start
@@ -99,21 +110,68 @@ npm install
 
 ### 2. Environment Setup
 
-Create a `.env` file with backend API configuration:
+Copy `.env.example` (root project level) or create a local `.env`:
 
 ```env
-VITE_API_URL=http://localhost:8000
+VITE_API_BASE_URL=http://localhost:8000
+VITE_API_KEY=dev-secret-key
+VITE_API_TARGET=http://localhost:8000
 ```
+
+> When running via Docker Compose, `VITE_API_TARGET` is automatically injected as `http://backend:8000`.
 
 ### 3. Development
 
 ```bash
-npm run dev
+npm run dev          # Vite dev server on http://localhost:3000
 ```
 
-### 4. Testing
+### 4. Production Build
 
 ```bash
-npm run test           # Run all tests
+npm run build        # TypeScript compile + Vite bundle → dist/
+npm run preview      # Preview production build locally
+```
+
+### 5. Testing
+
+```bash
+npm run test           # Run all tests with Vitest
 npm run test:coverage  # Run with coverage report (target: 80%+)
 ```
+
+---
+
+## Tech Stack (TASK 4.1)
+
+| Library | Version | Purpose |
+|---------|---------|---------|
+| React | ^18.2.0 | UI framework |
+| Vite | ^5.0.8 | Build tool (port 3000) |
+| TypeScript | strict mode | Type safety |
+| TailwindCSS | ^4.2.1 | Styling (via `@tailwindcss/vite`) |
+| React Router | ^7 | Client-side routing |
+| TanStack Query | ^5 | Server state & caching |
+| Axios | ^1 | HTTP client (centralized in `shared/api/client.ts`) |
+| React Hook Form | ^7 | Form management |
+| Zod | ^4 | Schema validation |
+| Recharts | ^3 | Charts & data visualization |
+| date-fns | ^4 | Date formatting |
+| Vitest | ^1 | Unit testing (jsdom environment) |
+
+### TailwindCSS v4 Notes
+- **No** `tailwind.config.cjs` needed — content detection is automatic
+- **No** `@tailwind base/components/utilities` in CSS — use `@import "tailwindcss"` instead
+- **No** `tailwindcss/postcss` subpath — configured via `@tailwindcss/vite` Vite plugin
+
+## Path Aliases
+
+Configured in both `tsconfig.json` and `vite.config.ts`:
+
+| Alias | Resolves to |
+|-------|-------------|
+| `@/*` | `src/*` |
+| `@/shared/*` | `src/shared/*` |
+| `@/features/*` | `src/features/*` |
+| `@/app/*` | `src/app/*` |
+| `@/styles/*` | `src/styles/*` |

@@ -189,16 +189,37 @@ Dipendenze: -
 
 **Acceptance Criteria:**
 
-- [ ] `npm run dev` avvia dev server
-- [ ] `npm run build` produce build di produzione
-- [ ] TypeScript strict mode abilitato
-- [ ] TailwindCSS funzionante
-- [ ] Path aliases funzionanti
+- [x] `npm run dev` avvia dev server (porta 3000, host 0.0.0.0)
+- [x] `npm run build` produce build di produzione (86 moduli, 208 kB JS, 6.49 kB CSS)
+- [x] TypeScript strict mode abilitato
+- [x] TailwindCSS v4 funzionante via `@tailwindcss/vite` plugin
+- [x] Path aliases funzionanti (`@`, `@/shared`, `@/features`, `@/app`, `@/styles`)
+
+**File creati/modificati (TASK 4.1):**
+- `index.html` — entry HTML Vite
+- `postcss.config.js` — solo autoprefixer (Tailwind v4 gestito da Vite plugin)
+- `src/vite-env.d.ts` — riferimento a `vite/client` per `import.meta.env`
+- `src/main.tsx` — entry React 18 con `QueryClientProvider` + `BrowserRouter`
+- `src/App.tsx` — routing con React Router v7 + placeholder Dashboard
+- `src/styles/globals.css` — `@import "tailwindcss"` (sintassi Tailwind v4)
+- `src/shared/api/client.ts` — Axios con interceptors (API key + error normalization)
+- `src/shared/api/index.ts` — barrel export
+- `src/shared/types/api.ts` — `ApiResponse<T>` + `unwrapResponse<T>()`
+- `src/shared/types/index.ts` — barrel export
+- `vite.config.ts` — aggiunto plugin Tailwind, aliases, vitest config
+- `tsconfig.json` — aggiunti path aliases `@/features/*`, `@/app/*`, `@/styles/*`
+- `package.json` — aggiunte dipendenze runtime e dev (vedi sotto)
+
+**Dipendenze aggiunte:**
+- Runtime: `react-router-dom ^7`, `@tanstack/react-query ^5`, `axios ^1`, `react-hook-form ^7`, `zod ^4`, `@hookform/resolvers ^5`, `recharts ^3`, `date-fns ^4`
+- Dev: `tailwindcss ^4`, `@tailwindcss/vite`, `postcss ^8`, `autoprefixer ^10`, `jsdom`
+
+**Nota tecnica — Tailwind v4**: La sintassi PostCSS `tailwindcss/postcss` non esiste in Tailwind v4. Usare invece il plugin Vite `@tailwindcss/vite` e nel CSS `@import "tailwindcss"` (al posto di `@tailwind base/components/utilities`).
 
 ---
 
 ### Istruzioni per LLM
-- Non modificare file fuori da [frontend/, frontend/package.json, frontend/vite.config.ts, frontend/tsconfig.json, frontend/tailwind.config.cjs] se non strettamente necessario.
+- Non modificare file fuori da [frontend/, frontend/package.json, frontend/vite.config.ts, frontend/tsconfig.json] se non strettamente necessario.
 - Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
 - Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
 - Alla fine, produci un elenco puntato con file modificati e test eseguiti.

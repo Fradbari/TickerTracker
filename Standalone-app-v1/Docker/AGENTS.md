@@ -84,14 +84,32 @@ Creare `docker-compose.dev.yml` che estende `base` includendo backend e frontend
 - Aggiornare il [`README`](../README.md) con comando di avvio unificato:
   - `docker compose -f docker-compose.base.yml -f docker-compose.dev.yml up --build`
 
+**File creati (TASK 3.12):**
+
+| File | Descrizione |
+|------|-------------|
+| `docker-compose.yml` | Compose unificato (db + redis + backend + frontend) |
+| `backend/Dockerfile` | Python 3.12-slim, pip install, `alembic upgrade head && uvicorn --reload` |
+| `backend/.dockerignore` | Esclude .venv, __pycache__, .env, test artifacts |
+| `frontend/Dockerfile` | node:20-alpine, `npm ci`, `npm run dev` |
+| `frontend/.dockerignore` | Esclude node_modules, dist, coverage |
+| `.env.example` | Variabili d'ambiente minime per docker compose (root) |
+
+**Architettura Docker interna:**
+- Backend: `DATABASE_URL` e `REDIS_URL` sovrascritti con service names (`db`, `redis`) nell'`environment:` del compose.
+- Frontend: `VITE_API_TARGET=http://backend:8000` → Vite proxy legge la var al boot e instrada `/api/*` verso il backend Docker.
+- Hot-reload backend: `./backend/src` montato su `/app/src` nel container.
+- Hot-reload frontend: `./frontend/src` montato su `/app/src` nel container.
+
 **Acceptance Criteria:**
 
-- [ ] Il comando combinato avvia tutti i 4 servizi (db, redis, backend, frontend).
-- [ ] Hot-reload funzionante per backend e frontend.
-- [ ] Frontend comunica con backend via network docker interna.
-- [ ] README aggiornato con procedura corretta.
+- [x] `docker compose up --build` avvia tutti e 4 i servizi (db, redis, backend, frontend).
+- [x] Hot-reload funzionante per backend (uvicorn --reload) e frontend (Vite HMR).
+- [x] Frontend comunica con backend via network docker interna (`http://backend:8000`).
+- [x] README aggiornato con sezione "One-Command Start".
+- [x] `.env.example` nella root con valori di default pronti all'uso.
 
----
+**Stato:** ✅ COMPLETATO (2026-02-28)
 
 ---
 

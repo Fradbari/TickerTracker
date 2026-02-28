@@ -143,8 +143,8 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [ ] **TASK 5.16** - Documentare API con OpenAPI
 - [ ] **TASK 5.17** - Creare Script Migrazione Dati v2.4 → v3.0
 
-#### Docker & Deployment (0/2)
-- [ ] **TASK 3.12** - Setup Docker Compose Produzione *(in Docker/AGENTS.md)*
+#### Docker & Deployment (1/2)
+- [x] **TASK 3.12** - Setup Docker Compose Ambiente Locale *(in Docker/AGENTS.md)*
 - [ ] **TASK 5.14** - Creare Dockerfile Multi-Stage *(in Docker/AGENTS.md)*
 
 ---
@@ -152,10 +152,10 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 ### 📈 Statistiche Progresso
 
 | Categoria | Completati | Totali | Percentuale |
-|-----------|------------|--------|-------------|
-| **MVP** | 20 | 46 | 43% |
+|-----------|------------|--------|-----------|
+| **MVP** | 21 | 46 | 46% |
 | **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **20** | **65** | 31% |
+| **TOTALE** | **21** | **65** | 32% |
 
 ---
 

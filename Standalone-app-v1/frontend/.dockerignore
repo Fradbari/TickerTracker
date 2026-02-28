@@ -1,0 +1,23 @@
+# Node modules are installed inside the image
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+
+# Editor & OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+lint_output.txt
+type_check_output*.txt
+
+# Git
+.git/
+.gitignore

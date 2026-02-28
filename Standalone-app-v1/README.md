@@ -53,7 +53,42 @@ Standalone-app-v1/
 
 ## 🚀 Avvio Rapido (Ambiente Docker)
 
-Il modo più semplice per avviare l'intero ambiente locale è utilizzare Docker Compose con configurazione multi-file.
+### ⚡ One-Command Start (TASK 3.12)
+
+Avvia **tutti i servizi** (DB, Redis, Backend, Frontend) con un solo comando:
+
+```bash
+# 1. Copia le variabili d'ambiente
+cp .env.example .env
+
+# 2. Avvia tutto
+docker compose up --build
+```
+
+L'applicazione sarà disponibile su:
+
+| Servizio | URL |
+|----------|-----|
+| **Frontend** | http://localhost:3000 |
+| **Backend API** | http://localhost:8000 |
+| **Swagger UI** | http://localhost:8000/docs |
+| **PostgreSQL** | localhost:5432 |
+| **Redis** | localhost:6379 |
+
+> Il frontend comunica con il backend tramite la rete Docker interna (`http://backend:8000`), configurata automaticamente via `VITE_API_TARGET`.
+
+---
+
+### Avvio Manuale (Servizi Separati)
+
+Per avviare solo DB + Redis (utile durante lo sviluppo locale del backend):
+
+```bash
+# Solo infrastruttura
+docker compose -f docker-compose.base.yml up -d
+```
+
+---
 
 ### 1. Prerequisiti
 - **Docker** e **Docker Compose** installati sul sistema
@@ -165,24 +200,21 @@ docker compose -f docker-compose.base.yml down -v
 
 ## 📋 Struttura Docker Compose
 
-L'applicazione usa una **strategia multi-file esplicita** (NO docker-compose.override.yml):
+- **`docker-compose.yml`** (TASK 3.12) ← **Entry point principale**
+  - Tutti i servizi: PostgreSQL 16, Redis 7, Backend FastAPI, Frontend React
+  - Avvio one-command: `docker compose up --build`
+  - Volume mount per hot-reload (src/ sincronizzata con il container)
+  - `VITE_API_TARGET=http://backend:8000` per routing interno Docker
+  - Legge variabili da `.env` (root del progetto)
 
 - **`docker-compose.base.yml`** (TASK 2.2)
-  - Servizi infrastrutturali: PostgreSQL 16, Redis 7
+  - Servizi infrastrutturali standalone: PostgreSQL 16, Redis 7
+  - Utile per avviare solo DB + Redis durante sviluppo locale del backend
   - Network condivisa: `ticker-network`
   - Volumi persistenti: `postgres-data`, `redis-data`
-  - Healthcheck per entrambi i servizi
 
-- **`docker-compose.dev.yml`** (TASK 3.12)
-  - Estende `base.yml`
-  - Servizi applicazione: Backend Python/FastAPI, Frontend React
-  - Volume mount per hot-reload
-  - Environment di sviluppo
-
-- **`docker-compose.prod.yml`** (TASK 5.14)
-  - Estende `base.yml`
-  - Configurazione produzione (no hot-reload, resource limits, etc.)
-  - Orchestrazione con bind mount ottimizzati
+- **`docker-compose.prod.yml`** (TASK 5.14 — pianificato)
+  - Configurazione produzione (no hot-reload, resource limits, Nginx)
 
 ---
 

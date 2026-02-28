@@ -1,0 +1,119 @@
+# TickerTracker v3.0 — Unified Docker Compose (Development)
+#
+# Avvio rapido (one-command):
+#   cp .env.example .env
+#   docker compose up --build
+#
+# Servizi:
+#   db        → PostgreSQL 16  (localhost:5432)
+#   redis     → Redis 7        (localhost:6379)
+#   backend   → FastAPI        (localhost:8000 | docs: localhost:8000/docs)
+#   frontend  → Vite dev       (localhost:3000)
+
+services:
+
+  # ──────────────────────────────────────────
+  # Infrastructure
+  # ──────────────────────────────────────────
+  db:
+    image: postgres:16
+    container_name: tickertracker-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-tickertracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+      POSTGRES_DB:       ${POSTGRES_DB:-tickertracker_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tickertracker}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - ticker-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: tickertracker-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - ticker-network
+
+  # ──────────────────────────────────────────
+  # Application
+  # ──────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tickertracker-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Override URL-based settings to use Docker service names instead of localhost
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tickertracker}:${POSTGRES_PASSWORD:-devpassword}@db:5432/${POSTGRES_DB:-tickertracker_dev}
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      # Hot-reload: sync source code without rebuilding the image
+      - ./backend/src:/app/src
+      - ./backend/alembic:/app/alembic
+      - ./backend/alembic.ini:/app/alembic.ini
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ticker-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tickertracker-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Vite proxy target: routes /api/* to the backend service inside Docker
+      VITE_API_TARGET: http://backend:8000
+    volumes:
+      # Hot-reload: sync source code
+      - ./frontend/src:/app/src
+    depends_on:
+      - backend
+    networks:
+      - ticker-network
+
+# ──────────────────────────────────────────
+# Volumes
+# ──────────────────────────────────────────
+volumes:
+  postgres-data:
+  redis-data:
+
+# ──────────────────────────────────────────
+# Networks
+# ──────────────────────────────────────────
+networks:
+  ticker-network:
+    driver: bridge
+    name: ticker-network

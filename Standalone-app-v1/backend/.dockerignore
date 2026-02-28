@@ -1,0 +1,54 @@
+# Python virtual environment (dependencies are installed inside the image)
+.venv/
+venv/
+env/
+
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Test artifacts
+.coverage
+.pytest_cache/
+htmlcov/
+*.xml
+*.log
+coverage/
+lineage_cov_output.txt
+test_output.txt
+
+# Editor & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Secrets — never copy into the image
+.env
+.env.local
+.env.*.local
+.env.e2e
+*.json
+!requirements*.txt
+
+# Git
+.git/
+.gitignore
+
+# Documentation / misc
+*.md
+docs/
+TASK_*.md
+ALEMBIC_SETUP_COMPLETED.md
+SETUP_GUIDE.md
+MIGRATION_COMPLETED_REPORT.py
+TASK_CORRECTIONS_SUMMARY.py
+verify_task_*.py
+verify_tasks_*.py
+build.ps1
+run_test.ps1

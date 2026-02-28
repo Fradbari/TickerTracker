@@ -771,3 +771,39 @@ Status: ✅ COMPLETATO
 - [x] Metriche pool esposte
 - [x] Nessun connection leak sotto carico
 
+
+---
+
+ID: TASK 3.11
+Area: backend/shared, market_data
+Fase: Fase 2
+Dipendenze: TASK 3.10
+
+## TASK 3.11: Implementazione Query Pagination Cursor-Based
+
+**Descrizione:** Paginazione efficiente basata su cursore per grandi dataset.
+Prestazioni O(1) per pagina indipendentemente dalla profondità.
+
+**File Creati/Modificati:**
+- `src/shared/repositories/pagination.py` (NUOVO — modulo completo)
+- `src/shared/repositories/__init__.py` (export pubblici)
+- `src/shared/schemas/api_response.py` (aggiunto `trace_id` default, `make_success()` classmethod, `Optional` typing)
+- `src/market_data/repositories/market_data_repository.py` (aggiunto `get_history_paginated()`)
+- `src/market_data/api/dependencies.py` (aggiunto `get_market_data_repository()`)
+- `src/market_data/api/routes.py` (nuove schema `PaginatedHistoryItem`, `PaginatedHistoryResponse`; endpoint `GET /api/market/history/{ticker}/paginated`; helper `_resolve_ticker_id()`)
+- `tests/unit/shared/test_pagination.py` (NUOVO — 42 test)
+
+**Acceptance Criteria:**
+- [x] Cursore opaco (base64url-encoded JSON, non manipolabile)
+- [x] Performance O(1) indipendente dalla pagina
+- [x] Navigazione avanti (NEXT) e indietro (PREV) funzionante
+- [x] Coesistenza con filtri start/end date su `get_history_paginated()`
+- [x] Gestione edge case: prima pagina, ultima pagina, dataset vuoto
+- [x] Endpoint `GET /api/market/history/{ticker}/paginated` con validazione 400/404
+- [x] 42 unit test: encode/decode cursore, CursorPagination, PaginatedResult, apply_cursor_pagination, repository logic, API endpoint
+
+**Note tecniche:**
+- Il cursore codifica `{"date": "YYYY-MM-DD"}` come chiave di sort.
+- `apply_cursor_pagination()` riceve `cursor_value` già decodificato e castato (es. `date`) dal caller.
+- `get_history_paginated()` gestisce internamente decode del cursore e filtri start/end.
+- Endpoint `/api/market/history/{ticker}/paginated` accede ai dati localmente sincronizzati (PostgreSQL), non a Yahoo Finance live.

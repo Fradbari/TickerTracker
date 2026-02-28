@@ -662,3 +662,57 @@ Priorità: Fase 2 (necessario solo con dataset molto grandi; non blocca l'MVP lo
 - Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
 - Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
 - Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
+---
+
+## TASK 3.11 — Stato Implementazione (Completato)
+
+**File creati/modificati (shared):**
+
+| File | Azione |
+|------|--------|
+| `src/shared/repositories/pagination.py` | CREATO |
+| `src/shared/repositories/__init__.py` | MODIFICATO |
+| `src/shared/schemas/api_response.py` | MODIFICATO (`trace_id` default, `Optional` typing, `make_success()`) |
+
+**Classi e funzioni pubbliche:**
+
+```python
+# src/shared/repositories/pagination.py
+class Direction(str, Enum):         # NEXT | PREV
+    ...
+
+@dataclass
+class CursorPagination:
+    limit: int       # 1–500, default 50
+    cursor: Optional[str]   # opaque base64url string, None = first page
+    direction: Direction    # NEXT (default) | PREV
+
+@dataclass
+class PaginatedResult(Generic[T]):
+    items: List[T]
+    next_cursor: Optional[str]   # None = last page
+    prev_cursor: Optional[str]   # None = first page
+    # Properties:
+    has_more: bool      # next_cursor is not None
+    total_in_page: int  # len(items)
+
+def encode_cursor(values: dict) -> str: ...
+def decode_cursor(cursor: str) -> dict: ...  # raises ValueError on bad input
+def apply_cursor_pagination(
+    query, pagination: CursorPagination, sort_column, cursor_value=None
+) -> ...
+```
+
+**Formato cursore:**
+```
+cursor = base64url_no_padding(json({"date": "YYYY-MM-DD"}))
+# Esempio: {"date": "2026-01-15"} → eyJkYXRlIjoiMjAyNi0wMS0xNSJ9
+```
+
+**Limitazioni:**
+- Sort column deve essere unica per ticker_id (la coppia `ticker_id + date` è PK quindi è safe).
+- I filtri `start`/`end` restringono la finestra navigabile; il cursore opera all'interno di quella finestra.
+- Salto di pagine arbitrarie non supportato (navigazione sequenziale).
+
+**Test:** `tests/unit/shared/test_pagination.py` — 42 test PASSED

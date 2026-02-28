@@ -84,6 +84,29 @@ Questi task coprono il nuovo Sync Engine con Google Drive e garantiscono la pien
 
 ---
 
+### TASK 3.11 — Cursor-Based Pagination (completato)
+
+**Nuovo file**: `tests/unit/shared/test_pagination.py` — **42 test**
+
+| Classe | Test | Descrizione |
+|--------|------|-------------|
+| `TestEncodeCursor` | 5 | encode restituisce str, URL-safe, round-trip, multi-key, opacità |
+| `TestDecodeCursor` | 4 | valid cursor, base64 invalido, JSON invalido, strip padding |
+| `TestCursorPagination` | 7 | defaults, limit custom, direction da stringa, boundary validation |
+| `TestPaginatedResult` | 4 | has_more, total_in_page, empty, generic typing |
+| `TestApplyCursorPagination` | 5 | verifica SQL WHERE/ORDER/LIMIT con cursor_value=date(...) diretto |
+| `TestGetHistoryPaginated` | 9 | empty, first page, last page, cursor encoding, prev_cursor, PREV reversal, invalid cursor, missing date key, single page |
+| `TestPaginatedEndpoint` | 8 | 200 first page, 404 unknown ticker, 400 invalid cursor, 400 bad date, 200 empty, PREV accepted, 422 limit=0, schema fields |
+
+**Suite completa dopo TASK 3.11**: `605 passed, 1 skipped, 40 warnings` ✅
+
+**Note tecniche**:
+- `apply_cursor_pagination` riceve `cursor_value` già tipizzato come `date` Python (non `dict`) — il chiamante decodifica il cursore e converte.
+- Pydantic v2: campo `success: bool` in `ApiResponse` impedisce `@classmethod def success(...)`. Endpoint paginated usa il costruttore diretto `ApiResponse(success=True, ...)`.
+- Cursori: `base64url` senza padding, formato `{"date": "YYYY-MM-DD"}`.
+
+---
+
 ### Istruzioni per LLM
 - Non modificare file fuori da [tests/e2e/, backend/tests/e2e/] se non strettamente necessario.
 - Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.

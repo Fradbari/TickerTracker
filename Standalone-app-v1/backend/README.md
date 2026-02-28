@@ -267,6 +267,63 @@ DB_POOL_TIMEOUT=15
 DB_POOL_RECYCLE=900
 ```
 
+## Cursor-Based Pagination (Task 3.11)
+
+Il sistema supporta la paginazione cursor-based per la history di mercato, con costo O(1) per pagina indipendente dalla dimensione del dataset.
+
+### Endpoint
+
+```
+GET /api/market/history/{ticker}/paginated
+```
+
+### Query Parameters
+
+| Parametro | Default | Descrizione |
+|-----------|---------|-------------|
+| `cursor` | — | Cursore opaco dalla risposta precedente |
+| `direction` | `next` | `next` (avanti) o `prev` (indietro) |
+| `limit` | `50` | Items per pagina (1–500) |
+| `start_date` | — | Filtro data minima (YYYY-MM-DD, opzionale) |
+| `end_date` | — | Filtro data massima (YYYY-MM-DD, opzionale) |
+
+### Navigazione
+
+```bash
+# Prima pagina (senza cursor)
+curl "http://localhost:8000/api/market/history/AAPL/paginated?limit=10"
+
+# Pagina successiva (usa next_cursor dalla risposta)
+curl "http://localhost:8000/api/market/history/AAPL/paginated?limit=10&cursor=<next_cursor>"
+
+# Con filtro date
+curl "http://localhost:8000/api/market/history/AAPL/paginated?start_date=2024-01-01&end_date=2024-12-31&limit=20"
+```
+
+### Formato Risposta
+
+```json
+{
+  "success": true,
+  "data": {
+    "symbol": "AAPL",
+    "items": [...],
+    "next_cursor": "eyJkYXRlIjogIjIwMjQtMDEtMTUifQ",
+    "prev_cursor": null,
+    "has_more": true,
+    "total_in_page": 50,
+    "limit": 50
+  }
+}
+```
+
+### Note
+
+- Il cursore è **opaco** (base64url, no padding): i client non devono interpretarne il contenuto.
+- I filtri `start_date`/`end_date` delimitano la finestra dati e rimangono fissi durante tutta la navigazione.
+- La navigazione è **sequenziale**: non è possibile saltare a pagine arbitrarie.
+- Modulo: `src/shared/repositories/pagination.py` — esportato via `src/shared/repositories/__init__.py`.
+
 ## Security Features
 
 L'applicazione include un sistema di security middleware multi-livello:
@@ -812,8 +869,9 @@ backend/
 | 3.8 | **Data Quality Monitor** | ✅ **COMPLETATO** | **26 ✓** | **DataQualityMonitor (positive_prices/no_large_gaps/daily_change_lt50/positive_volume), run_checks/run_all_checks, daily job 06:00 UTC, structlog alert su critical** |
 | 3.9 | **Data Lineage Tracking** | ✅ **COMPLETATO** | **20 ✓** | **DataSource enum, LineageTracked mixin, ingested_at→ingestion_timestamp rename, source_timestamp column, MarketDataLineageSchema, ?include_lineage API param, Alembic migration a3b5c7d9e1f0** |
 | 3.10 | **Connection Pooling Ottimizzato** | ✅ **COMPLETATO** | **20 ✓** | **AsyncAdaptedQueuePool via Settings (5 campi), get_pool_status(), 4 Gauge Prometheus, update_pool_metrics(), GET /health/pool, connection_pool in /health** |
+| 3.11 | **Query Pagination Cursor-Based** | ✅ **COMPLETATO** | **42 ✓** | **CursorPagination, PaginatedResult[T], encode/decode_cursor (base64url), apply_cursor_pagination, get_history_paginated(), GET /api/market/history/{ticker}/paginated** |
 
-**Total Tests**: 535 passing ✅ (aggiornato con Task 3.10)
+**Total Tests**: 605 passing ✅ (aggiornato con Task 3.11)
 
 
 

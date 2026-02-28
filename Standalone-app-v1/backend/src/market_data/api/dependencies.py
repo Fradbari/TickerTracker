@@ -13,7 +13,9 @@ from src.market_data.infrastructure.cached_provider import (
     CachedMarketDataProvider,
     CacheConfig,
 )
+from src.market_data.repositories.market_data_repository import MarketDataRepository
 from src.shared.infra.config import get_settings
+from src.shared.infra.database import AsyncSessionLocal
 
 
 @lru_cache(maxsize=1)
@@ -92,3 +94,28 @@ def get_uncached_provider() -> MarketDataProvider:
         MarketDataProvider: Base provider without caching
     """
     return _get_base_provider()
+
+
+def get_market_data_repository() -> MarketDataRepository:
+    """
+    Get a MarketDataRepository instance for direct DB access (TASK 3.11).
+
+    Used by endpoints that query locally-stored market data (synced from Drive
+    / Yahoo) rather than fetching live data from an external provider.
+
+    Returns:
+        MarketDataRepository: Repository backed by the async session factory.
+
+    Example::
+
+        from fastapi import Depends
+        from src.market_data.api.dependencies import get_market_data_repository
+
+        @router.get("/history/{ticker}/paginated")
+        async def paginated_history(
+            ticker: str,
+            repo: MarketDataRepository = Depends(get_market_data_repository),
+        ):
+            ...
+    """
+    return MarketDataRepository(session_factory=AsyncSessionLocal)

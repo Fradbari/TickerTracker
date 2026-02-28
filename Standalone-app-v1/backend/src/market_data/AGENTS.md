@@ -527,3 +527,53 @@ tests/unit/shared/test_lineage.py — 20 PASSED
 
 Full suite: 515/515 PASSED (22.60s)
 ```
+
+---
+
+## TASK 3.11 — Stato Implementazione (Completato)
+
+**File creati/modificati (market_data):**
+
+| File | Azione |
+|------|--------|
+| `src/market_data/repositories/market_data_repository.py` | MODIFICATO — aggiunto `get_history_paginated()` |
+| `src/market_data/api/dependencies.py` | MODIFICATO — aggiunto `get_market_data_repository()` DI factory |
+| `src/market_data/api/routes.py` | MODIFICATO — schema `PaginatedHistoryItem`, `PaginatedHistoryResponse`; endpoint `GET /api/market/history/{ticker}/paginated`; helper `_resolve_ticker_id()` |
+
+**Nuovo endpoint:**
+```
+GET /api/market/history/{ticker}/paginated
+?cursor=<opaque>&direction=next|prev&limit=50
+?start_date=YYYY-MM-DD  (opzionale)
+?end_date=YYYY-MM-DD    (opzionale)
+```
+
+**Risposta:**
+```json
+{
+  "success": true,
+  "data": {
+    "symbol": "AAPL",
+    "items": [{"date":"2026-01-01","open":"150.00",...}],
+    "next_cursor": "eyJkYXRlIjoiMjAyNi0wMS01MCJ9",
+    "prev_cursor": null,
+    "has_more": true,
+    "total_in_page": 50,
+    "limit": 50
+  }
+}
+```
+
+**get_history_paginated() — firma:**
+```python
+async def get_history_paginated(
+    self,
+    ticker_id: UUID,
+    pagination: CursorPagination,
+    start: Optional[date] = None,
+    end: Optional[date] = None,
+) -> PaginatedResult[MarketData]:
+    ...
+```
+
+**Test:** `tests/unit/shared/test_pagination.py` — 42 test PASSED

@@ -8,6 +8,13 @@ from typing import Dict, List, Optional
 from uuid import UUID
 
 from src.shared.domain.lineage import DataSource
+from src.shared.repositories.pagination import (
+    CursorPagination,
+    Direction,
+    PaginatedResult,
+    decode_cursor,
+    encode_cursor,
+)
 
 from sqlalchemy import and_, bindparam, func, insert, select, text, update
 from sqlalchemy.types import Date
@@ -170,6 +177,159 @@ class MarketDataRepository:
                 .order_by(MarketData.date.asc())
             )
             return list(result.scalars().all())
+
+    async def get_history_paginated(
+        self,
+        ticker_id: UUID,
+        pagination: CursorPagination,
+        start: Optional[date] = None,
+        end: Optional[date] = None,
+    ) -> PaginatedResult[MarketData]:
+        """
+        Get historical market data using cursor-based pagination (TASK 3.11).
+
+        Returns at most ``pagination.limit`` items per page with O(1) cost
+        regardless of page depth, because a cursor (date value) replaces the
+        OFFSET clause.
+
+        The cursor encodes the ``date`` column as a string (``YYYY-MM-DD``).
+        Clients receive opaque ``next_cursor`` / ``prev_cursor`` values and
+        pass them back unchanged with the desired ``direction``.
+
+        Coexistence with start/end filters
+        -----------------------------------
+        ``start`` and ``end`` behave as a fixed window: only rows within
+        [start, end] are ever returned.  The cursor further narrows *within*
+        that window to the boundary of the last fetched page.
+
+        Edge cases handled
+        ------------------
+        - First page (no cursor): prev_cursor = None.
+        - Last page (no more rows forward): next_cursor = None.
+        - Empty result: returns PaginatedResult with empty items, both cursors None.
+        - Dataset smaller than one page: has_more = False, both cursors None.
+
+        Args:
+            ticker_id:  Ticker to query.
+            pagination: :class:`~src.shared.repositories.pagination.CursorPagination`
+                        with limit, optional cursor, and direction.
+            start:      Optional lower-bound date filter (inclusive).
+            end:        Optional upper-bound date filter (inclusive).
+
+        Returns:
+            :class:`~src.shared.repositories.pagination.PaginatedResult` with
+            items in **ascending date order** and cursor strings for
+            forward/backward navigation.
+
+        Example::
+
+            from src.shared.repositories.pagination import CursorPagination, Direction
+
+            # First page
+            first = await repo.get_history_paginated(
+                ticker_id=tid,
+                pagination=CursorPagination(limit=50),
+                start=date(2025, 1, 1),
+                end=date(2026, 1, 1),
+            )
+
+            # Second page
+            if first.has_more:
+                second = await repo.get_history_paginated(
+                    ticker_id=tid,
+                    pagination=CursorPagination(
+                        limit=50,
+                        cursor=first.next_cursor,
+                        direction=Direction.NEXT,
+                    ),
+                    start=date(2025, 1, 1),
+                    end=date(2026, 1, 1),
+                )
+
+            # Go back to first page
+            back = await repo.get_history_paginated(
+                ticker_id=tid,
+                pagination=CursorPagination(
+                    limit=50,
+                    cursor=second.prev_cursor,
+                    direction=Direction.PREV,
+                ),
+                start=date(2025, 1, 1),
+                end=date(2026, 1, 1),
+            )
+        """
+        # --- Decode cursor date if present ---
+        cursor_date: Optional[date] = None
+        if pagination.cursor:
+            raw = decode_cursor(pagination.cursor)
+            if "date" not in raw:
+                raise ValueError("Cursor must contain a 'date' key")
+            from datetime import date as date_cls
+            cursor_date = date_cls.fromisoformat(raw["date"])
+
+        fetch_limit = pagination.limit + 1  # extra to detect has_more
+
+        async with self._session_factory() as session:
+            # --- Build base WHERE ---
+            conditions = [MarketData.ticker_id == ticker_id]
+            if start is not None:
+                conditions.append(MarketData.date >= start)
+            if end is not None:
+                conditions.append(MarketData.date <= end)
+
+            stmt = select(MarketData).where(and_(*conditions))
+
+            # --- Apply cursor condition and ordering ---
+            if pagination.direction == Direction.NEXT:
+                if cursor_date is not None:
+                    stmt = stmt.where(MarketData.date > cursor_date)
+                stmt = stmt.order_by(MarketData.date.asc()).limit(fetch_limit)
+            else:  # PREV
+                if cursor_date is not None:
+                    stmt = stmt.where(MarketData.date < cursor_date)
+                stmt = stmt.order_by(MarketData.date.desc()).limit(fetch_limit)
+
+            rows = list((await session.execute(stmt)).scalars().all())
+
+        # --- Detect has_more and trim to limit ---
+        if pagination.direction == Direction.NEXT:
+            has_more_next = len(rows) > pagination.limit
+            items = rows[: pagination.limit] if has_more_next else rows
+
+            next_cursor = (
+                encode_cursor({"date": items[-1].date.isoformat()})
+                if has_more_next and items
+                else None
+            )
+            # There's a previous page whenever we used a cursor (not the first page)
+            prev_cursor = (
+                encode_cursor({"date": items[0].date.isoformat()})
+                if cursor_date is not None and items
+                else None
+            )
+
+        else:  # PREV — fetched in DESC order, need to reverse for ASC presentation
+            has_more_prev = len(rows) > pagination.limit
+            rows = rows[: pagination.limit] if has_more_prev else rows
+            items = list(reversed(rows))  # back to ascending order
+
+            prev_cursor = (
+                encode_cursor({"date": items[0].date.isoformat()})
+                if has_more_prev and items
+                else None
+            )
+            # When going PREV we always came from somewhere forward
+            next_cursor = (
+                encode_cursor({"date": items[-1].date.isoformat()})
+                if items
+                else None
+            )
+
+        return PaginatedResult(
+            items=items,
+            next_cursor=next_cursor,
+            prev_cursor=prev_cursor,
+        )
 
     async def get_latest_price(self, ticker_id: UUID) -> Optional[MarketData]:
         """

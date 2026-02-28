@@ -22,9 +22,11 @@ from src.market_data.domain.providers import (
     SymbolNotFoundError,
     DataUnavailableError,
 )
-from src.market_data.api.dependencies import get_market_data_provider
+from src.market_data.api.dependencies import get_market_data_provider, get_market_data_repository
+from src.market_data.repositories.market_data_repository import MarketDataRepository
 from src.market_data.schemas.lineage import MarketDataLineageSchema
 from src.shared.schemas.api_response import ApiResponse
+from src.shared.repositories.pagination import CursorPagination, Direction, PaginatedResult
 from src.infra.security.rate_limit import limiter, is_whitelisted
 
 
@@ -102,6 +104,45 @@ class SearchResponse(BaseModel):
     query: str
     results: List[SearchResult]
     count: int
+
+
+class PaginatedHistoryItem(BaseModel):
+    """Single item in a paginated history response (from local DB)."""
+
+    date: date
+    open: str
+    high: str
+    low: str
+    close: str
+    volume: int
+
+
+class PaginatedHistoryResponse(BaseModel):
+    """
+    Response schema for cursor-paginated historical data endpoint (TASK 3.11).
+
+    Cursors are opaque base64url strings.  Pass them unchanged with the
+    matching ``direction`` query param to navigate.
+
+    Attributes:
+        symbol:       Ticker symbol.
+        items:        Price data points, always in ascending date order.
+        next_cursor:  Cursor for the next page (direction=next).
+                      ``null`` when this is the last page.
+        prev_cursor:  Cursor for the previous page (direction=prev).
+                      ``null`` when this is the first page.
+        has_more:     ``true`` when ``next_cursor`` is not null.
+        total_in_page: Number of items in this page.
+        limit:        Page size requested.
+    """
+
+    symbol: str
+    items: List[PaginatedHistoryItem]
+    next_cursor: Optional[str] = None
+    prev_cursor: Optional[str] = None
+    has_more: bool
+    total_in_page: int
+    limit: int
 
 
 # ============================================================================
@@ -360,3 +401,145 @@ async def search_symbols(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching symbols: {str(e)}")
+
+
+# ============================================================================
+# INTERNAL HELPERS
+# ============================================================================
+
+async def _resolve_ticker_id(symbol: str, repo: MarketDataRepository):
+    """
+    Resolve a ticker symbol to its UUID by querying the tickers table.
+
+    Returns the UUID, or raises HTTPException(404) if not found.
+    """
+    from sqlalchemy import select
+    from src.market_data.domain.entities import Ticker
+    from src.shared.infra.database import AsyncSessionLocal
+
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(Ticker.id).where(Ticker.symbol == symbol)
+        )
+        ticker_id = result.scalar_one_or_none()
+
+    if ticker_id is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Ticker '{symbol}' not found in local database. "
+                   "Data must be synced before using the paginated endpoint.",
+        )
+    return ticker_id
+
+
+# ============================================================================
+# PAGINATED ENDPOINT (TASK 3.11)
+# ============================================================================
+
+@router.get(
+    "/history/{ticker}/paginated",
+    response_model=ApiResponse[PaginatedHistoryResponse],
+    summary="Get paginated historical data from local DB (cursor-based)",
+    description=(
+        "Returns historical OHLCV data stored locally in PostgreSQL using "
+        "**cursor-based pagination** — O(1) cost per page regardless of depth.\n\n"
+        "**Cursor format**: opaque base64url string returned in ``next_cursor`` / "
+        "``prev_cursor`` fields.  Pass unchanged with the corresponding ``direction``.\n\n"
+        "**Coexistence with date filters**: ``start_date`` and ``end_date`` define a "
+        "fixed window; the cursor further narrows within that window.  Keep the same "
+        "filter values across all pages of the same dataset.\n\n"
+        "**Note**: this endpoint queries *locally synced* data only; use "
+        "``GET /api/market/history/{ticker}`` for live Yahoo Finance data."
+    ),
+)
+async def get_paginated_history(
+    ticker: str,
+    cursor: Optional[str] = Query(None, description="Opaque cursor from a previous response"),
+    direction: str = Query("next", pattern="^(next|prev)$", description="Navigation direction"),
+    limit: int = Query(50, ge=1, le=500, description="Items per page (1–500)"),
+    start_date: Optional[date] = Query(None, description="Optional lower-bound date filter (inclusive)"),
+    end_date: Optional[date] = Query(None, description="Optional upper-bound date filter (inclusive)"),
+    repo: MarketDataRepository = Depends(get_market_data_repository),
+):
+    """
+    Get cursor-paginated historical price data from the local PostgreSQL database.
+
+    **Navigation flow**:
+    1. First page → omit ``cursor`` (or pass ``cursor=`` empty), ``direction=next``.
+    2. Subsequent pages → pass the ``next_cursor`` from the previous response with
+       ``direction=next``.
+    3. To go backward → pass the ``prev_cursor`` from the current page with
+       ``direction=prev``.
+
+    **Edge cases**:
+    - Empty dataset: ``items=[]``, ``next_cursor=null``, ``prev_cursor=null``.
+    - Last page: ``next_cursor=null``, ``has_more=false``.
+    - First page: ``prev_cursor=null``.
+    - Invalid cursor: HTTP 400.
+    - Ticker not in local DB: HTTP 404.
+    """
+    try:
+        # --- Input validation ---
+        if start_date and end_date and start_date > end_date:
+            raise HTTPException(
+                status_code=400,
+                detail="start_date must be before or equal to end_date",
+            )
+
+        pagination = CursorPagination(
+            limit=limit,
+            cursor=cursor or None,
+            direction=Direction(direction),
+        )
+
+        # --- Resolve ticker symbol → UUID ---
+        ticker_upper = ticker.upper()
+        ticker_id = await _resolve_ticker_id(ticker_upper, repo)
+
+        # --- Execute paginated query ---
+        result: PaginatedResult = await repo.get_history_paginated(
+            ticker_id=ticker_id,
+            pagination=pagination,
+            start=start_date,
+            end=end_date,
+        )
+
+        # --- Build response ---
+        items = [
+            PaginatedHistoryItem(
+                date=md.date,
+                open=str(md.open),
+                high=str(md.high),
+                low=str(md.low),
+                close=str(md.close),
+                volume=md.volume,
+            )
+            for md in result.items
+        ]
+
+        paginated_response = PaginatedHistoryResponse(
+            symbol=ticker_upper,
+            items=items,
+            next_cursor=result.next_cursor,
+            prev_cursor=result.prev_cursor,
+            has_more=result.has_more,
+            total_in_page=result.total_in_page,
+            limit=limit,
+        )
+
+        return ApiResponse(
+            success=True,
+            data=paginated_response,
+            error=None,
+            trace_id="",
+        )
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching paginated history: {str(e)}",
+        )

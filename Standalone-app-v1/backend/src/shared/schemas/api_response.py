@@ -1,4 +1,4 @@
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel
 
@@ -30,12 +30,37 @@ class ApiResponse(BaseModel, Generic[T]):
         data (Optional[T]): The response payload.
         error (Optional[ApiError]): Error details if success is False.
         trace_id: Unique identifier for request tracing.
+
+    Class helpers
+    -------------
+    Use :func:`make_success` / :func:`make_error` class-methods to build
+    response objects without constructing the model manually.  These names
+    avoid the conflict with the ``success: bool`` field.
     """
 
     success: bool
-    data: T | None = None
-    error: ApiError | None = None
-    trace_id: str
+    data: Optional[T] = None
+    error: Optional[ApiError] = None
+    trace_id: str = ""
+
+    @classmethod
+    def make_success(cls, data: Any = None, message: str = "", trace_id: str = "") -> "ApiResponse":
+        """
+        Create a successful API response.
+
+        Note: use this instead of the non-existent ``ApiResponse.success()``
+        which conflicts with the ``success: bool`` Pydantic field.
+
+        Args:
+            data:     The payload to wrap.
+            message:  Human-readable description (ignored, for documentation
+                      purposes only — ``ApiResponse`` has no message field).
+            trace_id: Optional request trace ID.
+
+        Returns:
+            ``ApiResponse`` with ``success=True``.
+        """
+        return cls(success=True, data=data, error=None, trace_id=trace_id)
 
 
 def success_response(data: Any, trace_id: str) -> ApiResponse[Any]:

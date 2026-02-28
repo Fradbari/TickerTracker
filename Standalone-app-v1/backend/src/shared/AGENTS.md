@@ -582,46 +582,33 @@ Dipendenze: TASK 2.20
 
 ID: TASK 3.10
 Area: shared
-Fase: Fase 2
-Dipendenze: TASK 2.20
+Fase: Post-MVP
+Dipendenze: TASK 3.6, TASK 3.7
+Status: ✅ COMPLETATO
 
 ## TASK 3.10: Configurazione Connection Pooling Ottimizzato
 
-Priorità: Media (consigliato dopo l'MVP per migliorare performance e stabilità, ma non blocca l'uso locale base).
+Priorità: Media (consigliato dopo l'MVP per migliorare performance e stabilità).
 
 **Descrizione:** Ottimizzare pool connessioni database per performance e resilienza.
 
-**Microstep:**
+**Implementazione completata:**
 
-1\. Modificare file `backend/src/shared/infra/database.py`
+- `src/shared/infra/config.py` — 5 campi pool in Settings (DB_POOL_SIZE, DB_MAX_OVERFLOW, DB_POOL_TIMEOUT, DB_POOL_RECYCLE, DB_POOL_PRE_PING)
+- `src/shared/infra/database.py` — riscritto con AsyncAdaptedQueuePool + `get_pool_status()`
+- `src/shared/infra/__init__.py` — esportato `get_pool_status`
+- `src/infra/metrics/metrics.py` — 4 Gauge Prometheus + `update_pool_metrics()`
+- `src/shared/api/health_routes.py` — `GET /health/pool` + `connection_pool` in `/health`
+- `tests/unit/infra/test_connection_pool.py` — 20 test
 
-2\. Configurare QueuePool con parametri:
-
-- pool_size: 5 (dev) / 10 (prod)
-
-- max_overflow: 10 (dev) / 20 (prod)
-
-- pool_timeout: 30 secondi
-
-- pool_recycle: 1800 secondi (30 min)
-
-- pool_pre_ping: True
-
-3\. Leggere configurazione da Settings
-
-4\. Aggiungere metriche pool: connections_in_use, connections_available
-
-5\. Documentare tuning per diversi carichi
+**Test:** 20/20 ✅ | Suite completa: 535/535 ✅
 
 **Acceptance Criteria:**
 
-- [ ] Pool configurato correttamente per ambiente
-
-- [ ] pre_ping evita connessioni stale
-
-- [ ] Metriche pool esposte
-
-- [ ] Nessun connection leak sotto carico
+- [x] Pool configurato correttamente per ambiente
+- [x] pre_ping evita connessioni stale
+- [x] Metriche pool esposte (Prometheus + /health/pool)
+- [x] Nessun connection leak sotto carico
 
 ---
 

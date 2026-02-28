@@ -223,6 +223,50 @@ spec:
       periodSeconds: 10
 ```
 
+## Connection Pooling (Task 3.10)
+
+Il database engine usa `AsyncAdaptedQueuePool` (wrapper asincrono di SQLAlchemy `QueuePool`) con parametri configurabili via variabili d'ambiente:
+
+| Variabile | Default | Descrizione |
+|-----------|---------|-------------|
+| `DB_POOL_SIZE` | 5 | Connessioni persistenti nel pool (5=dev, 10=prod) |
+| `DB_MAX_OVERFLOW` | 10 | Connessioni extra oltre pool_size (10=dev, 20=prod) |
+| `DB_POOL_TIMEOUT` | 30 | Secondi di attesa per una connessione dal pool |
+| `DB_POOL_RECYCLE` | 1800 | Secondi dopo i quali una connessione viene riciclata (30 min) |
+| `DB_POOL_PRE_PING` | True | Esegui SELECT 1 prima di usare una connessione |
+
+### Diagnostica Pool
+
+```bash
+# Endpoint dedicato pool status
+curl http://localhost:8000/health/pool
+# {"pool_size": 5, "checked_in": 5, "checked_out": 0, "overflow": 0, "invalid": 0}
+
+# Pool status incluso anche in /health
+curl http://localhost:8000/health | jq .connection_pool
+
+# Metriche Prometheus (aggiornate ad ogni scrape)
+curl http://localhost:8000/metrics | grep db_pool
+# db_pool_checked_out 0.0
+# db_pool_checked_in 5.0
+# db_pool_overflow 0.0
+# db_pool_size 5.0
+```
+
+### Tuning per ambiente
+
+```env
+# Development (default)
+DB_POOL_SIZE=5
+DB_MAX_OVERFLOW=10
+
+# Production (esempio)
+DB_POOL_SIZE=10
+DB_MAX_OVERFLOW=20
+DB_POOL_TIMEOUT=15
+DB_POOL_RECYCLE=900
+```
+
 ## Security Features
 
 L'applicazione include un sistema di security middleware multi-livello:
@@ -754,7 +798,7 @@ backend/
 | 2.18 | Market Data Providers | ✅ COMPLETATO | 5 ✓ | Yahoo/Fake Providers + Interface |
 | 2.19 | **Caching & Resiliency** | ✅ **COMPLETATO** | **✓** | **LRU Cache + Exponential Backoff** |
 
-### Phase 3: Security & Observability (7/11 tasks - 64%)
+### Phase 3: Security & Observability (8/11 tasks - 73%)
 
 | Task | Descrizione | Status | Tests | Implementation |
 |------|-----------|--------|-------|----------------|
@@ -767,8 +811,9 @@ backend/
 | 3.7 | **Health Checks Completi** | ✅ **COMPLETATO** | **13 ✓** | **HealthService (DB/Redis/Yahoo/Drive), GET /health + /health/ready + /health/live, JSONResponse, 503 on UNHEALTHY** |
 | 3.8 | **Data Quality Monitor** | ✅ **COMPLETATO** | **26 ✓** | **DataQualityMonitor (positive_prices/no_large_gaps/daily_change_lt50/positive_volume), run_checks/run_all_checks, daily job 06:00 UTC, structlog alert su critical** |
 | 3.9 | **Data Lineage Tracking** | ✅ **COMPLETATO** | **20 ✓** | **DataSource enum, LineageTracked mixin, ingested_at→ingestion_timestamp rename, source_timestamp column, MarketDataLineageSchema, ?include_lineage API param, Alembic migration a3b5c7d9e1f0** |
+| 3.10 | **Connection Pooling Ottimizzato** | ✅ **COMPLETATO** | **20 ✓** | **AsyncAdaptedQueuePool via Settings (5 campi), get_pool_status(), 4 Gauge Prometheus, update_pool_metrics(), GET /health/pool, connection_pool in /health** |
 
-**Total Tests**: 515 passing ✅ (aggiornato con Task 3.9)
+**Total Tests**: 535 passing ✅ (aggiornato con Task 3.10)
 
 
 

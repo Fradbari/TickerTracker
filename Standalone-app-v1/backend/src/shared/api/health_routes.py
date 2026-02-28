@@ -29,6 +29,7 @@ from src.infra.health.health_service import (
     HealthService,
     SystemHealth,
 )
+from src.shared.infra.database import get_pool_status
 
 # ---------------------------------------------------------------------------
 # Router — MUST stay here with this prefix; already registered in main.py.
@@ -47,7 +48,7 @@ _process_start: float = time.monotonic()
 
 def _system_health_to_dict(health: SystemHealth) -> dict:
     """Convert SystemHealth (dataclass) to a plain JSON-serialisable dict."""
-    return {
+    result: dict = {
         "status": health.status,
         "version": health.version,
         "uptime_seconds": health.uptime_seconds,
@@ -62,6 +63,12 @@ def _system_health_to_dict(health: SystemHealth) -> dict:
             for c in health.components
         ],
     }
+    # Include connection pool diagnostics (Task 3.10)
+    try:
+        result["connection_pool"] = get_pool_status()
+    except Exception:
+        result["connection_pool"] = None
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -120,3 +127,19 @@ async def liveness_check() -> JSONResponse:
         content={"alive": True, "uptime_seconds": uptime},
         status_code=200,
     )
+
+
+@router.get("/pool")
+async def pool_status() -> JSONResponse:
+    """
+    Database connection pool diagnostics (Task 3.10).
+
+    Returns current pool utilisation: pool_size, checked_in, checked_out,
+    overflow, invalid.  Useful for dashboards and alerting on connection leaks.
+    Always returns HTTP 200 — if the pool is unreachable, values will be null.
+    """
+    try:
+        status = get_pool_status()
+    except Exception as exc:
+        status = {"error": str(exc)[:200]}
+    return JSONResponse(content=status, status_code=200)

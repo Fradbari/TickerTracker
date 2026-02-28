@@ -681,6 +681,73 @@ Priorità: Fase 2 (opzionale per ambiente locale single‑user; implementare sol
 - Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
 - Alla fine, produci un elenco puntato con file modificati e test eseguiti.
 
+---
+
+ID: TASK 3.10
+Area: infra / shared
+Fase: Post-MVP
+Dipendenze: TASK 3.6, TASK 3.7
+Status: ✅ COMPLETATO
+
+## TASK 3.10: Configurazione Connection Pooling Ottimizzato
+
+Priorità: Media (consigliato dopo l'MVP per migliorare performance e stabilità).
+
+**Descrizione:** Ottimizzare pool connessioni database per performance e resilienza.
+
+**Implementazione completata:**
+
+- `src/shared/infra/config.py` — aggiunti 5 campi pool in Settings:
+  - `DB_POOL_SIZE` (default 5), `DB_MAX_OVERFLOW` (default 10),
+    `DB_POOL_TIMEOUT` (default 30s), `DB_POOL_RECYCLE` (default 1800s),
+    `DB_POOL_PRE_PING` (default True)
+- `src/shared/infra/database.py` — riscritto:
+  - Rimosso `from sqlalchemy.pool import NullPool` (import inutilizzato)
+  - Engine usa `AsyncAdaptedQueuePool` (default di `create_async_engine`)
+    con tutti e 5 i parametri da Settings
+  - Aggiunta funzione `get_pool_status() -> dict` (pool_size, checked_in,
+    checked_out, overflow, invalid)
+  - Log strutturato alla creazione del pool
+- `src/shared/infra/__init__.py` — esportato `get_pool_status`
+- `src/infra/metrics/metrics.py` — 4 Gauge Prometheus + `update_pool_metrics()`:
+  - `db_pool_checked_out`, `db_pool_checked_in`, `db_pool_overflow`, `db_pool_size`
+  - `update_pool_metrics()` aggiorna i Gauge dal pool engine (mai solleva eccezioni)
+- `src/infra/metrics/__init__.py` — esportati nuovi simboli pool
+- `src/infra/metrics/routes.py` — `/metrics` chiama `update_pool_metrics()` prima di scrape
+- `src/shared/api/health_routes.py` — modifiche:
+  - `GET /health` include sezione `connection_pool` nel response body
+  - Nuovo endpoint `GET /health/pool` — diagnostica pool dedicata (sempre 200)
+- `src/shared/infra/config.py` — `/health/pool` aggiunto a `API_KEY_EXEMPT_PATHS`
+
+**File creati/modificati:**
+- `src/shared/infra/config.py` (modificato — nuovi campi pool)
+- `src/shared/infra/database.py` (riscritto — QueuePool + get_pool_status)
+- `src/shared/infra/__init__.py` (modificato — export get_pool_status)
+- `src/infra/metrics/metrics.py` (modificato — 4 Gauge + update_pool_metrics)
+- `src/infra/metrics/__init__.py` (modificato — export pool metrics)
+- `src/infra/metrics/routes.py` (modificato — update_pool_metrics su scrape)
+- `src/shared/api/health_routes.py` (modificato — /health/pool + connection_pool in /health)
+- `tests/unit/infra/test_connection_pool.py` (NUOVO — 20 test)
+
+**Test:** 20/20 ✅ | Suite completa: 535/535 ✅
+
+**Tuning per diversi carichi:**
+| Parametro        | Dev (local) | Staging   | Production |
+|-----------------|-------------|-----------|------------|
+| DB_POOL_SIZE    | 5           | 10        | 10-20      |
+| DB_MAX_OVERFLOW | 10          | 15        | 20-30      |
+| DB_POOL_TIMEOUT | 30          | 30        | 15-20      |
+| DB_POOL_RECYCLE | 1800        | 1800      | 900-1800   |
+| DB_POOL_PRE_PING| True        | True      | True       |
+
+**Acceptance Criteria:**
+- [x] Pool configurato correttamente per ambiente (Settings-driven)
+- [x] pre_ping evita connessioni stale
+- [x] Metriche pool esposte (Prometheus Gauge + /health/pool + /health)
+- [x] Nessun connection leak sotto carico (get_pool_status per monitoraggio)
+
+---
+
 ID: TASK 5.12
 Area: infra
 Fase: MVP

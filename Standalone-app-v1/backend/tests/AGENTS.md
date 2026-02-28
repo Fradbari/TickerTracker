@@ -58,6 +58,26 @@ Validare che il nuovo backend mantenga la piena retro‑compatibilità con i fil
 **Note:**
 - I fixture semplificati sostituiscono i file legacy esistenti (backup.json vuoto, History con 100+ colonne)
 - Tutti i test eseguibili localmente senza dipendenze Drive (solo parser e fixtures)
+
+---
+
+ID: TASK 3.10
+Area: tests/unit/infra
+Fase: Post-MVP
+Dipendenze: TASK 3.10 (Connection Pooling)
+Status: ✅ COMPLETATO
+
+## Test Connection Pooling Ottimizzato
+
+**File:** `tests/unit/infra/test_connection_pool.py`
+
+**Test (20/20 ✅):**
+- `TestPoolSettings` (7 test): defaults, override di ogni parametro, /health/pool in exempt paths
+- `TestGetPoolStatus` (2 test): verifica chiavi e valori nel dict restituito da get_pool_status()
+- `TestUpdatePoolMetrics` (2 test): aggiornamento Gauge Prometheus + error handling
+- `TestHealthPoolEndpoint` (3 test): /health/pool 200 OK + shape + errore graceful
+- `TestHealthFullIncludesPool` (1 test): /health include connection_pool
+- `TestDatabaseModuleImports` (5 test): NullPool rimosso, poolclass non esplicito, parametri presenti, get_pool_status callable e restituisce dict
 - Validazione completa backward compatibility con formato HTML+GAS originale
 
 Questi task coprono il nuovo Sync Engine con Google Drive e garantiscono la piena retro‑compatibilità con i file legacy (backup JSON e History_*.csv) tramite test E2E dedicati.

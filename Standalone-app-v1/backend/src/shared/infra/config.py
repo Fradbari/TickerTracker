@@ -45,6 +45,28 @@ class Settings(BaseSettings):
         description="Database connection URL (use PostgreSQL in production)",
     )
 
+    # ========== Connection Pooling (Task 3.10) ==========
+    DB_POOL_SIZE: int = Field(
+        default=5,
+        description="SQLAlchemy pool_size: persistent connections in pool (5=dev, 10=prod)",
+    )
+    DB_MAX_OVERFLOW: int = Field(
+        default=10,
+        description="SQLAlchemy max_overflow: extra connections above pool_size (10=dev, 20=prod)",
+    )
+    DB_POOL_TIMEOUT: int = Field(
+        default=30,
+        description="Seconds to wait for a connection from pool before raising TimeoutError",
+    )
+    DB_POOL_RECYCLE: int = Field(
+        default=1800,
+        description="Seconds after which a connection is recycled (30 min prevents stale)",
+    )
+    DB_POOL_PRE_PING: bool = Field(
+        default=True,
+        description="Issue SELECT 1 before using a connection to detect stale connections",
+    )
+
     # ========== External API Configuration ==========
     YAHOO_CACHE_TTL: int = Field(
         default=3600,
@@ -140,7 +162,7 @@ class Settings(BaseSettings):
         description="Required API key value when ENABLE_API_KEY_AUTH=true",
     )
     API_KEY_EXEMPT_PATHS: list[str] = Field(
-        default=["/health", "/health/ready", "/health/db", "/docs", "/openapi.json", "/redoc", "/metrics"],
+        default=["/health", "/health/ready", "/health/db", "/health/pool", "/docs", "/openapi.json", "/redoc", "/metrics"],
         description="Paths exempt from API key validation",
     )
     CSP_POLICY: str = Field(

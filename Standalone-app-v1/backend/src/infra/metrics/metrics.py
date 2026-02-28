@@ -107,6 +107,51 @@ cache_misses_total = Counter(
 )
 
 # ---------------------------------------------------------------------------
+# Database connection pool metrics (Task 3.10)
+# ---------------------------------------------------------------------------
+
+db_pool_checked_out = Gauge(
+    "db_pool_checked_out",
+    "Number of connections currently checked out from the pool",
+)
+
+db_pool_checked_in = Gauge(
+    "db_pool_checked_in",
+    "Number of connections currently available in the pool",
+)
+
+db_pool_overflow = Gauge(
+    "db_pool_overflow",
+    "Number of overflow connections currently active",
+)
+
+db_pool_size = Gauge(
+    "db_pool_size",
+    "Configured pool size (max persistent connections)",
+)
+
+
+def update_pool_metrics() -> None:
+    """
+    Update Prometheus pool gauges from current engine state.
+
+    Call this periodically (e.g. from the scheduler) or on-demand from the
+    ``/metrics`` endpoint to keep gauges fresh.  Never raises — any error
+    is silently swallowed so metrics collection cannot crash the application.
+    """
+    try:
+        from src.shared.infra.database import get_pool_status
+
+        status = get_pool_status()
+        db_pool_checked_out.set(status["checked_out"])
+        db_pool_checked_in.set(status["checked_in"])
+        db_pool_overflow.set(status["overflow"])
+        db_pool_size.set(status["pool_size"])
+    except Exception:
+        pass  # Never crash on metrics update
+
+
+# ---------------------------------------------------------------------------
 # @track_duration decorator
 # ---------------------------------------------------------------------------
 

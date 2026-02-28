@@ -1,4 +1,4 @@
-"""Prometheus metrics package — Task 3.6."""
+"""Prometheus metrics package — Tasks 3.6 / 3.10."""
 
 from src.infra.metrics.metrics import (
     # Business metrics
@@ -12,6 +12,12 @@ from src.infra.metrics.metrics import (
     drive_sync_operations_total,
     cache_hits_total,
     cache_misses_total,
+    # Pool metrics (Task 3.10)
+    db_pool_checked_out,
+    db_pool_checked_in,
+    db_pool_overflow,
+    db_pool_size,
+    update_pool_metrics,
     # Decorator
     track_duration,
 )
@@ -29,6 +35,12 @@ __all__ = [
     "drive_sync_operations_total",
     "cache_hits_total",
     "cache_misses_total",
+    # Pool (Task 3.10)
+    "db_pool_checked_out",
+    "db_pool_checked_in",
+    "db_pool_overflow",
+    "db_pool_size",
+    "update_pool_metrics",
     # Decorator
     "track_duration",
     # Router

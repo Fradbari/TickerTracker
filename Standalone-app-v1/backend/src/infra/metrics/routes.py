@@ -19,6 +19,8 @@ from fastapi import APIRouter
 from fastapi.responses import Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
+from src.infra.metrics.metrics import update_pool_metrics
+
 router = APIRouter(tags=["metrics"])
 
 
@@ -34,5 +36,7 @@ router = APIRouter(tags=["metrics"])
 )
 def metrics_endpoint() -> Response:
     """Return all Prometheus metrics in text/plain; version=0.0.4 format."""
+    # Refresh pool gauges before scrape (Task 3.10)
+    update_pool_metrics()
     data: bytes = generate_latest()
     return Response(content=data, media_type=CONTENT_TYPE_LATEST)

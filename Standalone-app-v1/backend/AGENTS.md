@@ -734,3 +734,40 @@ Dipendenze: TASK 2.24
 - Structured logging: tutti i log con context (event_id, estimate_id, retry_count)
 - Dead letter placeholder: ready per Slack/Email webhook futuro
 
+---
+
+ID: TASK 3.10
+Area: backend/infra, backend/shared
+Fase: Post-MVP
+Dipendenze: TASK 3.6, TASK 3.7
+Status: ✅ COMPLETATO
+
+## TASK 3.10: Configurazione Connection Pooling Ottimizzato
+
+**Descrizione:** Ottimizzare pool connessioni database per performance e resilienza.
+
+**Implementazione completata:**
+
+1. Aggiunti 5 campi pool in `Settings` (`config.py`): `DB_POOL_SIZE`, `DB_MAX_OVERFLOW`, `DB_POOL_TIMEOUT`, `DB_POOL_RECYCLE`, `DB_POOL_PRE_PING`
+2. Riscritto `database.py`: rimosso `NullPool` import, engine usa `AsyncAdaptedQueuePool` con parametri da Settings, aggiunta `get_pool_status()`, log strutturato
+3. Aggiunte 4 Gauge Prometheus (`db_pool_checked_out/in/overflow/size`) + `update_pool_metrics()` in `metrics.py`
+4. `/metrics` endpoint chiama `update_pool_metrics()` prima di ogni scrape
+5. `/health` include `connection_pool` nel body; nuovo endpoint `GET /health/pool`
+6. `/health/pool` aggiunto a `API_KEY_EXEMPT_PATHS`
+
+**File Creati/Modificati:**
+- `src/shared/infra/config.py` (5 nuovi campi pool)
+- `src/shared/infra/database.py` (riscritto)
+- `src/shared/infra/__init__.py` (export get_pool_status)
+- `src/infra/metrics/metrics.py` (4 Gauge + update_pool_metrics)
+- `src/infra/metrics/__init__.py` (export aggiornati)
+- `src/infra/metrics/routes.py` (update_pool_metrics su scrape)
+- `src/shared/api/health_routes.py` (/health/pool + connection_pool)
+- `tests/unit/infra/test_connection_pool.py` (NUOVO — 20 test)
+
+**Acceptance Criteria:**
+- [x] Pool configurato correttamente per ambiente
+- [x] pre_ping evita connessioni stale
+- [x] Metriche pool esposte
+- [x] Nessun connection leak sotto carico
+

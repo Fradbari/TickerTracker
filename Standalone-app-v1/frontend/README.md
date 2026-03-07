@@ -92,11 +92,15 @@ frontend/
     ├── features/                      # Feature modules — each self-contained
     │   │                              # RULE: import only from feature/index.ts
     │   ├── estimates/                 # TASK 4.6–4.10
-    │   │   ├── index.ts               # Public barrel (types + api + hooks)
+    │   │   ├── index.ts               # Public barrel (types + api + hooks + components)
     │   │   ├── types/index.ts         # Estimate, EstimateStatus, payloads, filters
     │   │   ├── api/index.ts           # listEstimates, createEstimate, closeEstimate…
-    │   │   ├── hooks/index.ts         # useEstimateList, useCreateEstimate…
-    │   │   └── components/index.ts    # Placeholder (TASK 4.6–4.10)
+    │   │   │   ├── queries.ts         # estimateKeys + read hooks (useEstimates, useEstimate…)
+    │   │   │   └── mutations.ts       # write hooks (useCreateEstimate, useCloseEstimate…)
+    │   │   ├── hooks/index.ts         # re-exports from api/ + useInfiniteEstimates
+    │   │   └── components/
+    │   │       ├── index.ts           # Components barrel
+    │   │       └── EstimateForm.tsx   # ✅ TASK 4.8 — create form with real-time preview
     │   │
     │   ├── portfolio/                 # TASK 4.11–4.12
     │   │   ├── index.ts
@@ -201,7 +205,8 @@ npm run test:coverage  # Run with coverage report (target: 80%+)
 | TanStack Query | ^5 | Server state & caching |
 | Axios | ^1 | HTTP client (centralized in `shared/api/client.ts`) |
 | React Hook Form | ^7 | Form management |
-| Zod | ^4 | Schema validation |
+| Zod | ^4 | Schema validation (**use `z.string().refine()` for numeric HTML inputs**, not `z.coerce.number()`) |
+| @hookform/resolvers | ^5 | Zod ↔ React Hook Form bridge |
 | Recharts | ^3 | Charts & data visualization |
 | date-fns | ^4 | Date formatting |
 | react-hot-toast | ^2.6.0 | Toast notifications (zero deps, Tailwind v4 compatible) |

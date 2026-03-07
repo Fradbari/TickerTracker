@@ -53,5 +53,9 @@ export {
   useUpdateEstimate,     // placeholder — backend endpoint not yet implemented
 } from './hooks'
 
-// Components — uncomment progressively as tasks are completed
-// export * from './components'
+// Components — TASK 4.8: EstimateForm ✅
+export { EstimateForm } from './components'
+export type { EstimateFormProps } from './components'
+// export { EstimateList } from './components'    // TASK 4.6
+// export { EstimateDetail } from './components'  // TASK 4.7
+// export { CloseEstimateModal } from './components' // TASK 4.10

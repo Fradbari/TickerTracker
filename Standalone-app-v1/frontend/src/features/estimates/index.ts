@@ -35,13 +35,22 @@ export {
 
 // TanStack Query hooks
 export {
-  ESTIMATE_KEYS,
-  useEstimateList,
-  useInfiniteEstimates,
+  // Key factory
+  estimateKeys,
+  ESTIMATE_KEYS,         // @deprecated alias — use estimateKeys
+
+  // Read hooks
+  useEstimates,
+  useEstimateList,       // @deprecated alias — use useEstimates
   useEstimate,
+  useEstimateHistory,
+  useInfiniteEstimates,
+
+  // Write hooks
   useCreateEstimate,
   useCloseEstimate,
   useDeleteEstimate,
+  useUpdateEstimate,     // placeholder — backend endpoint not yet implemented
 } from './hooks'
 
 // Components — uncomment progressively as tasks are completed

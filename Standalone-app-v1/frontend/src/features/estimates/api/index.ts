@@ -94,3 +94,13 @@ export async function getEstimateHistory(id: string): Promise<unknown> {
   )
   return unwrapResponse(data)
 }
+
+// ---------------------------------------------------------------------------
+// React Query hooks (co-located with the HTTP layer for discoverability)
+// ---------------------------------------------------------------------------
+
+// estimateKeys, useEstimates, useEstimate, useEstimateHistory
+export * from './queries'
+
+// useCreateEstimate, useCloseEstimate, useDeleteEstimate, useUpdateEstimate
+export * from './mutations'

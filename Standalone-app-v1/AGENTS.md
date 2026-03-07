@@ -78,13 +78,14 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 2.23** - Test Retrocompatibilità Backup/History Legacy *(17 tests passing)*
 - [x] **TASK 2.24** - Setup Background Worker APScheduler *(job scheduling, FastAPI integration)*
 
-#### Sezione 4: Frontend Setup & Features (4/14)
+#### Sezione 4: Frontend Setup & Features (5/15)
 - [x] **TASK 4.1** - Setup Progetto Frontend (Vite + React 19)
 - [x] **TASK 4.2** - Creazione Struttura Feature Modules
 - [x] **TASK 4.3** - Configurazione React Query & API Client
 - [x] **TASK 4.4** - Definizione Types e API Response Models
 - [x] **TASK 4.5** - Wrapper Decimale per Calcoli Finanziari (finance/decimalMoney.ts)
 - [ ] **TASK 4.5b** - Creazione Componenti UI Shared (Button, Input, Card, Badge, Spinner, Toast, Modal)
+- [x] **TASK 4.6-hooks** - Implementazione API Hooks per Estimates (queries.ts + mutations.ts)
 - [ ] **TASK 4.6** - Implementazione EstimateList Component
 - [ ] **TASK 4.7** - Implementazione EstimateDetail Component
 - [ ] **TASK 4.8** - Implementazione CreateEstimateForm Component
@@ -154,9 +155,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 | Categoria | Completati | Totali | Percentuale |
 |-----------|------------|--------|-----------|
-| **MVP** | 26 | 47 | 55% |
+| **MVP** | 27 | 48 | 56% |
 | **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **26** | **66** | 39% |
+| **TOTALE** | **27** | **67** | 40% |
 
 ---
 

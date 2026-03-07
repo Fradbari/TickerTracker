@@ -471,10 +471,51 @@ Dipendenze: TASK 4.5
 
 ---
 
+ID: TASK 4.6-hooks
+Area: frontend/estimates/api
+Fase: MVP
+Dipendenze: TASK 4.5
+
+## TASK 4.6-hooks: Implementazione API Hooks per Estimates
+
+> ✅ **COMPLETATO** — `api/queries.ts` + `api/mutations.ts` creati. `hooks/index.ts` refactored come barrel. Build: 98 moduli. Test: 95/95.
+
+**Descrizione:** Creare hook React Query per operazioni su stime (read e write), co-locati nel layer API per discoverability.
+
+**Acceptance Criteria:**
+
+- [x] `estimateKeys` query-key factory con: `all`, `list(filters)`, `detail(id)`, `history(id)`
+- [x] `useEstimates(filters?)` — lista con filtri encodati nella query key
+- [x] `useEstimate(id)` — singola stima, `enabled: Boolean(id)`
+- [x] `useEstimateHistory(id)` — audit trail, `useQuery<unknown>`, `enabled: Boolean(id)`
+- [x] `useCreateEstimate()` — POST, invalida `estimateKeys.all` on success
+- [x] `useCloseEstimate()` — PATCH /close, invalida `all` + `detail(id)` on success
+- [x] `useDeleteEstimate()` — soft-delete, invalida `estimateKeys.all` on success
+- [x] `useUpdateEstimate()` — placeholder, rigetta con Error esplicito (backend endpoint non esiste)
+- [x] `hooks/index.ts` refactored: re-esporta da `api/queries` e `api/mutations`; `useInfiniteEstimates` rimasto in hooks
+- [x] Feature barrel aggiornato con tutti gli hook
+- [x] Build: 98 moduli, 0 errori TS
+- [x] Test: 95/95
+
+**Note tecniche:**
+- Circolare ESM tra `api/index.ts` → `queries.ts` → `api/index.ts` è safe: le funzioni HTTP sono hoisted e disponibili prima che `export * from './queries'` sia raggiunto; Vite/Rollup e TypeScript lo gestiscono correttamente
+- `useUpdateEstimate` non ha endpoint corrispondente nel backend MVP: rigetta con `Promise.reject(new Error(...))` per segnalarlo chiaramente agli sviluppatori
+- `ESTIMATE_KEYS` (uppercase) rimane come alias `@deprecated` per backward compat
+- `useEstimateList` rimane come alias `@deprecated` per `useEstimates`
+
+**File creati/modificati (TASK 4.6-hooks):**
+- `src/features/estimates/api/queries.ts` ← **NUOVO** — `estimateKeys`, `useEstimates`, `useEstimate`, `useEstimateHistory`
+- `src/features/estimates/api/mutations.ts` ← **NUOVO** — `useCreateEstimate`, `useCloseEstimate`, `useDeleteEstimate`, `useUpdateEstimate`
+- `src/features/estimates/api/index.ts` — aggiunto `export * from './queries'` + `export * from './mutations'`
+- `src/features/estimates/hooks/index.ts` — refactored: re-esporta da api/, aggiunge `useInfiniteEstimates` locale
+- `src/features/estimates/index.ts` — feature barrel aggiornato con tutti gli hook
+
+---
+
 ID: TASK 4.6
 Area: frontend/estimates
 Fase: MVP
-Dipendenze: TASK 4.5
+Dipendenze: TASK 4.6-hooks
 
 ## TASK 4.6: Implementazione EstimateList Component
 

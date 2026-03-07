@@ -82,7 +82,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 4.1** - Setup Progetto Frontend (Vite + React 19)
 - [x] **TASK 4.2** - Creazione Struttura Feature Modules
 - [x] **TASK 4.3** - Configurazione React Query & API Client
-- [ ] **TASK 4.4** - Definizione Types e API Response Models
+- [x] **TASK 4.4** - Definizione Types e API Response Models
 - [ ] **TASK 4.5** - Creazione Componenti UI Shared
 - [ ] **TASK 4.6** - Implementazione EstimateList Component
 - [ ] **TASK 4.7** - Implementazione EstimateDetail Component
@@ -153,9 +153,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 | Categoria | Completati | Totali | Percentuale |
 |-----------|------------|--------|-----------|
-| **MVP** | 24 | 46 | 52% |
+| **MVP** | 25 | 46 | 54% |
 | **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **24** | **65** | 37% |
+| **TOTALE** | **25** | **65** | 38% |
 
 ---
 

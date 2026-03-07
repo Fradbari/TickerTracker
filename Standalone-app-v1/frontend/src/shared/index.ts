@@ -10,8 +10,12 @@
  * to maintain stable public interfaces.
  */
 
-// API client
+// API client (raw Axios instance — prefer typed helpers below)
 export { default as apiClient } from './api/client'
+
+// Typed request helpers — unwrap ApiResponse<T> automatically
+export { get, post, patch, del, isApiError } from './api'
+export type { ApiError } from './api'
 
 // Standard response types + helpers
 export type { ApiResponse } from './types'

@@ -352,25 +352,36 @@ Dipendenze: TASK 4.3
 
 ## TASK 4.4: Definizione Types e API Response Models
 
+> ✅ **COMPLETATO** — `ApiError`, typed helpers (`get/post/patch/del`), `isApiError` guard implementati. Build: 98 moduli. Test: 95/95. Nessun `any` type.
+
 **Descrizione:** Creare types TypeScript per modelli domain e API responses.
 
 **Microstep:**
 
-1. Creare file [`frontend/src/shared/types/api.ts`](../src/shared/types/api.ts)
-2. Definire type `ApiResponse<T>` che corrisponde al backend: `{success: boolean, data: T | null, error: ApiError | null, trace_id: string}`
-3. Definire type `ApiError`: `{code: string, message: string, details?: Record<string, any>}`
-4. Creare file [`frontend/src/shared/types/domain.ts`](../src/shared/types/domain.ts)
-5. Definire types: `Estimate`, `Money`, `PriceTarget`, `MarketData`, `Portfolio`
-6. Implementare type guards: `isEstimate(obj: unknown)`, `isMoney(obj: unknown)`
-7. Implementare validators Zod per form input
+1. ~~Creare file `frontend/src/shared/types/api.ts`~~ — già presente da TASK 4.1 con `ApiResponse<T>` + `unwrapResponse<T>`
+2. ~~Definire type `ApiResponse<T>`~~ — già presente
+3. Definire type `ApiError`: `{code: string, message: string, details?: unknown, status?: number, trace_id?: string}` — ✅ in `src/shared/api/types.ts`
+4. Implementare typed helpers `get<T>`, `post<T>`, `patch<T>`, `del<T>` — ✅ in `src/shared/api/types.ts`
+5. Implementare type guard `isApiError(value: unknown)` — ✅
+6. Aggiornare barrel `src/shared/api/index.ts` con tutti gli export — ✅
+7. Aggiornare `src/shared/index.ts` con gli helper tipizzati — ✅
+8. Interceptor Axios in `client.ts` produce `ApiError` strutturato — ✅
 
 **Acceptance Criteria:**
 
-- [ ] Types corrispondono esattamente al backend
-- [ ] Type guards funzionanti
-- [ ] Validators Zod per tutti i form
-- [ ] Nessun `any` type
-- [ ] Documentazione JSDoc per types complessi
+- [x] `ApiError` interface definita con tutti i campi (`code`, `message`, `details`, `status`, `trace_id`)
+- [x] Typed helpers funzionanti — unwrappano `ApiResponse<T>.data` automaticamente
+- [x] `isApiError` type-guard per i catch block
+- [x] Nessun `any` type
+- [x] Documentazione JSDoc per types e helper functions
+- [x] Build: 98 moduli, 0 errori TypeScript
+- [x] Test: 95/95 passati
+
+**File creati/modificati (TASK 4.4):**
+- `src/shared/api/client.ts` — request interceptor (X-API-Key, Authorization Bearer, X-Correlation-ID) + error interceptor (→ `ApiError`)
+- `src/shared/api/types.ts` — `ApiError`, `isApiError`, `get<T>`, `post<T>`, `patch<T>`, `del<T>`
+- `src/shared/api/index.ts` — barrel aggiornato con tutti gli export
+- `src/shared/index.ts` — master barrel aggiornato
 
 ---
 

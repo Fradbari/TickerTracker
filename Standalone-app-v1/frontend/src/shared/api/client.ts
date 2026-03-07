@@ -1,18 +1,30 @@
 /**
  * Centralised Axios API client.
  *
- * Usage:
- *   import apiClient from '@/shared/api/client'
- *   const data = await apiClient.get('/api/estimates')
+ * Responsibilities:
+ *   - Base URL from VITE_API_BASE_URL (empty = Vite proxy handles /api/* in dev)
+ *   - REQUEST interceptor:
+ *       • X-API-Key   from VITE_API_KEY env var
+ *       • Authorization: Bearer <token>  from localStorage (placeholder — no OAuth yet)
+ *       • X-Correlation-ID  new UUID per request (backend logs + trace)
+ *   - RESPONSE interceptor:
+ *       • Errors rejected as ApiError objects (structured, not raw Axios errors)
  *
- * In development the Vite proxy forwards /api/* → backend:8000.
- * In Docker the VITE_API_TARGET env var overrides the target automatically.
+ * NOTE: success-response unwrapping (extracting ApiResponse<T>.data) is done
+ * in the typed helper functions (get/post/patch/del in ./types.ts), NOT here.
+ * Unwrapping in the interceptor would break Axios generic type inference.
+ *
+ * Usage: import typed helpers, not this file directly.
+ *   import { get, post } from '@/shared/api'
  */
 import axios from 'axios'
+import type { ApiError } from './types'
+
+// ---------------------------------------------------------------------------
+// Axios instance
+// ---------------------------------------------------------------------------
 
 const apiClient = axios.create({
-  // Empty baseURL: Vite dev-server proxy handles /api/* in dev.
-  // For production builds set VITE_API_BASE_URL at build time if needed.
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
   headers: {
     'Content-Type': 'application/json',
@@ -20,26 +32,56 @@ const apiClient = axios.create({
   timeout: 30_000,
 })
 
-// Request interceptor — attach API key if configured
+// ---------------------------------------------------------------------------
+// REQUEST interceptor — auth + tracing headers
+// ---------------------------------------------------------------------------
+
 apiClient.interceptors.request.use((config) => {
+  // API key (backend security middleware expects X-API-Key)
   const apiKey = import.meta.env.VITE_API_KEY
   if (apiKey) {
     config.headers['X-API-Key'] = apiKey
   }
+
+  // Bearer token — placeholder until proper auth is implemented (TASK 2.7/2.8)
+  const token = typeof window !== 'undefined'
+    ? window.localStorage.getItem('auth_token')
+    : null
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`
+  }
+
+  // Correlation ID — unique per request; propagated through backend logs
+  config.headers['X-Correlation-ID'] = crypto.randomUUID()
+
   return config
 })
 
-// Response interceptor — unwrap ApiResponse envelope
+// ---------------------------------------------------------------------------
+// RESPONSE interceptor — normalise errors into ApiError
+// ---------------------------------------------------------------------------
+
 apiClient.interceptors.response.use(
+  // Success path — pass through unchanged (unwrapping happens in typed helpers)
   (response) => response,
+
+  // Error path — build a structured ApiError and reject with it
   (error) => {
-    // Normalise error messages
-    const message =
-      error.response?.data?.error?.message ??
-      error.response?.data?.detail ??
-      error.message ??
-      'Errore sconosciuto'
-    return Promise.reject(new Error(message))
+    const responseData = error.response?.data
+
+    const apiError: ApiError = {
+      code: responseData?.error?.code ?? String(error.response?.status ?? 'NETWORK_ERROR'),
+      message:
+        responseData?.error?.message ??
+        responseData?.detail ??
+        error.message ??
+        'Errore sconosciuto',
+      details: responseData?.error?.details ?? undefined,
+      status: error.response?.status,
+      trace_id: responseData?.trace_id ?? undefined,
+    }
+
+    return Promise.reject(apiError)
   },
 )
 

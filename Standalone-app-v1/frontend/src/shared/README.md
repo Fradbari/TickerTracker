@@ -10,11 +10,13 @@
 ✅  import { useDebounce } from '@/shared'
 ✅  import { createMoney } from '@/shared'
 ✅  import { parseMoneyFromString, calculatePnL, formatMoney } from '@/shared/finance'
+✅  import { useNotify } from '@/shared'
 ✅  import apiClient from '@/shared/api/client'
 
 ❌  import { useDebounce } from '../../shared/hooks/index'       // internal path
 ❌  import { createMoney } from '@/shared/utils/decimal'         // bypass barrel
 ❌  import { formatMoney } from '@/shared'  // ambiguous: use @/shared/finance!
+❌  import toast from 'react-hot-toast'                         // use useNotify() instead
 ```
 
 > **Note on `formatMoney` / `formatPercentage`**: both `utils/` and `finance/` export
@@ -35,7 +37,8 @@ Never import from internal paths (e.g. `@/shared/utils/decimal`).
 | `types/` | Generic TypeScript types: `ApiResponse<T>`, pagination helpers. |
 | `utils/` | Low-level financial primitives: `createMoney`, `MoneyValue`, `PercentageValue`. All arithmetic via decimal.js. |
 | `finance/` | High-level monetary helpers designed for the **component layer**: `MoneyDecimal`, `parseMoneyFromString`, `calculatePnL`, `formatMoney`, `formatPercentage`. Built on top of `utils/`. Use these in feature components. |
-| `hooks/` | Generic React hooks: `useDebounce`, `useLocalStorage`. Must be framework-agnostic. |
+| `hooks/` | Generic React hooks: `useDebounce`, `useLocalStorage`, `useApiQuery` (+ `showErrorToast`), `useApiMutation` (auto-toast). Must be framework-agnostic except for React imports. |
+| `ui/` | UI utilities not tied to features: `useNotify` (toast hook wrapping react-hot-toast with deduplication via `error.code`). |
 | `components/` | Purely presentational React components: `Button`, `Modal`, `Badge`. No feature-specific API calls. |
 
 ---
@@ -51,6 +54,11 @@ Never import from internal paths (e.g. `@/shared/utils/decimal`).
 1. Add to `hooks/index.ts` (or create a separate file for complex hooks).
 2. Re-export from `hooks/index.ts`.
 3. Add a unit test in `hooks/__tests__/`.
+
+### New UI utility (toast, modal state, etc.)
+1. Create `ui/<utilityName>.ts` (hooks) or `ui/<ComponentName>.tsx` (components).
+2. Re-export from `ui/index.ts`.
+3. Add named exports to `shared/index.ts` if widely needed.
 
 ### New shared component (TASK 4.5b)
 1. Create `components/<ComponentName>.tsx`.

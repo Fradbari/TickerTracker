@@ -2,9 +2,9 @@
  * useApiMutation — wrapper around TanStack Query v5 `useMutation`.
  *
  * Adds uniform error handling and optional success/error messaging.
- * Toast notifications are intentionally NOT implemented yet (TASK 4.5 will
- * introduce the shared UI component library). A console.warn / console.info
- * is used as a placeholder so the interface is stable.
+ * Error and success messages are surfaced via `react-hot-toast` through
+ * the `useNotify` hook. Pass `errorMessage` / `successMessage` for
+ * human-readable overrides; falls back to `error.message` from the API.
  *
  * Usage:
  * ```tsx
@@ -24,6 +24,8 @@ import {
   type UseMutationOptions,
   type UseMutationResult,
 } from '@tanstack/react-query'
+import { isApiError } from '../api'
+import { useNotify } from '../ui'
 
 // ---------------------------------------------------------------------------
 // Extra options (not part of the base UseMutationOptions)
@@ -31,13 +33,11 @@ import {
 
 interface ApiMutationExtras {
   /**
-   * Human-readable success message.
-   * Currently logged to console; will trigger a toast notification once the
-   * shared toast component is available (TASK 4.5).
+   * Human-readable success message surfaced as a green toast on mutation success.
    */
   successMessage?: string
   /**
-   * Override the default error message shown on failure.
+   * Override the default error message shown on failure as a red toast.
    * Falls back to `error.message` from the API response.
    */
   errorMessage?: string
@@ -61,6 +61,8 @@ export function useApiMutation<TData, TVariables, TContext = unknown>(
   mutationFn: (variables: TVariables) => Promise<TData>,
   options?: ApiMutationOptions<TData, TVariables, TContext>,
 ): UseMutationResult<TData, Error, TVariables, TContext> {
+  const notify = useNotify()
+
   const {
     successMessage,
     errorMessage,
@@ -73,19 +75,17 @@ export function useApiMutation<TData, TVariables, TContext = unknown>(
     mutationFn,
 
     onError: (...args) => {
-      // ── Placeholder: replace with toast once TASK 4.5 ships ──────────────
-      console.warn(
-        '[useApiMutation] Errore:',
-        errorMessage ?? args[0].message,
-      )
+      const err = args[0]
+      // Use error.code as toast id to deduplicate identical API errors
+      const toastId = isApiError(err) ? err.code : undefined
+      notify.error(errorMessage ?? err.message, { id: toastId })
       // Forward to caller-provided handler (if any) — spread preserves all v5 args
       return (userOnError as ((...a: typeof args) => unknown) | undefined)?.(...args)
     },
 
     onSuccess: (...args) => {
       if (successMessage) {
-        // ── Placeholder: replace with toast once TASK 4.5 ships ──────────
-        console.info('[useApiMutation] Successo:', successMessage)
+        notify.success(successMessage)
       }
       return (userOnSuccess as ((...a: typeof args) => unknown) | undefined)?.(...args)
     },

@@ -34,5 +34,6 @@ export { parseMoneyFromString, fromDecimalAmount, calculatePnL } from './finance
 // Custom hooks
 export { useDebounce, useLocalStorage, useApiQuery, useApiMutation } from './hooks'
 
-// UI components — uncomment progressively (TASK 4.5b)
-// export * from './components'
+// UI utilities — toast notifications and cross-cutting UI helpers (TASK 4.7)
+export { useNotify } from './ui'
+export type { Notify, NotifyOptions } from './ui'

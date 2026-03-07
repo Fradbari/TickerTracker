@@ -512,10 +512,58 @@ Dipendenze: TASK 4.5
 
 ---
 
-ID: TASK 4.6
-Area: frontend/estimates
+ID: TASK 4.7-ui
+Area: frontend/app + frontend/shared/ui
 Fase: MVP
-Dipendenze: TASK 4.6-hooks
+Dipendenze: TASK 4.5
+
+## TASK 4.7-ui: Error Boundary & Toast Notifications
+
+> ✅ **COMPLETATO** — `AppErrorBoundary`, `useNotify` e integrazione `react-hot-toast` completati. Build: 101 moduli. Test: 95/95.
+
+**Descrizione:** Aggiungere gestione globale degli errori React (class component Error Boundary) e notifiche toast uniformi via `react-hot-toast`. Qualsiasi errore non gestito nel component tree mostra una schermata di fallback con opzione Riprova / Ricarica. Errori API e successi mutation vengono surfacati automaticamente come toast.
+
+**Acceptance Criteria:**
+
+- [x] `react-hot-toast@^2.6.0` installato
+- [x] `AppErrorBoundary` class component (React limitazione: no function components) in `src/app/components/AppErrorBoundary.tsx`
+  - `getDerivedStateFromError` → `{ hasError, error }`
+  - `componentDidCatch` → `console.error` per monitoring tools
+  - Fallback UI: icona warning + messaggio + pulsanti "Riprova" (reset state) + "Ricarica pagina" (`window.location.reload()`)
+  - Dettaglio tecnico (`<details>`) visibile solo in `import.meta.env.DEV`
+  - Props: `children: ReactNode`, `fallback?: ReactNode`
+- [x] `useNotify()` hook in `src/shared/ui/useNotify.ts`
+  - `success(msg, opts?)` — toast verde, 3 000 ms
+  - `error(msg, opts?)` — toast rosso, 5 000 ms
+  - `info(msg, opts?)` — toast neutro, 3 000 ms
+  - `dismiss(id?)` — rimuove toast
+  - `opts.id` → deduplicazione (react-hot-toast aggiorna il toast invece di stackare)
+- [x] `<Toaster />` aggiunto in `AppProviders` (fuori da `AppErrorBoundary` così funziona anche durante crash)
+- [x] `useApiMutation` aggiornato: sostituisce `console.warn/info` con `notify.error(msg, { id: ApiError.code })` / `notify.success(msg)`
+- [x] `useApiQuery` aggiornato: nuovo flag `showErrorToast?: boolean` + `useEffect` watching `result.error` (TanStack Query v5 ha rimosso `onError` da `useQuery`)
+- [x] `app/index.ts` esporta `AppErrorBoundary`
+- [x] `shared/index.ts` esporta `useNotify`, `Notify`, `NotifyOptions` da `./ui`
+- [x] Build: 101 moduli, 0 errori TS
+- [x] Test: 95/95
+
+**Note tecniche:**
+- `AppErrorBoundary` DEVE essere class component: `getDerivedStateFromError` e `componentDidCatch` non esistono per function components
+- `<Toaster />` è sibling di `{children}` (non dentro `AppErrorBoundary`) per garantire che le notifiche toast funzionino anche durante un crash del component tree figlio
+- TanStack Query v5 ha rimosso `onError` da `useQuery`. L'error notification in `useApiQuery` usa `useEffect` watching `result.error` (pattern raccomandato)
+- `error.code` come toast `id` garantisce deduplicazione: se la stessa richiesta fallisce 3 volte con `NETWORK_ERROR`, si vede 1 solo toast (aggiornato in-place)
+- `useNotify()` non dipende da Context: tutti i metodi chiamano direttamente l'istanza singleton di react-hot-toast
+
+**File creati/modificati (TASK 4.7-ui):**
+- `src/app/components/AppErrorBoundary.tsx` ← **NUOVO** — class component + fallback UI
+- `src/shared/ui/useNotify.ts` ← **NUOVO** — hook toast
+- `src/shared/ui/index.ts` ← **NUOVO** — barrel `ui/`
+- `src/app/providers/index.tsx` — aggiunto `<Toaster />` + `<AppErrorBoundary>` wrapping children
+- `src/app/index.ts` — aggiunta export `AppErrorBoundary`
+- `src/shared/index.ts` — aggiunta export `useNotify`, `Notify`, `NotifyOptions`
+- `src/shared/hooks/useApiMutation.ts` — sostituisce console.warn/info con notify.error/success
+- `src/shared/hooks/useApiQuery.ts` — aggiunge `showErrorToast` + `useEffect` per auto-toast errori query
+
+
 
 ## TASK 4.6: Implementazione EstimateList Component
 

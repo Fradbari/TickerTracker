@@ -78,10 +78,12 @@ frontend/
     ├── styles/
     │   └── globals.css                # Tailwind v4 (@import "tailwindcss")
     │
-    ├── app/                           # Application shell (TASK 4.16)
-    │   ├── index.ts                   # Barrel: AppProviders, RootLayout
+    ├── app/                           # Application shell
+    │   ├── index.ts                   # Barrel: AppProviders, RootLayout, AppErrorBoundary
+    │   ├── components/
+    │   │   └── AppErrorBoundary.tsx   # Global React Error Boundary (class component)
     │   ├── providers/
-    │   │   └── index.tsx              # AppProviders (QueryClient + BrowserRouter)
+    │   │   └── index.tsx              # AppProviders (QueryClient + BrowserRouter + Toaster)
     │   ├── layout/
     │   │   └── index.tsx              # RootLayout (navigation chrome)
     │   └── router/
@@ -135,9 +137,14 @@ frontend/
         │       ├── decimal.test.ts
         │       └── percentage.test.ts
         ├── hooks/
-        │   └── index.ts               # useDebounce<T>, useLocalStorage<T>
+        │   ├── useApiQuery.ts         # Typed useQuery wrapper (+ showErrorToast flag)
+        │   ├── useApiMutation.ts      # Typed useMutation wrapper (auto-toast on error/success)
+        │   └── index.ts
+        ├── ui/
+        │   ├── useNotify.ts           # useNotify() hook — uniform toast API
+        │   └── index.ts               # Barrel: useNotify, Notify, NotifyOptions
         └── components/
-            └── index.ts               # Placeholder (TASK 4.5)
+            └── index.ts               # Placeholder (TASK 4.5b)
 ```
 
 ## Quick Start
@@ -197,6 +204,7 @@ npm run test:coverage  # Run with coverage report (target: 80%+)
 | Zod | ^4 | Schema validation |
 | Recharts | ^3 | Charts & data visualization |
 | date-fns | ^4 | Date formatting |
+| react-hot-toast | ^2.6.0 | Toast notifications (zero deps, Tailwind v4 compatible) |
 | Vitest | ^1 | Unit testing (jsdom environment) |
 
 ### TailwindCSS v4 Notes

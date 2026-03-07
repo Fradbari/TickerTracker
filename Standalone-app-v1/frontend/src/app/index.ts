@@ -10,4 +10,5 @@
 export { AppProviders, queryClient } from './providers'
 export { QueryProvider } from './providers/QueryProvider'
 export { RootLayout } from './layout'
+export { AppErrorBoundary } from './components/AppErrorBoundary'
 // router exports added in TASK 4.16

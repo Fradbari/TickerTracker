@@ -394,11 +394,51 @@ Dipendenze: TASK 4.3
 ---
 
 ID: TASK 4.5
-Area: frontend/shared
+Area: frontend/shared/finance
 Fase: MVP
 Dipendenze: TASK 4.4
 
-## TASK 4.5: Creazione Componenti UI Shared
+## TASK 4.5: Wrapper Decimale per Calcoli Finanziari
+
+> ✅ **COMPLETATO** — `MoneyDecimal`, `PnLResult`, `DecimalInstance` + tutti gli helper implementati. Build: 98 moduli. Test: 95/95. Nessun calcolo usa `number` JS puro.
+
+**Descrizione:** Wrapper decimale preciso (decimal.js) per tutti i calcoli monetari e percentuali del frontend, eliminando gli errori IEEE 754.
+
+**Note tecniche:**
+- `@types/decimal.js` (vecchio) coesiste con i tipi built-in di decimal.js 10+, causando conflitti
+- `Decimal` è esposto come `declare var Decimal: IDecimalStatic` → non usabile come tipo diretto
+- Soluzione: `export type DecimalInstance = InstanceType<typeof Decimal>` (come in `utils/decimal.ts`)
+- `Decimal.set()` non esiste su `IDecimalStatic` → usare `Decimal.config()` (alias)
+- `formatMoney` e `formatPercentage` hanno firme diverse tra `utils/` (prendono `MoneyValue`/`PercentageValue`) e `finance/` (prendono `MoneyDecimal`/`DecimalInstance`) → NON re-esportati dal master barrel `shared/index.ts` per evitare conflitti; importare da `@/shared/finance` direttamente
+
+**Acceptance Criteria:**
+
+- [x] `MoneyDecimal` type: `{ amount: DecimalInstance, currency: string }`
+- [x] `PnLResult` type: `{ absolute: DecimalInstance, percentage: DecimalInstance }`
+- [x] `DecimalInstance` type alias esportato per type-safety downstream
+- [x] `parseMoneyFromString(value, currency)` — gestisce locale EU e US, strisce simboli valuta
+- [x] `fromDecimalAmount(amount, currency)` — costruttore da `DecimalInstance`/stringa già sicura
+- [x] `formatMoney(m: MoneyDecimal, locale?) ` — `Intl.NumberFormat` localizzato
+- [x] `formatPercentage(value: DecimalInstance, decimals?)` — percentage-point notation, `ROUND_HALF_UP`
+- [x] `calculatePnL(entry, current, quantity)` — `absolute = (current−entry)×qty`, `percentage = (current−entry)/entry×100`
+- [x] Nessun calcolo usa `number` JS puro
+- [x] `Decimal.config()` configura precision=28, ROUND_HALF_UP, toExpPos=20, toExpNeg=−20
+- [x] Build: 98 moduli, 0 errori TypeScript
+- [x] Test: 95/95 passati
+
+**File creati/modificati (TASK 4.5):**
+- `src/shared/finance/decimalMoney.ts` ← **NUOVO** — implementazione completa
+- `src/shared/finance/index.ts` ← **NUOVO** — barrel del modulo
+- `src/shared/index.ts` — aggiunto re-export selettivo di `finance/` (senza conflitti di nome)
+
+---
+
+ID: TASK 4.5b
+Area: frontend/shared
+Fase: MVP
+Dipendenze: TASK 4.5
+
+## TASK 4.5b: Creazione Componenti UI Shared
 
 **Descrizione:** Implementare componenti riutilizzabili base per l'UI.
 

@@ -66,38 +66,78 @@ const wrong = createMoney(0.1 + 0.2, "USD")
 
 ```
 frontend/
-├── index.html                       # Vite HTML entry point
-├── vite.config.ts                   # Vite + Tailwind + Vitest config
-├── tsconfig.json                    # TypeScript strict + path aliases
-├── postcss.config.js                # PostCSS (autoprefixer only)
+├── index.html                         # Vite HTML entry point
+├── vite.config.ts                     # Vite + Tailwind + Vitest config
+├── tsconfig.json                      # TypeScript strict + path aliases
+├── postcss.config.js                  # PostCSS (autoprefixer only)
 ├── package.json
 └── src/
-    ├── vite-env.d.ts                # import.meta.env type declarations
-    ├── main.tsx                     # React entry: QueryClient + Router + App
-    ├── App.tsx                      # Route definitions
+    ├── vite-env.d.ts                  # import.meta.env type declarations
+    ├── main.tsx                       # React entry: <AppProviders><App/>
+    ├── App.tsx                        # Route definitions + RootLayout
     ├── styles/
-    │   └── globals.css              # Tailwind v4 (@import "tailwindcss")
-    ├── shared/
-    │   ├── api/
-    │   │   ├── client.ts            # Axios instance with interceptors
-    │   │   └── index.ts             # Barrel export
-    │   ├── types/
-    │   │   ├── api.ts               # ApiResponse<T> + unwrapResponse<T>
-    │   │   └── index.ts             # Barrel export
-    │   └── utils/
-    │       ├── decimal.ts           # Money operations (14+ functions)
-    │       ├── percentage.ts        # Percentage operations (12+ functions)
-    │       ├── financial.ts         # Barrel export for clean imports
-    │       └── __tests__/
-    │           ├── decimal.test.ts  # 47 Money tests
-    │           └── percentage.test.ts # 48 Percentage tests
-    ├── app/                         # Router, layout, providers (TASK 4.16)
-    ├── features/                    # Feature modules (TASK 4.2+)
-    │   ├── estimates/
-    │   ├── portfolio/
-    │   ├── market-data/
-    │   └── chat-ai/
-    └── shared/                      # Shared components & hooks (TASK 4.5+)
+    │   └── globals.css                # Tailwind v4 (@import "tailwindcss")
+    │
+    ├── app/                           # Application shell (TASK 4.16)
+    │   ├── index.ts                   # Barrel: AppProviders, RootLayout
+    │   ├── providers/
+    │   │   └── index.tsx              # AppProviders (QueryClient + BrowserRouter)
+    │   ├── layout/
+    │   │   └── index.tsx              # RootLayout (navigation chrome)
+    │   └── router/
+    │       └── index.ts               # Route tree (implemented in TASK 4.16)
+    │
+    ├── features/                      # Feature modules — each self-contained
+    │   │                              # RULE: import only from feature/index.ts
+    │   ├── estimates/                 # TASK 4.6–4.10
+    │   │   ├── index.ts               # Public barrel (types + api + hooks)
+    │   │   ├── types/index.ts         # Estimate, EstimateStatus, payloads, filters
+    │   │   ├── api/index.ts           # listEstimates, createEstimate, closeEstimate…
+    │   │   ├── hooks/index.ts         # useEstimateList, useCreateEstimate…
+    │   │   └── components/index.ts    # Placeholder (TASK 4.6–4.10)
+    │   │
+    │   ├── portfolio/                 # TASK 4.11–4.12
+    │   │   ├── index.ts
+    │   │   ├── types/index.ts         # PortfolioSummary, PortfolioPosition…
+    │   │   ├── api/index.ts           # getPortfolioSummary, getOpenPositions…
+    │   │   ├── hooks/index.ts         # usePortfolioSummary, useOpenPositions…
+    │   │   └── components/index.ts    # Placeholder (TASK 4.11–4.12)
+    │   │
+    │   ├── market-data/               # TASK 4.9, 4.13–4.14
+    │   │   ├── index.ts
+    │   │   ├── types/index.ts         # MarketQuote, OHLCVBar, params
+    │   │   ├── api/index.ts           # getQuotes, getQuote, getHistoricalData
+    │   │   ├── hooks/index.ts         # useMarketQuote, useHistoricalData…
+    │   │   └── components/index.ts    # Placeholder (TASK 4.9, 4.13–4.14)
+    │   │
+    │   └── chat-ai/                   # TASK 4.15
+    │       ├── index.ts
+    │       ├── types/index.ts         # ChatMessage, ChatSession, analysis types
+    │       ├── api/index.ts           # sendMessage, getChatSession, analyseEstimate
+    │       ├── hooks/index.ts         # useSendMessage, useAnalyseEstimate…
+    │       └── components/index.ts    # Placeholder (TASK 4.15)
+    │
+    └── shared/                        # Cross-feature reusable code
+        ├── README.md                  # Import rules & conventions
+        ├── index.ts                   # Master barrel (api + types + utils + hooks)
+        ├── api/
+        │   ├── client.ts              # Axios instance with interceptors
+        │   └── index.ts
+        ├── types/
+        │   ├── api.ts                 # ApiResponse<T> + unwrapResponse<T>
+        │   └── index.ts
+        ├── utils/
+        │   ├── decimal.ts             # Money operations (47 tests)
+        │   ├── percentage.ts          # Percentage operations (48 tests)
+        │   ├── financial.ts           # Barrel for financial utils
+        │   ├── index.ts
+        │   └── __tests__/
+        │       ├── decimal.test.ts
+        │       └── percentage.test.ts
+        ├── hooks/
+        │   └── index.ts               # useDebounce<T>, useLocalStorage<T>
+        └── components/
+            └── index.ts               # Placeholder (TASK 4.5)
 ```
 
 ## Quick Start

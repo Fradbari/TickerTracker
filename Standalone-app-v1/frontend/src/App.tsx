@@ -1,14 +1,15 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { RootLayout } from './app/layout'
 
 function App() {
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
+    <RootLayout>
       <Routes>
         {/* Placeholder routes — will be implemented in subsequent feature tasks */}
         <Route path="/" element={<Dashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </div>
+    </RootLayout>
   )
 }
 

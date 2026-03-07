@@ -248,11 +248,41 @@ Dipendenze: TASK 4.1
 
 **Acceptance Criteria:**
 
-- [ ] Struttura cartelle completa
-- [ ] Ogni feature è isolata
-- [ ] Barrel exports configurati
-- [ ] README documenta convenzioni
-- [ ] Nessun import cross-feature diretto
+- [x] Struttura cartelle completa (4 feature + shared + app)
+- [x] Ogni feature è isolata — `index.ts` pubblico separa interno da esterno
+- [x] Barrel exports configurati per tutti i moduli
+- [x] `shared/README.md` documenta convenzioni (import, anti-pattern, financial rules)
+- [x] Nessun import cross-feature diretto — shared come unica dipendenza condivisa
+
+**File creati (TASK 4.2):**
+
+Feature modules — `estimates/`:
+- `src/features/estimates/types/index.ts` — tipi TypeScript allineati a backend (EstimateResponse, EstimateListResponse, CreateEstimateCommand, CloseEstimateCommand, EstimateFilters)
+- `src/features/estimates/api/index.ts` — listEstimates, getEstimate, createEstimate, closeEstimate, deleteEstimate, getEstimateHistory
+- `src/features/estimates/hooks/index.ts` — useEstimateList, useInfiniteEstimates, useEstimate, useCreateEstimate, useCloseEstimate, useDeleteEstimate + ESTIMATE_KEYS factory
+- `src/features/estimates/components/index.ts` — placeholder (TASK 4.6–4.10)
+- `src/features/estimates/index.ts` — public barrel
+
+Feature modules — `portfolio/`, `market-data/`, `chat-ai/` (stessa struttura):
+- `types/index.ts`, `api/index.ts`, `hooks/index.ts`, `components/index.ts`, `index.ts`
+
+Shared additions:
+- `src/shared/components/index.ts` — placeholder (TASK 4.5)
+- `src/shared/hooks/index.ts` — `useDebounce<T>()` + `useLocalStorage<T>()` implementati
+- `src/shared/index.ts` — master barrel (api, types, utils, hooks)
+- `src/shared/README.md` — convenzioni import, anti-pattern, financial rules
+
+App subfolders:
+- `src/app/providers/index.tsx` — `AppProviders` component (QueryClient + BrowserRouter + StrictMode) + singleton `queryClient` esportato
+- `src/app/layout/index.tsx` — `RootLayout` component (placeholder per TASK 4.16)
+- `src/app/router/index.ts` — placeholder con piano route (TASK 4.16)
+- `src/app/index.ts` — barrel
+
+Refactoring:
+- `src/main.tsx` — semplificato: usa `<AppProviders>` da `./app/providers`
+- `src/App.tsx` — usa `<RootLayout>` da `./app/layout`
+
+**Verifica:** `npm run build` → ✅ 88 moduli, build in 1.27s; `npm test` → ✅ 95/95
 
 ---
 

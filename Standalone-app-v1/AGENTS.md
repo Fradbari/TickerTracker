@@ -78,9 +78,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 2.23** - Test Retrocompatibilità Backup/History Legacy *(17 tests passing)*
 - [x] **TASK 2.24** - Setup Background Worker APScheduler *(job scheduling, FastAPI integration)*
 
-#### Sezione 4: Frontend Setup & Features (1/13)
+#### Sezione 4: Frontend Setup & Features (2/13)
 - [x] **TASK 4.1** - Setup Progetto Frontend (Vite + React 19)
-- [ ] **TASK 4.2** - Creazione Struttura Feature Modules
+- [x] **TASK 4.2** - Creazione Struttura Feature Modules
 - [ ] **TASK 4.3** - Setup API Client Centralizzato
 - [ ] **TASK 4.4** - Definizione Types e API Response Models
 - [ ] **TASK 4.5** - Creazione Componenti UI Shared
@@ -153,9 +153,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 | Categoria | Completati | Totali | Percentuale |
 |-----------|------------|--------|-----------|
-| **MVP** | 22 | 46 | 48% |
+| **MVP** | 23 | 46 | 50% |
 | **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **22** | **65** | 34% |
+| **TOTALE** | **23** | **65** | 35% |
 
 ---
 

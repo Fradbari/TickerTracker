@@ -21,7 +21,7 @@ export { unwrapResponse } from './types'
 export * from './utils'
 
 // Custom hooks
-export { useDebounce, useLocalStorage } from './hooks'
+export { useDebounce, useLocalStorage, useApiQuery, useApiMutation } from './hooks'
 
 // UI components — uncomment progressively (TASK 4.5)
 // export * from './components'

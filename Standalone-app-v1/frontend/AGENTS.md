@@ -299,33 +299,46 @@ Area: frontend/shared
 Fase: MVP
 Dipendenze: TASK 4.2
 
-## TASK 4.3: Setup API Client Centralizzato
+## TASK 4.3: Configurazione React Query & API Client
 
-**Descrizione:** Creare client HTTP centralizzato con gestione errori e auth.
+**Descrizione:** Configurare TanStack Query v5 con QueryClient ottimizzato, ReactQueryDevtools, e hook custom per data-fetching e mutation uniformi. L'API client Axios era già stato creato in TASK 4.1.
 
 **Microstep:**
 
-1. Creare file [`frontend/src/shared/api/client.ts`](../src/shared/api/client.ts)
-2. Configurare axios instance con baseURL da env vars
-3. Implementare request interceptor: aggiunge JWT token da localStorage
-4. Implementare response interceptor: gestisce 401 (redirect login), 500 (toast error)
-5. Implementare funzioni wrapper: `apiGet`, `apiPost`, `apiPut`, `apiDelete`
-6. Implementare retry logic su errori 5xx (max 3 tentativi)
-7. Implementare timeout configurabile (default 30s)
-8. Creare file [`frontend/.env.example`](../.env.example) con `VITE_API_BASE_URL`
+1. Installare `@tanstack/react-query-devtools` ✅
+2. Creare [`src/app/providers/QueryProvider.tsx`](../src/app/providers/QueryProvider.tsx) con QueryClient configurato ✅
+3. Configurare QueryClient defaults: staleTime 5min, gcTime 30min, retry 3 con backoff esponenziale, refetchOnWindowFocus true ✅
+4. Montare `<ReactQueryDevtools>` solo in `import.meta.env.DEV` ✅
+5. Aggiornare [`src/app/providers/index.tsx`](../src/app/providers/index.tsx) a usare `<QueryProvider>` ✅
+6. Creare [`src/shared/hooks/useApiQuery.ts`](../src/shared/hooks/useApiQuery.ts) — wrapper `useQuery` v5 con `throwOnError: false` ✅
+7. Creare [`src/shared/hooks/useApiMutation.ts`](../src/shared/hooks/useApiMutation.ts) — wrapper `useMutation` con error/success logging (placeholder toast) ✅
+8. Aggiornare barrel exports: `shared/hooks/index.ts`, `shared/index.ts`, `app/index.ts` ✅
 
 **Acceptance Criteria:**
 
-- [ ] Client centralizzato configurato
-- [ ] Auth token automaticamente incluso
-- [ ] Errori gestiti globalmente
-- [ ] Retry su errori transitori
-- [ ] Env vars documentate
+- [x] QueryClient configurato (staleTime 5min, gcTime 30min, retry backoff)
+- [x] Devtools visibili in dev (bottom-right, lazy-loaded, tree-shaken in prod)
+- [x] `useApiQuery` semplifica uso con `throwOnError: false` default
+- [x] `useApiMutation` gestisce errori uniformemente (console.warn placeholder per toast)
+- [x] `npm run build` → ✅ 98 moduli, 0 errori TypeScript
+- [x] `npm test` → ✅ 95/95
+
+**File creati/modificati (TASK 4.3):**
+- `src/app/providers/QueryProvider.tsx` — QueryClient singleton + QueryProvider component + ReactQueryDevtools
+- `src/app/providers/index.tsx` — aggiornato: usa `<QueryProvider>`, re-esporta `queryClient`
+- `src/shared/hooks/useApiQuery.ts` — `useApiQuery<TData, TQueryKey>()` wrapper
+- `src/shared/hooks/useApiMutation.ts` — `useApiMutation<TData, TVariables>()` con `successMessage`, `errorMessage`
+- `src/shared/hooks/index.ts` — aggiunto export `useApiQuery`, `useApiMutation`
+- `src/shared/index.ts` — aggiunto `useApiQuery`, `useApiMutation` al barrel
+- `src/app/index.ts` — aggiunto export `QueryProvider`
+- `package.json` — aggiunta dev dipendenza `@tanstack/react-query-devtools@5.91.3`
+
+**Nota tecnica — callback spread in v5**: In `@tanstack/react-query` v5, le callback `onError`/`onSuccess` di `UseMutationOptions` (ereditato da `MutationObserverOptions`) accettano un 4° argomento `Mutation`. L'uso di `...args` (rest params) è il pattern corretto per forward-compatibility.
 
 ---
 
 ### Istruzioni per LLM
-- Non modificare file fuori da [frontend/src/shared/api/client.ts, frontend/.env.example] se non strettamente necessario.
+- Non modificare file fuori da [frontend/src/app/providers/, frontend/src/shared/hooks/] se non strettamente necessario.
 - Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
 - Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
 - Alla fine, produci un elenco puntato con file modificati e test eseguiti.

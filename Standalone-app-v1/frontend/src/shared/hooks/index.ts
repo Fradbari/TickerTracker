@@ -71,6 +71,13 @@ export function useLocalStorage<T>(
 }
 
 // ---------------------------------------------------------------------------
+// API hooks (TASK 4.3)
+// ---------------------------------------------------------------------------
+
+export { useApiQuery } from './useApiQuery'
+export { useApiMutation } from './useApiMutation'
+
+// ---------------------------------------------------------------------------
 // Future shared hooks (uncomment when implemented):
 // ---------------------------------------------------------------------------
 // export { useWindowSize } from './useWindowSize'

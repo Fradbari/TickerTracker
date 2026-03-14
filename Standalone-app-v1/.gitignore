@@ -58,3 +58,4 @@ logs/
 *~
 .#*
 EOF
+vite.config.ts.timestamp-*.mjs

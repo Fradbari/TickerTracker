@@ -131,7 +131,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 #### Sezione 4: Frontend Advanced (0/3)
 - [x] **TASK 4.13** - Implementazione Dashboard Portfolio
-- [ ] **TASK 4.14** - Implementazione TickerWatchlist Component
+- [x] **TASK 4.14** - Implementazione Price Chart
 - [ ] **TASK 4.15** - Implementazione ChatAI Component (Gemini)
 
 #### Sezione 5: Testing & CI/CD Completo (0/9)

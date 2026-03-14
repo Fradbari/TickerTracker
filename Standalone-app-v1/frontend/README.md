@@ -100,7 +100,8 @@ frontend/
     │   │   ├── hooks/index.ts         # re-exports from api/ + useInfiniteEstimates
     │   │   └── components/
     │   │       ├── index.ts           # Components barrel
-    │   │       └── EstimateForm.tsx   # ✅ TASK 4.8 — create form with real-time preview
+    │   │       ├── EstimateForm.tsx   # ✅ TASK 4.8 — create form with real-time preview
+    │   │       └── EstimateCard.tsx   # ✅ TASK 4.9 — individual estimate display card
     │   │
     │   ├── portfolio/                 # TASK 4.11–4.12
     │   │   ├── index.ts

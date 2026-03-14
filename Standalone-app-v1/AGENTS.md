@@ -87,9 +87,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [ ] **TASK 4.5b** - Creazione Componenti UI Shared (Button, Input, Card, Badge, Spinner, Toast, Modal)
 - [x] **TASK 4.6-hooks** - Implementazione API Hooks per Estimates (queries.ts + mutations.ts)
 - [ ] **TASK 4.6** - Implementazione EstimateList Component
-- [ ] **TASK 4.7** - Implementazione EstimateDetail Component
-- [ ] **TASK 4.8** - Implementazione CreateEstimateForm Component
-- [ ] **TASK 4.9** - Implementazione TickerSearch Component
+- [x] **TASK 4.7** - Implementazione EstimateDetail Component
+- [x] **TASK 4.8** - Implementazione EstimateForm Component
+- [x] **TASK 4.9** - Implementazione EstimateCard Component
 - [ ] **TASK 4.10** - Implementazione CloseEstimateModal Component
 - [ ] **TASK 4.11** - Implementazione PortfolioDashboard Component
 - [ ] **TASK 4.12** - Implementazione PerformanceChart Component

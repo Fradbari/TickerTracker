@@ -14,4 +14,5 @@
 // export { EstimateDetail } from './EstimateDetail'
 export { EstimateForm } from './EstimateForm'
 export type { EstimateFormProps } from './EstimateForm'
+export { EstimateCard } from './EstimateCard'
 // export { CloseEstimateModal } from './CloseEstimateModal'

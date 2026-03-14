@@ -9,3 +9,4 @@
 // export { MarketDataChart } from './MarketDataChart'
 // export { TickerSearch } from './TickerSearch'
 // export { TickerWatchlist } from './TickerWatchlist'
+export { PriceChart } from './PriceChart'

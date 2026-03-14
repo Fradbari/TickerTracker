@@ -51,5 +51,18 @@ export interface HistoricalDataParams {
   ticker: string
   start_date?: string   // "YYYY-MM-DD"
   end_date?: string
+  interval?: string     // e.g. "1d", "1w", "1m"
   limit?: number
+}
+
+
+
+export interface HistoryResponse {
+  symbol: string
+  interval: string
+  start_date: string
+  end_date: string
+  data: OHLCVBar[]
+  source: string
+  timestamp: string
 }

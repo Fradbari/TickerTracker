@@ -23,6 +23,8 @@ export {
   useMarketQuotes,
   useMarketQuote,
   useHistoricalData,
+  usePriceHistory
 } from './hooks'
 
-// export * from './components'  // TASK 4.9, 4.13, 4.14
+export * from './components'
+

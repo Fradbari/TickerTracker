@@ -55,3 +55,4 @@ export function useHistoricalData(params: HistoricalDataParams) {
     staleTime: 30 * 60 * 1_000,
   })
 }
+export * from './usePriceHistory'

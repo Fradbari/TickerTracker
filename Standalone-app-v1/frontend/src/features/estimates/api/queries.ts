@@ -64,10 +64,14 @@ export const estimateKeys = {
  * const { data, isLoading, isError } = useEstimates({ status: 'OPEN' })
  * data?.items.forEach(e => console.log(e.ticker_id, e.direction))
  */
-export function useEstimates(filters?: EstimateListParams) {
+export function useEstimates(
+  filters?: EstimateListParams,
+  options?: Omit<Parameters<typeof useQuery>[0], 'queryKey' | 'queryFn'>
+) {
   return useQuery({
     queryKey: estimateKeys.list(filters),
     queryFn: () => listEstimates(filters),
+    ...options,
   })
 }
 

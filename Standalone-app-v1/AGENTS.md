@@ -130,7 +130,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [ ] **TASK 5.13** - Implementazione Backup Automatico Database *(in backend/AGENTS.md)*
 
 #### Sezione 4: Frontend Advanced (0/3)
-- [ ] **TASK 4.13** - Implementazione MarketDataChart Component
+- [x] **TASK 4.13** - Implementazione Dashboard Portfolio
 - [ ] **TASK 4.14** - Implementazione TickerWatchlist Component
 - [ ] **TASK 4.15** - Implementazione ChatAI Component (Gemini)
 

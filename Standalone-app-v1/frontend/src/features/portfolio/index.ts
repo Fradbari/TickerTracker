@@ -22,6 +22,8 @@ export {
   usePortfolioSummary,
   useOpenPositions,
   usePerformanceByPeriod,
+  usePortfolioMetrics
 } from './hooks'
 
-// export * from './components'  // TASK 4.11, 4.12
+export { Dashboard } from './components'
+

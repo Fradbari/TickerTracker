@@ -14,8 +14,10 @@
 import React, { type ReactNode } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { I18nextProvider } from 'react-i18next'
 import { QueryProvider, queryClient } from './QueryProvider'
 import { AppErrorBoundary } from '../components/AppErrorBoundary'
+import i18n from '@/shared/i18n/config'
 
 // Re-export queryClient so callers can do:
 //   import { queryClient } from '@/app/providers'
@@ -38,28 +40,30 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <React.StrictMode>
-      <QueryProvider>
-        <BrowserRouter>
-          <AppErrorBoundary>
-            {children}
-          </AppErrorBoundary>
-          {/* Toaster lives outside AppErrorBoundary so toasts work even during crashes */}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              // Global style overrides
-              style: {
-                background: '#1e293b',   // slate-800
-                color: '#f1f5f9',        // slate-100
-                border: '1px solid #334155', // slate-700
-                fontSize: '0.875rem',
-              },
-              success: { duration: 3000 },
-              error: { duration: 5000 },
-            }}
-          />
-        </BrowserRouter>
-      </QueryProvider>
+      <I18nextProvider i18n={i18n}>
+        <QueryProvider>
+          <BrowserRouter>
+            <AppErrorBoundary>
+              {children}
+            </AppErrorBoundary>
+            {/* Toaster lives outside AppErrorBoundary so toasts work even during crashes */}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                // Global style overrides
+                style: {
+                  background: '#1e293b',   // slate-800
+                  color: '#f1f5f9',        // slate-100
+                  border: '1px solid #334155', // slate-700
+                  fontSize: '0.875rem',
+                },
+                success: { duration: 3000 },
+                error: { duration: 5000 },
+              }}
+            />
+          </BrowserRouter>
+        </QueryProvider>
+      </I18nextProvider>
     </React.StrictMode>
   )
 }

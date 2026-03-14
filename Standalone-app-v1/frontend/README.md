@@ -230,3 +230,19 @@ Configured in both `tsconfig.json` and `vite.config.ts`:
 | `@/features/*` | `src/features/*` |
 | `@/app/*` | `src/app/*` |
 | `@/styles/*` | `src/styles/*` |
+
+## Aggiungere Traduzioni (i18n)
+
+Per aggiungere o modificare testi localizzati:
+1. Aprire il file `public/locales/it/common.json`.
+2. Aggiungere le nuove chiavi e le rispettive traduzioni italiane (creando una nuova cartella es. `en` e file con la stessa struttura per l'inglese).
+3. Utilizzare l'hook `useTranslation('common')` nei componenti React:
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+// Dentro il componente:
+const { t } = useTranslation('common');
+return <button>{t('bottoni.crea')}</button>;
+```
+

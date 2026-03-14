@@ -1,11 +1,14 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { FixedSizeList as List } from 'react-window';
+import { useTranslation } from 'react-i18next';
 import { useInfiniteEstimates } from '../api/queries';
 import { EstimateCard } from './EstimateCard';
 import { EstimateListParams, EstimateStatus, Estimate } from '../types';
 import Decimal from 'decimal.js';
 
 export function EstimateList() {
+  const { t } = useTranslation('common');
+
   // Filters state
   const [filters, setFilters] = useState<EstimateListParams>({});
   
@@ -99,18 +102,20 @@ export function EstimateList() {
   }, [sortedItems]);
 
   return (
-    <div className="flex flex-col h-full gap-4">
+    <div className="flex flex-col h-full gap-4" aria-label={t('listSection', 'Lista Stime')}>
       {/* Filters and Sorting Headers */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Filtri e Ordinamento</h2>
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">{t('filtersAndSorting', 'Filtri e Ordinamento')}</h2>
         
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ticker</label>
+            <label htmlFor="ticker-filter" className="block text-sm font-medium text-gray-700 mb-1">Ticker</label>
             {/* TODO: Implement /api/tickers/search autocomplete later */}
             <input 
+              id="ticker-filter"
               type="text" 
               placeholder="Cerca ticker..."
+              aria-label="Filtra per ticker"
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
               value={tickerInput}
               onChange={(e) => setTickerInput(e.target.value)}
@@ -118,8 +123,10 @@ export function EstimateList() {
           </div>
 
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Stato</label>
+            <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">Stato</label>
             <select 
+              id="status-filter"
+              aria-label="Filtra per stato"
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white"
               value={statusInput}
               onChange={(e) => setStatusInput(e.target.value as EstimateStatus | '')}
@@ -134,18 +141,22 @@ export function EstimateList() {
 
           <div className="flex-[2] flex gap-2">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Da data</label>
+              <label htmlFor="date-from-filter" className="block text-sm font-medium text-gray-700 mb-1">Da data</label>
               <input 
+                id="date-from-filter"
                 type="date" 
+                aria-label="Filtra da data inizio"
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
               />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">A data</label>
+              <label htmlFor="date-to-filter" className="block text-sm font-medium text-gray-700 mb-1">A data</label>
               <input 
+                id="date-to-filter"
                 type="date" 
+                aria-label="Filtra a data fine"
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
@@ -156,8 +167,10 @@ export function EstimateList() {
 
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex gap-4 items-center w-full sm:w-auto">
-            <span className="text-sm font-medium text-gray-700">Ordina per:</span>
+            <label htmlFor="sort-field" className="text-sm font-medium text-gray-700">Ordina per:</label>
             <select 
+              id="sort-field"
+              aria-label="Seleziona campo di ordinamento"
               className="border border-gray-300 rounded px-3 py-1.5 text-sm bg-white"
               value={sortField}
               onChange={(e) => setSortField(e.target.value as SortField)}
@@ -167,6 +180,7 @@ export function EstimateList() {
               <option value="pnl">P&amp;L</option>
             </select>
             <button 
+              aria-label={sortOrder === 'asc' ? 'Inverti ordine in decrescente' : 'Inverti ordine in crescente'}
               className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-gray-50 hover:bg-gray-100"
               onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
             >
@@ -175,10 +189,11 @@ export function EstimateList() {
           </div>
           
           <button 
+            aria-label={t('applyFilters', 'Applica filtri')}
             className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-4 rounded transition-colors text-sm"
             onClick={applyFilters}
           >
-            Applica Filtri
+            {t('applyFilters', 'Applica Filtri')}
           </button>
         </div>
       </div>

@@ -31,6 +31,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Decimal from 'decimal.js'
+import { useTranslation } from 'react-i18next'
 
 import { useCreateEstimate } from '../api/mutations'
 import type { EstimateDirection } from '../types'
@@ -189,6 +190,7 @@ function computePreview(
 
 export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
   const notify = useNotify()
+  const { t } = useTranslation('common')
 
   const {
     register,
@@ -264,7 +266,7 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
       onSubmit={handleSubmit(onSubmit)}
       noValidate
       className="space-y-6"
-      aria-label="Nuova stima di trading"
+      aria-label={t('formSection', 'Nuova stima di trading')}
     >
       {/* ── Ticker ──────────────────────────────────────────────────── */}
       <div>
@@ -483,7 +485,7 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
             disabled={isLoading}
             className="rounded-md border border-slate-600 px-5 py-2.5 text-sm font-medium text-slate-300 hover:border-slate-400 hover:text-slate-100 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-950"
           >
-            Annulla
+            {t('cancel', 'Annulla')}
           </button>
         )}
         <button
@@ -514,7 +516,7 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
               />
             </svg>
           )}
-          {isLoading ? 'Invio in corso…' : 'Crea stima'}
+          {isLoading ? 'Invio in corso…' : t('createEstimate', 'Crea stima')}
         </button>
       </div>
     </form>

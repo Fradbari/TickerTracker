@@ -15,7 +15,7 @@
  *   list, detail, and history query at once after a mutation.
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { listEstimates, getEstimate, getEstimateHistory } from './index'
 import type { EstimateListParams } from '../types'
 
@@ -112,3 +112,13 @@ export function useEstimateHistory(id: string) {
     enabled: Boolean(id),
   })
 }
+
+export function useInfiniteEstimates(filters?: EstimateListParams, limit = 20) {
+  return useInfiniteQuery({
+    queryKey: [...estimateKeys.list(filters), 'infinite'],
+    queryFn: ({ pageParam }) => listEstimates({ ...filters, limit, cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.page_info.next_cursor ?? undefined,
+  })
+}
+

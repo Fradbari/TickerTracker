@@ -86,7 +86,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 4.5** - Wrapper Decimale per Calcoli Finanziari (finance/decimalMoney.ts)
 - [ ] **TASK 4.5b** - Creazione Componenti UI Shared (Button, Input, Card, Badge, Spinner, Toast, Modal)
 - [x] **TASK 4.6-hooks** - Implementazione API Hooks per Estimates (queries.ts + mutations.ts)
-- [ ] **TASK 4.6** - Implementazione EstimateList Component
+- [x] **TASK 4.6** - Implementazione EstimateList Component
 - [x] **TASK 4.7** - Implementazione EstimateDetail Component
 - [x] **TASK 4.8** - Implementazione EstimateForm Component
 - [x] **TASK 4.9** - Implementazione EstimateCard Component

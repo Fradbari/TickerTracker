@@ -101,7 +101,8 @@ frontend/
     │   │   └── components/
     │   │       ├── index.ts           # Components barrel
     │   │       ├── EstimateForm.tsx   # ✅ TASK 4.8 — create form with real-time preview
-    │   │       └── EstimateCard.tsx   # ✅ TASK 4.9 — individual estimate display card
+    │   │       ├── EstimateCard.tsx   # ✅ TASK 4.9 — individual estimate display card
+    │   │       └── EstimateList.tsx   # ✅ TASK 4.6 — paginated and virtualized list with tracking
     │   │
     │   ├── portfolio/                 # TASK 4.11–4.12
     │   │   ├── index.ts

@@ -4,6 +4,7 @@ import { Estimate } from '../types';
 import { 
   calculatePnL, 
   formatMoney, 
+  formatPercentage,
   parseMoneyFromString,
   fromDecimalAmount,
   DecimalInstance
@@ -40,6 +41,7 @@ export function EstimateCard({ estimate, currentPrice, onClose, onDelete }: Esti
 
   // P&L calculation
   let pnlToDisplay: DecimalInstance | null = null;
+  let pnlPercentageDisplay: DecimalInstance | null = null;
   let pnlText = '-';
   
   // We assume base currency USD for everything internally in EstimateCard for formatting
@@ -47,7 +49,9 @@ export function EstimateCard({ estimate, currentPrice, onClose, onDelete }: Esti
   
   if (isClosed && estimate.realized_pnl) {
     const realisedMoney = parseMoneyFromString(estimate.realized_pnl, CURRENCY);
+    const entryMoney = parseMoneyFromString(estimate.start_price, CURRENCY);
     pnlToDisplay = realisedMoney.amount;
+    pnlPercentageDisplay = realisedMoney.amount.dividedBy(entryMoney.amount).times(100);
     pnlText = formatMoney(realisedMoney);
   } else if (!isClosed && currentPrice) {
     const entry = parseMoneyFromString(estimate.start_price, CURRENCY);
@@ -57,13 +61,16 @@ export function EstimateCard({ estimate, currentPrice, onClose, onDelete }: Esti
     const pnlResult = calculatePnL(entry, curr, qty);
     
     // adjust for short
-    if (estimate.direction === 'SHORT') {
-      pnlResult.absolute = pnlResult.absolute.times(-1);
-      pnlResult.percentage = pnlResult.percentage.times(-1);
-    }
+    const pnlAbsolute = estimate.direction === 'SHORT'
+      ? pnlResult.absolute.times(-1)
+      : pnlResult.absolute;
+    const pnlPercentage = estimate.direction === 'SHORT'
+      ? pnlResult.percentage.times(-1)
+      : pnlResult.percentage;
     
-    pnlToDisplay = pnlResult.absolute;
-    pnlText = formatMoney(fromDecimalAmount(pnlResult.absolute, CURRENCY));
+    pnlToDisplay = pnlAbsolute;
+    pnlPercentageDisplay = pnlPercentage;
+    pnlText = formatMoney(fromDecimalAmount(pnlAbsolute, CURRENCY));
   }
 
   const pnlColorClass = pnlToDisplay 
@@ -141,6 +148,12 @@ export function EstimateCard({ estimate, currentPrice, onClose, onDelete }: Esti
             {pnlToDisplay?.greaterThan(0) ? '+' : ''}
             {pnlToDisplay ? '$' + pnlText : pnlText}
           </span>
+          {pnlPercentageDisplay && (
+            <span className={`text-sm font-medium ${pnlColorClass}`} data-testid="pnl-percent">
+              {pnlPercentageDisplay.greaterThan(0) ? '+' : ''}
+              {formatPercentage(pnlPercentageDisplay)}
+            </span>
+          )}
         </div>
 
         {/* Desktop actions (Dropdown or buttons) */}

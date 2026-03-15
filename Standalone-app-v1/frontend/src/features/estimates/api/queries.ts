@@ -6,46 +6,13 @@
  *   useEstimates  — paginated list of estimates (with filters)
  *   useEstimate   — single estimate by id
  *   useEstimateHistory — audit trail for an estimate
- *
- * Components should import these hooks (or via @/features/estimates),
- * never calling the HTTP functions from api/index.ts directly.
- *
- * Cache strategy:
- *   estimateKeys.all is used as the root key; invalidating it busts every
- *   list, detail, and history query at once after a mutation.
  */
 
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
-import { listEstimates, getEstimate, getEstimateHistory } from './index'
-import type { EstimateListParams } from '../types'
+import { useQuery } from '@tanstack/react-query'
+import { getEstimate, getEstimateHistory } from './index'
 
-// ---------------------------------------------------------------------------
-// Query-key factory
-// ---------------------------------------------------------------------------
-
-/**
- * Stable query-key factory for all estimate-related queries.
- *
- * Hierarchy:
- *   estimateKeys.all                → root — invalidates everything
- *   estimateKeys.list(params)      → paginated list, scoped by filter params
- *   estimateKeys.detail(id)        → single estimate
- *   estimateKeys.history(id)       → audit trail
- *
- * @example
- * // Invalidate all estimate caches after a mutation:
- * queryClient.invalidateQueries({ queryKey: estimateKeys.all })
- *
- * // Scope invalidation to a specific estimate:
- * queryClient.invalidateQueries({ queryKey: estimateKeys.detail(id) })
- */
-export const estimateKeys = {
-  all: ['estimates'] as const,
-  list: (params?: EstimateListParams) =>
-    [...estimateKeys.all, 'list', params ?? {}] as const,
-  detail: (id: string) => [...estimateKeys.all, 'detail', id] as const,
-  history: (id: string) => [...estimateKeys.all, 'history', id] as const,
-} as const
+export { estimateKeys, useEstimates, useInfiniteEstimates } from '@/shared/api/queries/estimates'
+import { estimateKeys } from '@/shared/api/queries/estimates'
 
 // ---------------------------------------------------------------------------
 // Read hooks
@@ -64,16 +31,7 @@ export const estimateKeys = {
  * const { data, isLoading, isError } = useEstimates({ status: 'OPEN' })
  * data?.items.forEach(e => console.log(e.ticker_id, e.direction))
  */
-export function useEstimates(
-  filters?: EstimateListParams,
-  options?: Omit<Parameters<typeof useQuery>[0], 'queryKey' | 'queryFn'>
-) {
-  return useQuery({
-    queryKey: estimateKeys.list(filters),
-    queryFn: () => listEstimates(filters),
-    ...options,
-  })
-}
+// useEstimates moved to shared
 
 /**
  * Fetch a single estimate by UUID.
@@ -117,12 +75,5 @@ export function useEstimateHistory(id: string) {
   })
 }
 
-export function useInfiniteEstimates(filters?: EstimateListParams, limit = 20) {
-  return useInfiniteQuery({
-    queryKey: [...estimateKeys.list(filters), 'infinite'],
-    queryFn: ({ pageParam }) => listEstimates({ ...filters, limit, cursor: pageParam }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.page_info.next_cursor ?? undefined,
-  })
-}
+// useInfiniteEstimates moved to shared
 

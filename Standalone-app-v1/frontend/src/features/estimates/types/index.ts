@@ -7,67 +7,22 @@
  *   backend/src/estimates/schemas/filters.py    → EstimateFilters
  */
 
-// ---------------------------------------------------------------------------
-// Domain enums
-// ---------------------------------------------------------------------------
+import type {
+  EstimateDirection,
+  EstimateStatus,
+  Estimate,
+  PageInfo,
+  EstimateListResponse,
+  EstimateListParams
+} from '@/shared/types'
 
-export type EstimateDirection = 'LONG' | 'SHORT'
-
-/**
- * OPEN          — Active, not yet closed
- * CLOSED_WIN    — Closed at profit (exit_price >= target_price)
- * CLOSED_LOSS   — Closed at loss (exit_price <= stop_loss_price)
- * CLOSED_NEUTRAL — Closed manually without clear win/loss
- */
-export type EstimateStatus =
-  | 'OPEN'
-  | 'CLOSED_WIN'
-  | 'CLOSED_LOSS'
-  | 'CLOSED_NEUTRAL'
-
-// ---------------------------------------------------------------------------
-// Response types (read models)
-// ---------------------------------------------------------------------------
-
-/**
- * Single estimate — matches backend EstimateResponse.
- * All price/percent fields are serialised as strings to preserve Decimal precision.
- */
-export interface Estimate {
-  id: string               // UUID
-  ticker_id: string        // UUID
-  user_id: string | null   // UUID or null
-  direction: EstimateDirection
-  status: EstimateStatus
-  start_price: string
-  target_price: string
-  stop_loss_price: string
-  target_profit_percent: string
-  stop_loss_percent: string
-  exit_price: string | null
-  realized_pnl: string | null
-  ai_model: string | null
-  ai_confidence: string | null
-  ai_reasoning: string | null
-  created_at: string       // ISO 8601
-  updated_at: string
-  closed_at: string | null
-  is_deleted: boolean
-}
-
-/** Cursor-based pagination info — matches backend page_info dict. */
-export interface PageInfo {
-  has_next_page: boolean
-  has_previous_page: boolean
-  next_cursor: string | null
-  previous_cursor: string | null
-}
-
-/** Matches backend EstimateListResponse. */
-export interface EstimateListResponse {
-  items: Estimate[]
-  total: number
-  page_info: PageInfo
+export type {
+  EstimateDirection,
+  EstimateStatus,
+  Estimate,
+  PageInfo,
+  EstimateListResponse,
+  EstimateListParams
 }
 
 /** Matches backend EstimateCreatedResponse. */
@@ -115,23 +70,4 @@ export interface CloseEstimatePayload {
   notes?: string
 }
 
-// ---------------------------------------------------------------------------
-// Query / filter types
-// ---------------------------------------------------------------------------
-
-/** Mirrors backend EstimateFilters + cursor pagination params. */
-export interface EstimateListParams {
-  ticker_id?: string
-  user_id?: string
-  status?: EstimateStatus
-  direction?: EstimateDirection
-  created_after?: string
-  created_before?: string
-  closed_after?: string
-  closed_before?: string
-  min_confidence?: number
-  max_confidence?: number
-  include_deleted?: boolean
-  cursor?: string
-  limit?: number
-}
+ 

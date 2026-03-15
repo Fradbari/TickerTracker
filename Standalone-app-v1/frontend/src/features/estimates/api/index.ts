@@ -21,19 +21,8 @@ import type { ApiResponse } from '@/shared/types'
 
 const BASE = '/api/estimates'
 
-// ---------------------------------------------------------------------------
-// List
-// ---------------------------------------------------------------------------
-
-export async function listEstimates(
-  params?: EstimateListParams,
-): Promise<EstimateListResponse> {
-  const { data } = await apiClient.get<ApiResponse<EstimateListResponse>>(
-    BASE,
-    { params },
-  )
-  return unwrapResponse(data)
-}
+// listEstimates is now imported and re-exported from shared/api/queries/estimates
+export { listEstimates } from '@/shared/api/queries/estimates'
 
 // ---------------------------------------------------------------------------
 // Get one

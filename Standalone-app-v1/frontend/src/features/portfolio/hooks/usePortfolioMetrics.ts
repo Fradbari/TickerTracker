@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
-import { useEstimates } from '@/features/estimates/api/queries'
-import type { Estimate } from '@/features/estimates'
+import Decimal from 'decimal.js'
+import { useEstimates } from '@/shared/api/queries/estimates'
+import type { Estimate } from '@/shared/types'
 
 export function usePortfolioMetrics() {
   // Use useEstimates with a 5 minute refetch interval
@@ -38,23 +39,28 @@ export function usePortfolioMetrics() {
 
       if (estimate.status === 'OPEN') {
         activeEstimatesCount++
-        totalInvested += parseFloat(estimate.start_price || '0')
+        try {
+          const start = new Decimal(estimate.start_price || '0')
+          totalInvested += start.toNumber()
+        } catch { /* ignore */ }
       }
 
       // Realized PnL processing
       if (estimate.realized_pnl) {
-        const pnlValue = parseFloat(estimate.realized_pnl)
-        totalPnL += pnlValue
+        try {
+          const pnlValue = new Decimal(estimate.realized_pnl).toNumber()
+          totalPnL += pnlValue
 
-        // Ticker distribution
-        tickerPnL[estimate.ticker_id] = (tickerPnL[estimate.ticker_id] || 0) + pnlValue
+          // Ticker distribution
+          tickerPnL[estimate.ticker_id] = (tickerPnL[estimate.ticker_id] || 0) + pnlValue
 
-        // Cumulative PnL
-        currentCumulativePnL += pnlValue
-        cumulativePnLData.push({
-          date: new Date(estimate.closed_at || estimate.updated_at).toLocaleDateString(),
-          pnl: currentCumulativePnL
-        })
+          // Cumulative PnL
+          currentCumulativePnL += pnlValue
+          cumulativePnLData.push({
+            date: new Date(estimate.closed_at || estimate.updated_at).toLocaleDateString(),
+            pnl: currentCumulativePnL
+          })
+        } catch { /* ignore */ }
       }
     })
 

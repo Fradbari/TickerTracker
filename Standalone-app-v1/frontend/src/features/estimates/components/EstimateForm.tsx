@@ -54,8 +54,12 @@ function numericStringRefinement(
   min: number,
   max: number,
 ): boolean {
-  const n = parseFloat(val)
-  return !isNaN(n) && isFinite(n) && n > min && n <= max
+  try {
+    const n = new Decimal(val)
+    return n.isFinite() && n.greaterThan(min) && n.lessThanOrEqualTo(max)
+  } catch {
+    return false
+  }
 }
 
 const schema = z.object({
@@ -81,8 +85,12 @@ const schema = z.object({
     .min(1, 'Inserisci un prezzo di riferimento per il preview')
     .refine(
       val => {
-        const n = parseFloat(val)
-        return !isNaN(n) && isFinite(n) && n > 0
+        try {
+          const n = new Decimal(val)
+          return n.isFinite() && n.greaterThan(0)
+        } catch {
+          return false
+        }
       },
       { message: 'Deve essere un numero positivo (es. 182.50)' },
     ),
@@ -150,20 +158,27 @@ function computePreview(
   direction: EstimateDirection,
   currency: string,
 ): { targetPrice: string | null; stopPrice: string | null } {
-  const ep = parseFloat(entryPriceStr)
-  const pp = parseFloat(profitPctStr)
-  const sp = parseFloat(stopPctStr)
+  let entry: InstanceType<typeof Decimal>
+  let pp: InstanceType<typeof Decimal>
+  let sp: InstanceType<typeof Decimal>
 
-  if (isNaN(ep) || ep <= 0) return { targetPrice: null, stopPrice: null }
+  try {
+    entry = new Decimal(entryPriceStr)
+    if (entry.lessThanOrEqualTo(0)) throw new Error()
+  } catch {
+    return { targetPrice: null, stopPrice: null }
+  }
 
-  const entry    = new Decimal(ep)
-  const profitFactor = new Decimal(pp).dividedBy(100)
-  const stopFactor   = new Decimal(sp).dividedBy(100)
+  try { pp = new Decimal(profitPctStr) } catch { pp = new Decimal(NaN) }
+  try { sp = new Decimal(stopPctStr) } catch { sp = new Decimal(NaN) }
+
+  const profitFactor = pp.isFinite() ? pp.dividedBy(100) : new Decimal(NaN)
+  const stopFactor   = sp.isFinite() ? sp.dividedBy(100) : new Decimal(NaN)
 
   let targetPrice: string | null = null
   let stopPrice:   string | null = null
 
-  if (!isNaN(pp) && pp > 0) {
+  if (pp.isFinite() && pp.greaterThan(0)) {
     const multiplier = direction === 'LONG'
       ? new Decimal(1).plus(profitFactor)
       : new Decimal(1).minus(profitFactor)
@@ -172,7 +187,7 @@ function computePreview(
     )
   }
 
-  if (!isNaN(sp) && sp > 0) {
+  if (sp.isFinite() && sp.greaterThan(0)) {
     const multiplier = direction === 'LONG'
       ? new Decimal(1).minus(stopFactor)
       : new Decimal(1).plus(stopFactor)

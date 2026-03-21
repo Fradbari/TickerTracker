@@ -4,7 +4,6 @@ version = "3.0.0"
 description = "Trading estimates tracking system with DDD/CQRS/Event Sourcing"
 authors = ["Francesco Di Lecce <francesco@example.com>"]
 readme = "README.md"
-python = "^3.12"
 
 [tool.poetry.dependencies]
 python = "^3.12"

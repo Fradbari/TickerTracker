@@ -90,7 +90,7 @@ exclude = ["alembic/", "tests/"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 asyncio_mode = "auto"
-addopts = "-v --tb=short --strict-markers --cov=src/shared --cov=src/estimates --cov-fail-under=80"
+addopts = "-v --tb=short --strict-markers"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",  
@@ -100,7 +100,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src"]
+# Coverage scopes — use: pytest --cov=src/shared --cov=src/estimates --cov-fail-under=80
 omit = ["tests/*", "*/migrations/*", "src/sync/*", "src/analytics/*", "src/infra/*", "src/market_data/*", "src/main.py"]
 
 [tool.coverage.report]

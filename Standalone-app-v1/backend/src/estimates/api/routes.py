@@ -185,7 +185,7 @@ async def create_estimate(
     except Exception as e:
         return error_response(
             code="INTERNAL_ERROR",
-            message=f"Failed to create estimate: {str(e)}",
+            message=f"Failed with exception: {repr(e)}",
             trace_id=trace_id,
         )
 
@@ -327,7 +327,7 @@ async def get_estimate(
     except Exception as e:
         return error_response(
             code="INTERNAL_ERROR",
-            message=f"Failed to get estimate: {str(e)}",
+            message=f"Failed with exception: {repr(e)}",
             trace_id=trace_id,
         )
 

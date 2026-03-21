@@ -100,10 +100,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 5.2** - Scrivere Unit Test per Value Objects
 - [x] **TASK 5.3** - Scrivere Unit Test per EstimateService
 - [x] **TASK 5.4** - Scrivere Integration Test per API Estimates
-- [ ] **TASK 5.6** - Setup Test Framework Frontend
-
----
-
+  - [x] **TASK 5.6** - Setup Test Framework Frontend
 ### Fase 2 - Produzione Multi-User (19 task)
 
 #### Sezione 2: Auth & Advanced Backend (0/6)

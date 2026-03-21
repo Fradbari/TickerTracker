@@ -113,7 +113,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: [],
+    setupFiles: ['./src/setupTests.ts'],
+    coverage: { provider: 'v8', reporter: ['text', 'lcov'], thresholds: { lines: 80 } },
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@/shared': path.resolve(__dirname, './src/shared'),

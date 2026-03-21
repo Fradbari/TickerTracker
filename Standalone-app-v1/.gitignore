@@ -57,5 +57,5 @@ logs/
 *.bak
 *~
 .#*
-EOF
+type_check_output*.txt
 vite.config.ts.timestamp-*.mjs

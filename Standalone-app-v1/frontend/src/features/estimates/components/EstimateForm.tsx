@@ -278,7 +278,7 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
   // ── JSX ───────────────────────────────────────────────────────────────
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={(e) => { void handleSubmit(onSubmit)(e)?.catch(() => {}); }}
       noValidate
       className="space-y-6"
       aria-label={t('formSection', 'Nuova stima di trading')}

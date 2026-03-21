@@ -1,9 +1,12 @@
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useEffect } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
-import i18n from '@/shared/i18n/config'; // Assuming this exists or create a mock i18n instance
+import i18n from '@/shared/i18n/config';
+
+// Force i18n to not use suspense during tests
+i18n.options.react = { useSuspense: false };
 
 // Create a custom query client for tests
 const createTestQueryClient = () => new QueryClient({
@@ -47,4 +50,5 @@ export function renderWithProviders(
 }
 
 export * from '@testing-library/react';
-export { userEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
+export { userEvent };

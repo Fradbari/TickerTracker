@@ -61,9 +61,9 @@ Dipendenze: TASK 5.1
 
 **Acceptance Criteria:**
 
-- [ ] Coverage 100% sui value objects
-- [ ] Edge cases coperti (zero, negativo, overflow)
-- [ ] Errori attesi sollevano eccezioni corrette
+- [x] Coverage 100% sui value objects
+- [x] Edge cases coperti (zero, negativo, overflow)
+- [x] Errori attesi sollevano eccezioni corrette
 
 ---
 

@@ -28,6 +28,16 @@ async def sqlite_engine():
         await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
 
+@pytest.fixture(autouse=True)
+def override_db_session_factory(sqlite_engine):
+    """Monkeypatch AsyncSessionLocal globally to use SQLite memory during tests."""
+    from src.shared.infra import database
+    TestSessionLocal = async_sessionmaker(bind=sqlite_engine, expire_on_commit=False, class_=AsyncSession)
+    original = database.AsyncSessionLocal
+    database.AsyncSessionLocal = TestSessionLocal
+    yield
+    database.AsyncSessionLocal = original
+
 @pytest.fixture
 async def async_session(sqlite_engine) -> AsyncGenerator[AsyncSession, None]:
     TestSessionLocal = async_sessionmaker(bind=sqlite_engine, expire_on_commit=False, class_=AsyncSession)

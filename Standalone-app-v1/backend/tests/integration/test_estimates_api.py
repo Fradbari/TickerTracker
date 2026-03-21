@@ -97,9 +97,9 @@ class TestEstimatesAPI:
         data = response.json()
         assert data["success"] is True, data
         assert data["data"]["estimate"]["direction"] == "LONG"
-        assert data["data"]["estimate"]["start_price"] == "100.000000"
-        assert data["data"]["estimate"]["target_price"] == "110.000000"
-        assert data["data"]["estimate"]["stop_loss_price"] == "95.000000"
+        assert float(data["data"]["estimate"]["start_price"]) == 100.0
+        assert float(data["data"]["estimate"]["target_price"]) == 110.0
+        assert float(data["data"]["estimate"]["stop_loss_price"]) == 95.0
         assert data["data"]["estimate"]["status"] == "OPEN"
 
     async def test_create_estimate_invalid_ticker(self, test_client: AsyncClient, override_yahoo_provider):
@@ -172,30 +172,31 @@ class TestEstimatesAPI:
 
     async def test_update_estimate(self, test_client: AsyncClient, setup_estimate: Estimate):
         payload = {
+            "estimate_id": str(setup_estimate.id),
             "target_profit_percent": 20.0,
             "stop_loss_percent": 10.0
         }
-        
+
         response = await test_client.patch(f"/api/estimates/{setup_estimate.id}", json=payload)
-        
+        assert response.status_code == 200, response.json()
         data = response.json()
         assert data["success"] is True, data
-        assert data["data"]["estimate"]["target_price"] == "120.000000"
-        assert data["data"]["estimate"]["stop_loss_price"] == "90.000000"
-
+        assert float(data["data"]["estimate"]["target_price"]) == 120.0
+        assert float(data["data"]["estimate"]["stop_loss_price"]) == 90.0
     async def test_close_estimate(self, test_client: AsyncClient, setup_estimate: Estimate):
         payload = {
+            "estimate_id": str(setup_estimate.id),
             "exit_price": 115.00,
             "reason": "Closed early to secure profits"
         }
-        
+
         response = await test_client.request("DELETE", f"/api/estimates/{setup_estimate.id}", json=payload)
-        
+        assert response.status_code == 200, response.json()
         data = response.json()
         assert data["success"] is True, data
         assert data["data"]["status"] == "CLOSED_WIN"
-        
+
         # Verify it actually changed via GET
         get_resp = await test_client.get(f"/api/estimates/{setup_estimate.id}")
         assert get_resp.json()["data"]["status"] == "CLOSED_WIN"
-        assert get_resp.json()["data"]["exit_price"] == "115.000000"
+        assert float(get_resp.json()["data"]["exit_price"]) == 115.0

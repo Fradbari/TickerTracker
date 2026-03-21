@@ -99,7 +99,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [ ] **TASK 5.1** - Setup Test Framework Backend
 - [x] **TASK 5.2** - Scrivere Unit Test per Value Objects
 - [x] **TASK 5.3** - Scrivere Unit Test per EstimateService
-- [ ] **TASK 5.4** - Scrivere Integration Test per API Estimates
+- [x] **TASK 5.4** - Scrivere Integration Test per API Estimates
 - [ ] **TASK 5.6** - Setup Test Framework Frontend
 
 ---

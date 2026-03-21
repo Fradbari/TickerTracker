@@ -133,12 +133,10 @@ Dipendenze: TASK 5.1
 
 **Acceptance Criteria:**
 
-- [ ] Ogni endpoint testato per happy path
-- [ ] Errori 400, 404, 500 testati
-- [ ] Database pulito tra test
-- [ ] Response conforme a schema ApiResponse
-
----
+  - [x] Ogni endpoint testato per happy path
+  - [x] Errori 400, 404, 500 testati
+  - [x] Database pulito tra test
+  - [x] Response conforme a schema ApiResponse
 
 ### Istruzioni per LLM
 - Non modificare file fuori da [backend/tests/integration/test_estimates_api.py] se non strettamente necessario.

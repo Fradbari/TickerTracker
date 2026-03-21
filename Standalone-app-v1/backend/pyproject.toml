@@ -59,6 +59,7 @@ pytest-asyncio = "^0.24.0"
 pytest-cov = "^6.0.0"
 httpx = "^0.28.1"
 faker = "^33.1.0"
+hypothesis = "^6.131.0"
 
 # Code Quality
 ruff = "^0.8.4"
@@ -93,17 +94,14 @@ asyncio_mode = "auto"
 addopts = "-v --tb=short --strict-markers"
 markers = [
     "unit: Unit tests",
-    "integration: Integration tests",  
+    "integration: Integration tests",
     "e2e: End-to-end tests",
     "slow: Slow running tests",
-    "chaos: Chaos engineering tests"
+    "chaos: Chaos engineering tests",
+    "properties: Property-based tests"
 ]
 
 [tool.coverage.run]
-# Coverage scopes — use: pytest --cov=src/shared --cov=src/estimates --cov-fail-under=80
-omit = ["tests/*", "*/migrations/*", "src/sync/*", "src/analytics/*", "src/infra/*", "src/market_data/*", "src/main.py"]
-
-[tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",

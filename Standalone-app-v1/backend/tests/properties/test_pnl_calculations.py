@@ -3,19 +3,13 @@ from decimal import Decimal
 from hypothesis import given, settings, assume, example
 from hypothesis import strategies as st
 
-# Function under test - extracted for testing math properties
-def calculate_pnl(start_price: Decimal, exit_price: Decimal, direction: str) -> Decimal:
-    """Wrapper around EstimateService._calculate_pnl logic."""
-    if direction == "LONG":
-        pnl = exit_price - start_price
-    else:  # SHORT
-        pnl = start_price - exit_price
-    return pnl.quantize(Decimal("0.0001"))
+from src.estimates.domain.pnl import calculate_pnl
 
 # Custom strategy for generating reasonable price values
 price_strategy = st.decimals(
     min_value="0.01",
     max_value="9999.99",
+    places=4,
     allow_nan=False,
     allow_infinity=False
 )

@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 from sqlalchemy import select
 
 from src.estimates.domain.entities import Estimate, EstimateStatus, Direction
+from src.estimates.domain.pnl import calculate_pnl
 from src.estimates.domain.events import EstimateEvent, EstimateEventType
 from src.estimates.repositories.estimate_repository import EstimateRepository
 from src.estimates.schemas.commands import (
@@ -309,7 +310,7 @@ class EstimateService:
             )
         
         # Calculate realized PnL
-        pnl = self._calculate_pnl(
+        pnl = calculate_pnl(
             start_price=estimate.start_price,
             exit_price=command.exit_price,
             direction=estimate.direction.value,
@@ -422,7 +423,7 @@ class EstimateService:
             final_status = EstimateStatus.CLOSED_LOSS
         
         # Calculate PnL
-        pnl = self._calculate_pnl(
+        pnl = calculate_pnl(
             start_price=estimate.start_price,
             exit_price=current_price,
             direction=estimate.direction.value,
@@ -577,26 +578,4 @@ class EstimateService:
                         "direction": direction,
                     }
                 )
-    
-    def _calculate_pnl(
-        self,
-        start_price: Decimal,
-        exit_price: Decimal,
-        direction: str,
-    ) -> Decimal:
-        """
-        Calculate realized profit/loss.
-        
-        For LONG: PnL = exit_price - start_price
-        For SHORT: PnL = start_price - exit_price
-        
-        Returns:
-            Realized PnL (positive = profit, negative = loss)
-        """
-        if direction == "LONG":
-            pnl = exit_price - start_price
-        else:  # SHORT
-            pnl = start_price - exit_price
-        
-        return pnl.quantize(Decimal("0.0001"))
 

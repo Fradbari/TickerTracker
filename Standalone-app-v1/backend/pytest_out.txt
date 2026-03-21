@@ -1,0 +1,809 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\francesco.dilecce\OneDrive - LUTECH SPA\Documenti\2. PERSONALI\3. Altro\Ticker Tracker\AI Studio\Standalone-app-v1\backend
+configfile: pyproject.toml
+plugins: anyio-4.12.1, Faker-22.0.0, hypothesis-6.131.0, asyncio-0.23.3, cov-4.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 4 items
+
+tests\properties\test_pnl_calculations.py ..F.                           [100%]
+
+================================== FAILURES ===================================
+____________________ TestPnLProperties.test_pnl_additivity ____________________
+tests\properties\test_pnl_calculations.py:46: in test_pnl_additivity
+    @given(
+            
+tests\properties\test_pnl_calculations.py:61: in test_pnl_additivity
+    assert total_chained == pnl_entry_to_b
+E   AssertionError: assert Decimal('0.0585') == Decimal('0.0586')
+E   Falsifying example: test_pnl_additivity(
+E       self=<tests.properties.test_pnl_calculations.TestPnLProperties object at 0x0000021EB51A87D0>,
+E       entry=fraction_to_decimal(Fraction(1, 100)),
+E       point_a=fraction_to_decimal(Fraction(214, 300)),
+E       point_b=fraction_to_decimal(Fraction(144, 2100)),
+E   )
+---------------------------- Captured stdout setup ----------------------------
+Using proactor: IocpProactor
+executing <function connect.<locals>.connector at 0x0000021EB52C5D00>
+operation <function connect.<locals>.connector at 0x0000021EB52C5D00> completed
+executing functools.partial(<built-in method create_function of sqlite3.Connection object at 0x0000021EB52C2E30>, 'regexp', 2, <function SQLiteDialect_pysqlite.on_connect.<locals>.regexp at 0x0000021EB52C5580>, deterministic=True)
+operation functools.partial(<built-in method create_function of sqlite3.Connection object at 0x0000021EB52C2E30>, 'regexp', 2, <function SQLiteDialect_pysqlite.on_connect.<locals>.regexp at 0x0000021EB52C5580>, deterministic=True) completed
+executing functools.partial(<built-in method create_function of sqlite3.Connection object at 0x0000021EB52C2E30>, 'floor', 1, <built-in function floor>, deterministic=True)
+operation functools.partial(<built-in method create_function of sqlite3.Connection object at 0x0000021EB52C2E30>, 'floor', 1, <built-in function floor>, deterministic=True) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51627C0>, 'PRAGMA read_uncommitted', [])
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51627C0>, 'PRAGMA read_uncommitted', []) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB51627C0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB51627C0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51627C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51627C0>) completed
+executing functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB58CA340>, 'PRAGMA main.table_info("estimates")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB58CA340>, 'PRAGMA main.table_info("estimates")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB58CA340>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB58CA340>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB58CA340>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB58CA340>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB4E23F40>, 'PRAGMA temp.table_info("estimates")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB4E23F40>, 'PRAGMA temp.table_info("estimates")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB4E23F40>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB4E23F40>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB4E23F40>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB4E23F40>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546E040>, 'PRAGMA main.table_info("estimate_events")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546E040>, 'PRAGMA main.table_info("estimate_events")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB546E040>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB546E040>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546E040>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546E040>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546C3C0>, 'PRAGMA temp.table_info("estimate_events")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546C3C0>, 'PRAGMA temp.table_info("estimate_events")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB546C3C0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB546C3C0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546C3C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546C3C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5920640>, 'PRAGMA main.table_info("user_roles")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5920640>, 'PRAGMA main.table_info("user_roles")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5920640>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5920640>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5920640>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5920640>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59203C0>, 'PRAGMA temp.table_info("user_roles")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59203C0>, 'PRAGMA temp.table_info("user_roles")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB59203C0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB59203C0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59203C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59203C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5920AC0>, 'PRAGMA main.table_info("users")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5920AC0>, 'PRAGMA main.table_info("users")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5920AC0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5920AC0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5920AC0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5920AC0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59205C0>, 'PRAGMA temp.table_info("users")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59205C0>, 'PRAGMA temp.table_info("users")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB59205C0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB59205C0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59205C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59205C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F59C0>, 'PRAGMA main.table_info("roles")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F59C0>, 'PRAGMA main.table_info("roles")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F59C0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F59C0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F59C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F59C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F43C0>, 'PRAGMA temp.table_info("roles")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F43C0>, 'PRAGMA temp.table_info("roles")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F43C0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F43C0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F43C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F43C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F5DC0>, 'PRAGMA main.table_info("tickers")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F5DC0>, 'PRAGMA main.table_info("tickers")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F5DC0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F5DC0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F5DC0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F5DC0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F4740>, 'PRAGMA temp.table_info("tickers")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F4740>, 'PRAGMA temp.table_info("tickers")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F4740>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F4740>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F4740>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F4740>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F6140>, 'PRAGMA main.table_info("market_data")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F6140>, 'PRAGMA main.table_info("market_data")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F6140>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F6140>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F6140>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F6140>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F7BC0>, 'PRAGMA temp.table_info("market_data")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F7BC0>, 'PRAGMA temp.table_info("market_data")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F7BC0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F7BC0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F7BC0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F7BC0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51B1240>, '\nCREATE TABLE users (\n\tid UUID NOT NULL, \n\temail VARCHAR(255) NOT NULL, \n\thashed_password VARCHAR(255), \n\tis_active BOOLEAN NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id)\n)\n\n', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51B1240>, '\nCREATE TABLE users (\n\tid UUID NOT NULL, \n\temail VARCHAR(255) NOT NULL, \n\thashed_password VARCHAR(255), \n\tis_active BOOLEAN NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id)\n)\n\n', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51B1240>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51B1240>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5BCB4C0>, 'CREATE UNIQUE INDEX ix_users_email ON users (email)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5BCB4C0>, 'CREATE UNIQUE INDEX ix_users_email ON users (email)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5BCB4C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5BCB4C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB541B3C0>, 'CREATE INDEX ix_user_is_active ON users (is_active)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB541B3C0>, 'CREATE INDEX ix_user_is_active ON users (is_active)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB541B3C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB541B3C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51946C0>, '\nCREATE TABLE roles (\n\tid UUID NOT NULL, \n\tname VARCHAR(8) NOT NULL, \n\tdescription VARCHAR(255), \n\tPRIMARY KEY (id), \n\tUNIQUE (name)\n)\n\n', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51946C0>, '\nCREATE TABLE roles (\n\tid UUID NOT NULL, \n\tname VARCHAR(8) NOT NULL, \n\tdescription VARCHAR(255), \n\tPRIMARY KEY (id), \n\tUNIQUE (name)\n)\n\n', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51946C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51946C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB54BF040>, "\nCREATE TABLE tickers (\n\tid UUID NOT NULL, \n\tsymbol VARCHAR(10) NOT NULL, \n\tname VARCHAR(255) NOT NULL, \n\texchange VARCHAR(50), \n\tcurrency VARCHAR(3) NOT NULL, \n\tasset_type VARCHAR(20) NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_ticker_asset_type CHECK (asset_type IN ('stock', 'etf', 'crypto'))\n)\n\n", ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB54BF040>, "\nCREATE TABLE tickers (\n\tid UUID NOT NULL, \n\tsymbol VARCHAR(10) NOT NULL, \n\tname VARCHAR(255) NOT NULL, \n\texchange VARCHAR(50), \n\tcurrency VARCHAR(3) NOT NULL, \n\tasset_type VARCHAR(20) NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_ticker_asset_type CHECK (asset_type IN ('stock', 'etf', 'crypto'))\n)\n\n", ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB54BF040>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB54BF040>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB54FC6C0>, 'CREATE UNIQUE INDEX ix_tickers_symbol ON tickers (symbol)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB54FC6C0>, 'CREATE UNIQUE INDEX ix_tickers_symbol ON tickers (symbol)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB54FC6C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB54FC6C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F7440>, 'CREATE INDEX ix_ticker_symbol ON tickers (symbol)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F7440>, 'CREATE INDEX ix_ticker_symbol ON tickers (symbol)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F7440>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F7440>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F75C0>, '\nCREATE TABLE estimates (\n\tid UUID NOT NULL, \n\tticker_id UUID NOT NULL, \n\tuser_id UUID, \n\tstart_price DECIMAL(10, 4) NOT NULL, \n\ttarget_price DECIMAL(10, 4) NOT NULL, \n\tstop_loss_price DECIMAL(10, 4) NOT NULL, \n\ttarget_profit_percent DECIMAL(8, 4) NOT NULL, \n\tstop_loss_percent DECIMAL(8, 4) NOT NULL, \n\tstatus VARCHAR(13) NOT NULL, \n\tdirection VARCHAR(5) NOT NULL, \n\tai_model VARCHAR(100), \n\tai_confidence DECIMAL(5, 2), \n\tai_reasoning TEXT, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tclosed_at DATETIME, \n\tis_deleted BOOLEAN DEFAULT false NOT NULL, \n\tdeleted_at DATETIME, \n\texit_price DECIMAL(10, 4), \n\trealized_pnl DECIMAL(12, 4), \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_estimate_ai_confidence_range CHECK (ai_confidence IS NULL OR (ai_confidence >= 0 AND ai_confidence <= 100)), \n\tCONSTRAINT ck_estimate_start_price_positive CHECK (start_price > 0), \n\tCONSTRAINT ck_estimate_target_price_positive CHECK (target_price > 0), \n\tCONSTRAINT ck_estimate_stop_loss_price_positive CHECK (stop_loss_price > 0), \n\tFOREIGN KEY(ticker_id) REFERENCES tickers (id) ON DELETE RESTRICT\n)\n\n', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F75C0>, '\nCREATE TABLE estimates (\n\tid UUID NOT NULL, \n\tticker_id UUID NOT NULL, \n\tuser_id UUID, \n\tstart_price DECIMAL(10, 4) NOT NULL, \n\ttarget_price DECIMAL(10, 4) NOT NULL, \n\tstop_loss_price DECIMAL(10, 4) NOT NULL, \n\ttarget_profit_percent DECIMAL(8, 4) NOT NULL, \n\tstop_loss_percent DECIMAL(8, 4) NOT NULL, \n\tstatus VARCHAR(13) NOT NULL, \n\tdirection VARCHAR(5) NOT NULL, \n\tai_model VARCHAR(100), \n\tai_confidence DECIMAL(5, 2), \n\tai_reasoning TEXT, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tclosed_at DATETIME, \n\tis_deleted BOOLEAN DEFAULT false NOT NULL, \n\tdeleted_at DATETIME, \n\texit_price DECIMAL(10, 4), \n\trealized_pnl DECIMAL(12, 4), \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_estimate_ai_confidence_range CHECK (ai_confidence IS NULL OR (ai_confidence >= 0 AND ai_confidence <= 100)), \n\tCONSTRAINT ck_estimate_start_price_positive CHECK (start_price > 0), \n\tCONSTRAINT ck_estimate_target_price_positive CHECK (target_price > 0), \n\tCONSTRAINT ck_estimate_stop_loss_price_positive CHECK (stop_loss_price > 0), \n\tFOREIGN KEY(ticker_id) REFERENCES tickers (id) ON DELETE RESTRICT\n)\n\n', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F75C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F75C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546CF40>, 'CREATE INDEX ix_estimates_ticker_id ON estimates (ticker_id)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546CF40>, 'CREATE INDEX ix_estimates_ticker_id ON estimates (ticker_id)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546CF40>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546CF40>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D4C0>, 'CREATE INDEX ix_estimate_ticker_id ON estimates (ticker_id)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D4C0>, 'CREATE INDEX ix_estimate_ticker_id ON estimates (ticker_id)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D4C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D4C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D440>, 'CREATE INDEX ix_estimate_created_at ON estimates (created_at)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D440>, 'CREATE INDEX ix_estimate_created_at ON estimates (created_at)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D440>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D440>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529DC40>, 'CREATE INDEX ix_estimates_status ON estimates (status)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529DC40>, 'CREATE INDEX ix_estimates_status ON estimates (status)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529DC40>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529DC40>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D9C0>, 'CREATE INDEX ix_estimates_is_deleted ON estimates (is_deleted)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D9C0>, 'CREATE INDEX ix_estimates_is_deleted ON estimates (is_deleted)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D9C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D9C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529CFC0>, 'CREATE INDEX ix_estimate_is_deleted ON estimates (is_deleted)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529CFC0>, 'CREATE INDEX ix_estimate_is_deleted ON estimates (is_deleted)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529CFC0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529CFC0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D740>, 'CREATE INDEX ix_estimate_open_status ON estimates (status)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D740>, 'CREATE INDEX ix_estimate_open_status ON estimates (status)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D740>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D740>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D8C0>, 'CREATE INDEX ix_estimates_created_at ON estimates (created_at)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D8C0>, 'CREATE INDEX ix_estimates_created_at ON estimates (created_at)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D8C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D8C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529ECC0>, 'CREATE INDEX ix_estimate_status ON estimates (status)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529ECC0>, 'CREATE INDEX ix_estimate_status ON estimates (status)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529ECC0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529ECC0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59208C0>, '\nCREATE TABLE user_roles (\n\tuser_id UUID NOT NULL, \n\trole_id UUID NOT NULL, \n\tPRIMARY KEY (user_id, role_id), \n\tFOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, \n\tFOREIGN KEY(role_id) REFERENCES roles (id) ON DELETE CASCADE\n)\n\n', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59208C0>, '\nCREATE TABLE user_roles (\n\tuser_id UUID NOT NULL, \n\trole_id UUID NOT NULL, \n\tPRIMARY KEY (user_id, role_id), \n\tFOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, \n\tFOREIGN KEY(role_id) REFERENCES roles (id) ON DELETE CASCADE\n)\n\n', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59208C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59208C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB53224C0>, '\nCREATE TABLE market_data (\n\tticker_id UUID NOT NULL, \n\tdate DATE NOT NULL, \n\topen DECIMAL(10, 4) NOT NULL, \n\thigh DECIMAL(10, 4) NOT NULL, \n\tlow DECIMAL(10, 4) NOT NULL, \n\tclose DECIMAL(10, 4) NOT NULL, \n\tvolume BIGINT NOT NULL, \n\tdata_source VARCHAR(50) NOT NULL, \n\tsource_timestamp DATETIME, \n\tingestion_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tquality_score DECIMAL(3, 2), \n\tPRIMARY KEY (ticker_id, date), \n\tCONSTRAINT ck_market_data_open_positive CHECK (open > 0), \n\tCONSTRAINT ck_market_data_high_positive CHECK (high > 0), \n\tCONSTRAINT ck_market_data_low_positive CHECK (low > 0), \n\tCONSTRAINT ck_market_data_close_positive CHECK (close > 0), \n\tCONSTRAINT ck_market_data_volume_non_negative CHECK (volume >= 0), \n\tCONSTRAINT ck_market_data_high_gte_low CHECK (high >= low), \n\tCONSTRAINT ck_market_data_high_gte_open CHECK (high >= open), \n\tCONSTRAINT ck_market_data_high_gte_close CHECK (high >= close), \n\tCONSTRAINT ck_market_data_low_lte_open CHECK (low <= open), \n\tCONSTRAINT ck_market_data_low_lte_close CHECK (low <= close), \n\tCONSTRAINT ck_market_data_quality_score_range CHECK (quality_score IS NULL OR (quality_score >= 0.00 AND quality_score <= 1.00)), \n\tFOREIGN KEY(ticker_id) REFERENCES tickers (id) ON DELETE CASCADE\n)\n\n', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB53224C0>, '\nCREATE TABLE market_data (\n\tticker_id UUID NOT NULL, \n\tdate DATE NOT NULL, \n\topen DECIMAL(10, 4) NOT NULL, \n\thigh DECIMAL(10, 4) NOT NULL, \n\tlow DECIMAL(10, 4) NOT NULL, \n\tclose DECIMAL(10, 4) NOT NULL, \n\tvolume BIGINT NOT NULL, \n\tdata_source VARCHAR(50) NOT NULL, \n\tsource_timestamp DATETIME, \n\tingestion_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tquality_score DECIMAL(3, 2), \n\tPRIMARY KEY (ticker_id, date), \n\tCONSTRAINT ck_market_data_open_positive CHECK (open > 0), \n\tCONSTRAINT ck_market_data_high_positive CHECK (high > 0), \n\tCONSTRAINT ck_market_data_low_positive CHECK (low > 0), \n\tCONSTRAINT ck_market_data_close_positive CHECK (close > 0), \n\tCONSTRAINT ck_market_data_volume_non_negative CHECK (volume >= 0), \n\tCONSTRAINT ck_market_data_high_gte_low CHECK (high >= low), \n\tCONSTRAINT ck_market_data_high_gte_open CHECK (high >= open), \n\tCONSTRAINT ck_market_data_high_gte_close CHECK (high >= close), \n\tCONSTRAINT ck_market_data_low_lte_open CHECK (low <= open), \n\tCONSTRAINT ck_market_data_low_lte_close CHECK (low <= close), \n\tCONSTRAINT ck_market_data_quality_score_range CHECK (quality_score IS NULL OR (quality_score >= 0.00 AND quality_score <= 1.00)), \n\tFOREIGN KEY(ticker_id) REFERENCES tickers (id) ON DELETE CASCADE\n)\n\n', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB53224C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB53224C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529DB40>, 'CREATE UNIQUE INDEX ix_market_data_ticker_date ON market_data (ticker_id, date)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529DB40>, 'CREATE UNIQUE INDEX ix_market_data_ticker_date ON market_data (ticker_id, date)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529DB40>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529DB40>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529F240>, 'CREATE INDEX ix_market_data_date ON market_data (date)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529F240>, 'CREATE INDEX ix_market_data_date ON market_data (date)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529F240>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529F240>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB541BDC0>, '\nCREATE TABLE estimate_events (\n\tid UUID NOT NULL, \n\testimate_id UUID NOT NULL, \n\tevent_type VARCHAR(13) NOT NULL, \n\tevent_data JSON NOT NULL, \n\tuser_id UUID, \n\ttimestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tprocessed_at DATETIME, \n\tretry_count INTEGER NOT NULL, \n\terror VARCHAR(500), \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_estimate_event_timestamp_not_null CHECK (timestamp IS NOT NULL), \n\tFOREIGN KEY(estimate_id) REFERENCES estimates (id) ON DELETE CASCADE\n)\n\n', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB541BDC0>, '\nCREATE TABLE estimate_events (\n\tid UUID NOT NULL, \n\testimate_id UUID NOT NULL, \n\tevent_type VARCHAR(13) NOT NULL, \n\tevent_data JSON NOT NULL, \n\tuser_id UUID, \n\ttimestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tprocessed_at DATETIME, \n\tretry_count INTEGER NOT NULL, \n\terror VARCHAR(500), \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_estimate_event_timestamp_not_null CHECK (timestamp IS NOT NULL), \n\tFOREIGN KEY(estimate_id) REFERENCES estimates (id) ON DELETE CASCADE\n)\n\n', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB541BDC0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB541BDC0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C086C0>, 'CREATE INDEX ix_estimate_events_estimate_id ON estimate_events (estimate_id)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C086C0>, 'CREATE INDEX ix_estimate_events_estimate_id ON estimate_events (estimate_id)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C086C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C086C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C08340>, 'CREATE INDEX ix_estimate_event_type ON estimate_events (event_type)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C08340>, 'CREATE INDEX ix_estimate_event_type ON estimate_events (event_type)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C08340>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C08340>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09640>, 'CREATE INDEX ix_estimate_event_timeline ON estimate_events (estimate_id, timestamp)', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09640>, 'CREATE INDEX ix_estimate_event_timeline ON estimate_events (estimate_id, timestamp)', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09640>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09640>) completed
+executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+----------------------------- Captured log setup ------------------------------
+DEBUG    asyncio:proactor_events.py:634 Using proactor: IocpProactor
+DEBUG    aiosqlite:core.py:62 executing <function connect.<locals>.connector at 0x0000021EB52C5D00>
+DEBUG    aiosqlite:core.py:67 operation <function connect.<locals>.connector at 0x0000021EB52C5D00> completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method create_function of sqlite3.Connection object at 0x0000021EB52C2E30>, 'regexp', 2, <function SQLiteDialect_pysqlite.on_connect.<locals>.regexp at 0x0000021EB52C5580>, deterministic=True)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method create_function of sqlite3.Connection object at 0x0000021EB52C2E30>, 'regexp', 2, <function SQLiteDialect_pysqlite.on_connect.<locals>.regexp at 0x0000021EB52C5580>, deterministic=True) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method create_function of sqlite3.Connection object at 0x0000021EB52C2E30>, 'floor', 1, <built-in function floor>, deterministic=True)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method create_function of sqlite3.Connection object at 0x0000021EB52C2E30>, 'floor', 1, <built-in function floor>, deterministic=True) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51627C0>, 'PRAGMA read_uncommitted', [])
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51627C0>, 'PRAGMA read_uncommitted', []) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB51627C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB51627C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51627C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51627C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB58CA340>, 'PRAGMA main.table_info("estimates")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB58CA340>, 'PRAGMA main.table_info("estimates")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB58CA340>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB58CA340>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB58CA340>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB58CA340>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB4E23F40>, 'PRAGMA temp.table_info("estimates")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB4E23F40>, 'PRAGMA temp.table_info("estimates")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB4E23F40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB4E23F40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB4E23F40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB4E23F40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546E040>, 'PRAGMA main.table_info("estimate_events")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546E040>, 'PRAGMA main.table_info("estimate_events")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB546E040>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB546E040>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546E040>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546E040>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546C3C0>, 'PRAGMA temp.table_info("estimate_events")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546C3C0>, 'PRAGMA temp.table_info("estimate_events")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB546C3C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB546C3C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546C3C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546C3C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5920640>, 'PRAGMA main.table_info("user_roles")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5920640>, 'PRAGMA main.table_info("user_roles")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5920640>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5920640>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5920640>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5920640>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59203C0>, 'PRAGMA temp.table_info("user_roles")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59203C0>, 'PRAGMA temp.table_info("user_roles")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB59203C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB59203C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59203C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59203C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5920AC0>, 'PRAGMA main.table_info("users")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5920AC0>, 'PRAGMA main.table_info("users")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5920AC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5920AC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5920AC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5920AC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59205C0>, 'PRAGMA temp.table_info("users")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59205C0>, 'PRAGMA temp.table_info("users")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB59205C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB59205C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59205C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59205C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F59C0>, 'PRAGMA main.table_info("roles")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F59C0>, 'PRAGMA main.table_info("roles")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F59C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F59C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F59C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F59C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F43C0>, 'PRAGMA temp.table_info("roles")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F43C0>, 'PRAGMA temp.table_info("roles")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F43C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F43C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F43C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F43C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F5DC0>, 'PRAGMA main.table_info("tickers")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F5DC0>, 'PRAGMA main.table_info("tickers")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F5DC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F5DC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F5DC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F5DC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F4740>, 'PRAGMA temp.table_info("tickers")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F4740>, 'PRAGMA temp.table_info("tickers")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F4740>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F4740>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F4740>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F4740>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F6140>, 'PRAGMA main.table_info("market_data")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F6140>, 'PRAGMA main.table_info("market_data")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F6140>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F6140>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F6140>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F6140>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F7BC0>, 'PRAGMA temp.table_info("market_data")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F7BC0>, 'PRAGMA temp.table_info("market_data")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F7BC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB52F7BC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F7BC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F7BC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51B1240>, '\nCREATE TABLE users (\n\tid UUID NOT NULL, \n\temail VARCHAR(255) NOT NULL, \n\thashed_password VARCHAR(255), \n\tis_active BOOLEAN NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id)\n)\n\n', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51B1240>, '\nCREATE TABLE users (\n\tid UUID NOT NULL, \n\temail VARCHAR(255) NOT NULL, \n\thashed_password VARCHAR(255), \n\tis_active BOOLEAN NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id)\n)\n\n', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51B1240>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51B1240>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5BCB4C0>, 'CREATE UNIQUE INDEX ix_users_email ON users (email)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5BCB4C0>, 'CREATE UNIQUE INDEX ix_users_email ON users (email)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5BCB4C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5BCB4C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB541B3C0>, 'CREATE INDEX ix_user_is_active ON users (is_active)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB541B3C0>, 'CREATE INDEX ix_user_is_active ON users (is_active)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB541B3C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB541B3C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51946C0>, '\nCREATE TABLE roles (\n\tid UUID NOT NULL, \n\tname VARCHAR(8) NOT NULL, \n\tdescription VARCHAR(255), \n\tPRIMARY KEY (id), \n\tUNIQUE (name)\n)\n\n', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB51946C0>, '\nCREATE TABLE roles (\n\tid UUID NOT NULL, \n\tname VARCHAR(8) NOT NULL, \n\tdescription VARCHAR(255), \n\tPRIMARY KEY (id), \n\tUNIQUE (name)\n)\n\n', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51946C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB51946C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB54BF040>, "\nCREATE TABLE tickers (\n\tid UUID NOT NULL, \n\tsymbol VARCHAR(10) NOT NULL, \n\tname VARCHAR(255) NOT NULL, \n\texchange VARCHAR(50), \n\tcurrency VARCHAR(3) NOT NULL, \n\tasset_type VARCHAR(20) NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_ticker_asset_type CHECK (asset_type IN ('stock', 'etf', 'crypto'))\n)\n\n", ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB54BF040>, "\nCREATE TABLE tickers (\n\tid UUID NOT NULL, \n\tsymbol VARCHAR(10) NOT NULL, \n\tname VARCHAR(255) NOT NULL, \n\texchange VARCHAR(50), \n\tcurrency VARCHAR(3) NOT NULL, \n\tasset_type VARCHAR(20) NOT NULL, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_ticker_asset_type CHECK (asset_type IN ('stock', 'etf', 'crypto'))\n)\n\n", ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB54BF040>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB54BF040>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB54FC6C0>, 'CREATE UNIQUE INDEX ix_tickers_symbol ON tickers (symbol)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB54FC6C0>, 'CREATE UNIQUE INDEX ix_tickers_symbol ON tickers (symbol)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB54FC6C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB54FC6C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F7440>, 'CREATE INDEX ix_ticker_symbol ON tickers (symbol)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F7440>, 'CREATE INDEX ix_ticker_symbol ON tickers (symbol)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F7440>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F7440>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F75C0>, '\nCREATE TABLE estimates (\n\tid UUID NOT NULL, \n\tticker_id UUID NOT NULL, \n\tuser_id UUID, \n\tstart_price DECIMAL(10, 4) NOT NULL, \n\ttarget_price DECIMAL(10, 4) NOT NULL, \n\tstop_loss_price DECIMAL(10, 4) NOT NULL, \n\ttarget_profit_percent DECIMAL(8, 4) NOT NULL, \n\tstop_loss_percent DECIMAL(8, 4) NOT NULL, \n\tstatus VARCHAR(13) NOT NULL, \n\tdirection VARCHAR(5) NOT NULL, \n\tai_model VARCHAR(100), \n\tai_confidence DECIMAL(5, 2), \n\tai_reasoning TEXT, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tclosed_at DATETIME, \n\tis_deleted BOOLEAN DEFAULT false NOT NULL, \n\tdeleted_at DATETIME, \n\texit_price DECIMAL(10, 4), \n\trealized_pnl DECIMAL(12, 4), \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_estimate_ai_confidence_range CHECK (ai_confidence IS NULL OR (ai_confidence >= 0 AND ai_confidence <= 100)), \n\tCONSTRAINT ck_estimate_start_price_positive CHECK (start_price > 0), \n\tCONSTRAINT ck_estimate_target_price_positive CHECK (target_price > 0), \n\tCONSTRAINT ck_estimate_stop_loss_price_positive CHECK (stop_loss_price > 0), \n\tFOREIGN KEY(ticker_id) REFERENCES tickers (id) ON DELETE RESTRICT\n)\n\n', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB52F75C0>, '\nCREATE TABLE estimates (\n\tid UUID NOT NULL, \n\tticker_id UUID NOT NULL, \n\tuser_id UUID, \n\tstart_price DECIMAL(10, 4) NOT NULL, \n\ttarget_price DECIMAL(10, 4) NOT NULL, \n\tstop_loss_price DECIMAL(10, 4) NOT NULL, \n\ttarget_profit_percent DECIMAL(8, 4) NOT NULL, \n\tstop_loss_percent DECIMAL(8, 4) NOT NULL, \n\tstatus VARCHAR(13) NOT NULL, \n\tdirection VARCHAR(5) NOT NULL, \n\tai_model VARCHAR(100), \n\tai_confidence DECIMAL(5, 2), \n\tai_reasoning TEXT, \n\tcreated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tupdated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tclosed_at DATETIME, \n\tis_deleted BOOLEAN DEFAULT false NOT NULL, \n\tdeleted_at DATETIME, \n\texit_price DECIMAL(10, 4), \n\trealized_pnl DECIMAL(12, 4), \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_estimate_ai_confidence_range CHECK (ai_confidence IS NULL OR (ai_confidence >= 0 AND ai_confidence <= 100)), \n\tCONSTRAINT ck_estimate_start_price_positive CHECK (start_price > 0), \n\tCONSTRAINT ck_estimate_target_price_positive CHECK (target_price > 0), \n\tCONSTRAINT ck_estimate_stop_loss_price_positive CHECK (stop_loss_price > 0), \n\tFOREIGN KEY(ticker_id) REFERENCES tickers (id) ON DELETE RESTRICT\n)\n\n', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F75C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB52F75C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546CF40>, 'CREATE INDEX ix_estimates_ticker_id ON estimates (ticker_id)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB546CF40>, 'CREATE INDEX ix_estimates_ticker_id ON estimates (ticker_id)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546CF40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB546CF40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D4C0>, 'CREATE INDEX ix_estimate_ticker_id ON estimates (ticker_id)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D4C0>, 'CREATE INDEX ix_estimate_ticker_id ON estimates (ticker_id)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D4C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D4C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D440>, 'CREATE INDEX ix_estimate_created_at ON estimates (created_at)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D440>, 'CREATE INDEX ix_estimate_created_at ON estimates (created_at)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D440>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D440>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529DC40>, 'CREATE INDEX ix_estimates_status ON estimates (status)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529DC40>, 'CREATE INDEX ix_estimates_status ON estimates (status)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529DC40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529DC40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D9C0>, 'CREATE INDEX ix_estimates_is_deleted ON estimates (is_deleted)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D9C0>, 'CREATE INDEX ix_estimates_is_deleted ON estimates (is_deleted)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D9C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D9C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529CFC0>, 'CREATE INDEX ix_estimate_is_deleted ON estimates (is_deleted)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529CFC0>, 'CREATE INDEX ix_estimate_is_deleted ON estimates (is_deleted)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529CFC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529CFC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D740>, 'CREATE INDEX ix_estimate_open_status ON estimates (status)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D740>, 'CREATE INDEX ix_estimate_open_status ON estimates (status)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D740>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D740>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D8C0>, 'CREATE INDEX ix_estimates_created_at ON estimates (created_at)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529D8C0>, 'CREATE INDEX ix_estimates_created_at ON estimates (created_at)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D8C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529D8C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529ECC0>, 'CREATE INDEX ix_estimate_status ON estimates (status)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529ECC0>, 'CREATE INDEX ix_estimate_status ON estimates (status)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529ECC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529ECC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59208C0>, '\nCREATE TABLE user_roles (\n\tuser_id UUID NOT NULL, \n\trole_id UUID NOT NULL, \n\tPRIMARY KEY (user_id, role_id), \n\tFOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, \n\tFOREIGN KEY(role_id) REFERENCES roles (id) ON DELETE CASCADE\n)\n\n', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB59208C0>, '\nCREATE TABLE user_roles (\n\tuser_id UUID NOT NULL, \n\trole_id UUID NOT NULL, \n\tPRIMARY KEY (user_id, role_id), \n\tFOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE, \n\tFOREIGN KEY(role_id) REFERENCES roles (id) ON DELETE CASCADE\n)\n\n', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59208C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB59208C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB53224C0>, '\nCREATE TABLE market_data (\n\tticker_id UUID NOT NULL, \n\tdate DATE NOT NULL, \n\topen DECIMAL(10, 4) NOT NULL, \n\thigh DECIMAL(10, 4) NOT NULL, \n\tlow DECIMAL(10, 4) NOT NULL, \n\tclose DECIMAL(10, 4) NOT NULL, \n\tvolume BIGINT NOT NULL, \n\tdata_source VARCHAR(50) NOT NULL, \n\tsource_timestamp DATETIME, \n\tingestion_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tquality_score DECIMAL(3, 2), \n\tPRIMARY KEY (ticker_id, date), \n\tCONSTRAINT ck_market_data_open_positive CHECK (open > 0), \n\tCONSTRAINT ck_market_data_high_positive CHECK (high > 0), \n\tCONSTRAINT ck_market_data_low_positive CHECK (low > 0), \n\tCONSTRAINT ck_market_data_close_positive CHECK (close > 0), \n\tCONSTRAINT ck_market_data_volume_non_negative CHECK (volume >= 0), \n\tCONSTRAINT ck_market_data_high_gte_low CHECK (high >= low), \n\tCONSTRAINT ck_market_data_high_gte_open CHECK (high >= open), \n\tCONSTRAINT ck_market_data_high_gte_close CHECK (high >= close), \n\tCONSTRAINT ck_market_data_low_lte_open CHECK (low <= open), \n\tCONSTRAINT ck_market_data_low_lte_close CHECK (low <= close), \n\tCONSTRAINT ck_market_data_quality_score_range CHECK (quality_score IS NULL OR (quality_score >= 0.00 AND quality_score <= 1.00)), \n\tFOREIGN KEY(ticker_id) REFERENCES tickers (id) ON DELETE CASCADE\n)\n\n', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB53224C0>, '\nCREATE TABLE market_data (\n\tticker_id UUID NOT NULL, \n\tdate DATE NOT NULL, \n\topen DECIMAL(10, 4) NOT NULL, \n\thigh DECIMAL(10, 4) NOT NULL, \n\tlow DECIMAL(10, 4) NOT NULL, \n\tclose DECIMAL(10, 4) NOT NULL, \n\tvolume BIGINT NOT NULL, \n\tdata_source VARCHAR(50) NOT NULL, \n\tsource_timestamp DATETIME, \n\tingestion_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tquality_score DECIMAL(3, 2), \n\tPRIMARY KEY (ticker_id, date), \n\tCONSTRAINT ck_market_data_open_positive CHECK (open > 0), \n\tCONSTRAINT ck_market_data_high_positive CHECK (high > 0), \n\tCONSTRAINT ck_market_data_low_positive CHECK (low > 0), \n\tCONSTRAINT ck_market_data_close_positive CHECK (close > 0), \n\tCONSTRAINT ck_market_data_volume_non_negative CHECK (volume >= 0), \n\tCONSTRAINT ck_market_data_high_gte_low CHECK (high >= low), \n\tCONSTRAINT ck_market_data_high_gte_open CHECK (high >= open), \n\tCONSTRAINT ck_market_data_high_gte_close CHECK (high >= close), \n\tCONSTRAINT ck_market_data_low_lte_open CHECK (low <= open), \n\tCONSTRAINT ck_market_data_low_lte_close CHECK (low <= close), \n\tCONSTRAINT ck_market_data_quality_score_range CHECK (quality_score IS NULL OR (quality_score >= 0.00 AND quality_score <= 1.00)), \n\tFOREIGN KEY(ticker_id) REFERENCES tickers (id) ON DELETE CASCADE\n)\n\n', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB53224C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB53224C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529DB40>, 'CREATE UNIQUE INDEX ix_market_data_ticker_date ON market_data (ticker_id, date)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529DB40>, 'CREATE UNIQUE INDEX ix_market_data_ticker_date ON market_data (ticker_id, date)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529DB40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529DB40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529F240>, 'CREATE INDEX ix_market_data_date ON market_data (date)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529F240>, 'CREATE INDEX ix_market_data_date ON market_data (date)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529F240>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529F240>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB541BDC0>, '\nCREATE TABLE estimate_events (\n\tid UUID NOT NULL, \n\testimate_id UUID NOT NULL, \n\tevent_type VARCHAR(13) NOT NULL, \n\tevent_data JSON NOT NULL, \n\tuser_id UUID, \n\ttimestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tprocessed_at DATETIME, \n\tretry_count INTEGER NOT NULL, \n\terror VARCHAR(500), \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_estimate_event_timestamp_not_null CHECK (timestamp IS NOT NULL), \n\tFOREIGN KEY(estimate_id) REFERENCES estimates (id) ON DELETE CASCADE\n)\n\n', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB541BDC0>, '\nCREATE TABLE estimate_events (\n\tid UUID NOT NULL, \n\testimate_id UUID NOT NULL, \n\tevent_type VARCHAR(13) NOT NULL, \n\tevent_data JSON NOT NULL, \n\tuser_id UUID, \n\ttimestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, \n\tprocessed_at DATETIME, \n\tretry_count INTEGER NOT NULL, \n\terror VARCHAR(500), \n\tPRIMARY KEY (id), \n\tCONSTRAINT ck_estimate_event_timestamp_not_null CHECK (timestamp IS NOT NULL), \n\tFOREIGN KEY(estimate_id) REFERENCES estimates (id) ON DELETE CASCADE\n)\n\n', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB541BDC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB541BDC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C086C0>, 'CREATE INDEX ix_estimate_events_estimate_id ON estimate_events (estimate_id)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C086C0>, 'CREATE INDEX ix_estimate_events_estimate_id ON estimate_events (estimate_id)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C086C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C086C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C08340>, 'CREATE INDEX ix_estimate_event_type ON estimate_events (event_type)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C08340>, 'CREATE INDEX ix_estimate_event_type ON estimate_events (event_type)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C08340>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C08340>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09640>, 'CREATE INDEX ix_estimate_event_timeline ON estimate_events (estimate_id, timestamp)', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09640>, 'CREATE INDEX ix_estimate_event_timeline ON estimate_events (estimate_id, timestamp)', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09640>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09640>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+-------------------------- Captured stdout teardown ---------------------------
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53F40>, 'PRAGMA main.table_info("estimates")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53F40>, 'PRAGMA main.table_info("estimates")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C53F40>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C53F40>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53F40>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53F40>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53CC0>, 'PRAGMA main.table_info("estimate_events")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53CC0>, 'PRAGMA main.table_info("estimate_events")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C53CC0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C53CC0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53CC0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53CC0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C536C0>, 'PRAGMA main.table_info("user_roles")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C536C0>, 'PRAGMA main.table_info("user_roles")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C536C0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C536C0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C536C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C536C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C539C0>, 'PRAGMA main.table_info("users")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C539C0>, 'PRAGMA main.table_info("users")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C539C0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C539C0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C539C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C539C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529FF40>, 'PRAGMA main.table_info("roles")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529FF40>, 'PRAGMA main.table_info("roles")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB529FF40>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB529FF40>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529FF40>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529FF40>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C090C0>, 'PRAGMA main.table_info("tickers")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C090C0>, 'PRAGMA main.table_info("tickers")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C090C0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C090C0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C090C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C090C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09CC0>, 'PRAGMA main.table_info("market_data")', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09CC0>, 'PRAGMA main.table_info("market_data")', ()) completed
+executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C09CC0>)
+operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C09CC0>) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09CC0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09CC0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53840>, '\nDROP TABLE estimate_events', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53840>, '\nDROP TABLE estimate_events', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53840>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53840>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB55BC040>, '\nDROP TABLE market_data', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB55BC040>, '\nDROP TABLE market_data', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB55BC040>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB55BC040>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C098C0>, '\nDROP TABLE user_roles', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C098C0>, '\nDROP TABLE user_roles', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C098C0>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C098C0>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C08F40>, '\nDROP TABLE estimates', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C08F40>, '\nDROP TABLE estimates', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C08F40>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C08F40>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5D24040>, '\nDROP TABLE tickers', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5D24040>, '\nDROP TABLE tickers', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5D24040>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5D24040>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09B40>, '\nDROP TABLE roles', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09B40>, '\nDROP TABLE roles', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09B40>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09B40>) completed
+executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5D24240>, '\nDROP TABLE users', ())
+operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5D24240>, '\nDROP TABLE users', ()) completed
+executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5D24240>)
+operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5D24240>) completed
+executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing functools.partial(<built-in method close of sqlite3.Connection object at 0x0000021EB52C2E30>)
+operation functools.partial(<built-in method close of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+executing <function Connection.stop.<locals>.close_and_stop at 0x0000021EB5A000E0>
+operation <function Connection.stop.<locals>.close_and_stop at 0x0000021EB5A000E0> completed
+---------------------------- Captured log teardown ----------------------------
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53F40>, 'PRAGMA main.table_info("estimates")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53F40>, 'PRAGMA main.table_info("estimates")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C53F40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C53F40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53F40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53F40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53CC0>, 'PRAGMA main.table_info("estimate_events")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53CC0>, 'PRAGMA main.table_info("estimate_events")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C53CC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C53CC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53CC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53CC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C536C0>, 'PRAGMA main.table_info("user_roles")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C536C0>, 'PRAGMA main.table_info("user_roles")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C536C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C536C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C536C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C536C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C539C0>, 'PRAGMA main.table_info("users")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C539C0>, 'PRAGMA main.table_info("users")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C539C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C539C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C539C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C539C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529FF40>, 'PRAGMA main.table_info("roles")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB529FF40>, 'PRAGMA main.table_info("roles")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB529FF40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB529FF40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529FF40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB529FF40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C090C0>, 'PRAGMA main.table_info("tickers")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C090C0>, 'PRAGMA main.table_info("tickers")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C090C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C090C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C090C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C090C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09CC0>, 'PRAGMA main.table_info("market_data")', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09CC0>, 'PRAGMA main.table_info("market_data")', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C09CC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x0000021EB5C09CC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09CC0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09CC0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53840>, '\nDROP TABLE estimate_events', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C53840>, '\nDROP TABLE estimate_events', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53840>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C53840>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB55BC040>, '\nDROP TABLE market_data', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB55BC040>, '\nDROP TABLE market_data', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB55BC040>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB55BC040>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C098C0>, '\nDROP TABLE user_roles', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C098C0>, '\nDROP TABLE user_roles', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C098C0>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C098C0>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C08F40>, '\nDROP TABLE estimates', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C08F40>, '\nDROP TABLE estimates', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C08F40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C08F40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5D24040>, '\nDROP TABLE tickers', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5D24040>, '\nDROP TABLE tickers', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5D24040>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5D24040>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09B40>, '\nDROP TABLE roles', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5C09B40>, '\nDROP TABLE roles', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09B40>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5C09B40>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method cursor of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5D24240>, '\nDROP TABLE users', ())
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method execute of sqlite3.Cursor object at 0x0000021EB5D24240>, '\nDROP TABLE users', ()) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5D24240>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x0000021EB5D24240>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method rollback of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing functools.partial(<built-in method close of sqlite3.Connection object at 0x0000021EB52C2E30>)
+DEBUG    aiosqlite:core.py:67 operation functools.partial(<built-in method close of sqlite3.Connection object at 0x0000021EB52C2E30>) completed
+DEBUG    aiosqlite:core.py:62 executing <function Connection.stop.<locals>.close_and_stop at 0x0000021EB5A000E0>
+DEBUG    aiosqlite:core.py:67 operation <function Connection.stop.<locals>.close_and_stop at 0x0000021EB5A000E0> completed
+=========================== short test summary info ===========================
+FAILED tests/properties/test_pnl_calculations.py::TestPnLProperties::test_pnl_additivity
+================== 1 failed, 3 passed, 12 warnings in 11.87s ==================

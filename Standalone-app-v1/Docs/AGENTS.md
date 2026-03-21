@@ -96,10 +96,10 @@ Dipendenze: TASK 5.1
 
 **Acceptance Criteria:**
 
-- [ ] Ogni metodo pubblico testato
-- [ ] Mock verificano chiamate corrette
-- [ ] Scenari errore coperti
-- [ ] No dipendenze esterne nei test
+- [x] Ogni metodo pubblico testato
+- [x] Mock verificano chiamate corrette
+- [x] Scenari errore coperti
+- [x] No dipendenze esterne nei test
 
 ---
 

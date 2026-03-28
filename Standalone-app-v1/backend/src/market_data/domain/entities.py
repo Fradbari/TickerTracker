@@ -40,7 +40,7 @@ class Ticker(Base):
 
     # Core fields
     symbol = Column(
-        String(10),
+        String(20),
         unique=True,
         nullable=False,
         index=True,

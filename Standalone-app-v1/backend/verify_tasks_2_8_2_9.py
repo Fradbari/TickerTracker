@@ -17,7 +17,6 @@ Tests for TASK 2.9 (AiModelRun):
 import asyncio
 import sys
 from pathlib import Path
-from datetime import datetime
 
 # Add backend/src to path for imports
 backend_src = Path(__file__).parent / "src"
@@ -26,11 +25,12 @@ sys.path.insert(0, str(backend_src))
 async def test_sync_job_model():
     """Verify SyncJob model and enums."""
     print("\n[RUN] Verifying SyncJob model (TASK 2.8)...")
-    
+
     try:
-        from sync.domain.entities import SyncJob, SyncJobType, SyncJobStatus
         from sqlalchemy import inspect
-        
+
+        from sync.domain.entities import SyncJob, SyncJobStatus, SyncJobType
+
         # Verify Enums
         print("  [INFO] Checking SyncJob Enums...")
         expected_types = {'INITIAL_IMPORT', 'DAILY_HISTORY_UPDATE', 'ON_ESTIMATE_SAVE', 'MANUAL_SYNC'}
@@ -44,17 +44,17 @@ async def test_sync_job_model():
         if not expected_statuses.issubset(actual_statuses):
              print(f"  [FAIL] Missing SyncJobStatus values. Expected {expected_statuses}, got {actual_statuses}")
              return False
-        
+
         # Verify Model
         print("  [INFO] Checking SyncJob Model Structure...")
         mapper = inspect(SyncJob)
         required_columns = {
-            'id', 'job_type', 'status', 'started_at', 'finished_at', 
-            'error_message', 'filename', 'checksum_before', 'checksum_after', 
+            'id', 'job_type', 'status', 'started_at', 'finished_at',
+            'error_message', 'filename', 'checksum_before', 'checksum_after',
             'records_processed', 'records_failed'
         }
         actual_columns = {col.name for col in mapper.columns}
-        
+
         if not required_columns.issubset(actual_columns):
             missing = required_columns - actual_columns
             print(f"  [FAIL] Missing columns in SyncJob: {missing}")
@@ -79,27 +79,28 @@ async def test_sync_job_model():
 async def test_ai_model_run_model():
     """Verify AiModelRun model."""
     print("\n[RUN] Verifying AiModelRun model (TASK 2.9)...")
-    
+
     try:
-        from analytics.domain.entities import AiModelRun
         from sqlalchemy import inspect
         from sqlalchemy.dialects.postgresql import JSONB
-        
+
+        from analytics.domain.entities import AiModelRun
+
         # Verify Model
         print("  [INFO] Checking AiModelRun Model Structure...")
         mapper = inspect(AiModelRun)
         required_columns = {
-            'id', 'estimate_id', 'model_name', 'model_version', 
-            'prompt_hash', 'prompt_tokens', 'completion_tokens', 
+            'id', 'estimate_id', 'model_name', 'model_version',
+            'prompt_hash', 'prompt_tokens', 'completion_tokens',
             'latency_ms', 'output_summary', 'raw_response', 'created_at'
         }
         actual_columns = {col.name for col in mapper.columns}
-        
+
         if not required_columns.issubset(actual_columns):
             missing = required_columns - actual_columns
             print(f"  [FAIL] Missing columns in AiModelRun: {missing}")
             return False
-            
+
         # Verify JSONB
         raw_response_col = mapper.columns['raw_response']
         if not isinstance(raw_response_col.type, JSONB):
@@ -127,11 +128,11 @@ async def main():
     print("-" * 60)
     print("Verification Script for Task 2.8 and 2.9")
     print("-" * 60)
-    
+
     results = []
     results.append(await test_sync_job_model())
     results.append(await test_ai_model_run_model())
-    
+
     print("-" * 60)
     if all(results):
         print("[SUCCESS] All tasks verified successfully!")

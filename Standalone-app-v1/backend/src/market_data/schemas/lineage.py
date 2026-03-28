@@ -6,7 +6,6 @@ Pydantic schemas for exposing data-lineage metadata through the REST API.
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -27,13 +26,13 @@ class MarketDataLineageSchema(BaseModel):
     """
 
     data_source: str = Field(description="Data source identifier (e.g. 'yahoo_finance')")
-    source_timestamp: Optional[datetime] = Field(
+    source_timestamp: datetime | None = Field(
         None, description="UTC timestamp when data was generated at the source"
     )
     ingestion_timestamp: datetime = Field(
         description="UTC timestamp when data was ingested into the system"
     )
-    quality_score: Optional[Decimal] = Field(
+    quality_score: Decimal | None = Field(
         None,
         ge=0,
         le=1,

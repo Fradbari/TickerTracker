@@ -1,14 +1,14 @@
-import pytest
 import uuid
 from decimal import Decimal
 
+import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.estimates.domain.entities import Direction, Estimate, EstimateStatus
+from src.main import app
 from src.market_data.domain.entities import Ticker
 from src.market_data.domain.market_data import MarketData
-from src.estimates.domain.entities import Estimate, EstimateStatus, Direction
-from src.main import app
 
 # Apply integration marker to all tests in this file
 pytestmark = pytest.mark.integration
@@ -36,9 +36,9 @@ async def setup_ticker_with_price(async_session: AsyncSession) -> Ticker:
         asset_type="stock",
     )
     async_session.add(ticker)
-    
+
     from datetime import date
-    
+
     market_data = MarketData(
         ticker_id=ticker_id,
         date=date.today(),
@@ -49,7 +49,7 @@ async def setup_ticker_with_price(async_session: AsyncSession) -> Ticker:
         volume=1000
     )
     async_session.add(market_data)
-    
+
     await async_session.commit()
     await async_session.refresh(ticker)
     return ticker
@@ -77,10 +77,10 @@ async def setup_estimate(async_session: AsyncSession, setup_ticker_with_price: T
 
 
 class TestEstimatesAPI:
-    
+
     async def test_create_estimate_valid(
-        self, 
-        test_client: AsyncClient, 
+        self,
+        test_client: AsyncClient,
         setup_ticker_with_price: Ticker,
         override_yahoo_provider
     ):
@@ -90,9 +90,9 @@ class TestEstimatesAPI:
             "target_profit_percent": 10.0,
             "stop_loss_percent": 5.0
         }
-        
+
         response = await test_client.post("/api/estimates", json=payload)
-        
+
         assert response.status_code == 201, response.json()
         data = response.json()
         assert data["success"] is True, data
@@ -109,9 +109,9 @@ class TestEstimatesAPI:
             "target_profit_percent": 10.0,
             "stop_loss_percent": 5.0
         }
-        
+
         response = await test_client.post("/api/estimates", json=payload)
-        
+
         # Endpoint returns 200 with success=False and Error schema
         data = response.json()
         assert data["success"] is False, data
@@ -124,15 +124,15 @@ class TestEstimatesAPI:
             "target_profit_percent": -10.0,  # Invalid
             "stop_loss_percent": 5.0
         }
-        
+
         response = await test_client.post("/api/estimates", json=payload)
-        
+
         # Pydantic validation error returns 422
         assert response.status_code == 422
 
     async def test_list_estimates_empty(self, test_client: AsyncClient):
         response = await test_client.get("/api/estimates")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is True
@@ -142,20 +142,20 @@ class TestEstimatesAPI:
     async def test_list_estimates_with_filters(self, test_client: AsyncClient, setup_estimate: Estimate):
         # Fetch specifying the precise status
         response = await test_client.get("/api/estimates?status=OPEN")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is True, data
         assert len(data["data"]["items"]) == 1
         assert data["data"]["items"][0]["id"] == str(setup_estimate.id)
-        
+
         # Fetch specifying a wrong status
         response_empty = await test_client.get("/api/estimates?status=CLOSED_WIN")
         assert len(response_empty.json()["data"]["items"]) == 0
 
     async def test_get_estimate_existing(self, test_client: AsyncClient, setup_estimate: Estimate):
         response = await test_client.get(f"/api/estimates/{setup_estimate.id}")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is True, data
@@ -165,7 +165,7 @@ class TestEstimatesAPI:
     async def test_get_estimate_not_found(self, test_client: AsyncClient):
         fake_id = uuid.uuid4()
         response = await test_client.get(f"/api/estimates/{fake_id}")
-        
+
         data = response.json()
         assert data["success"] is False, data
         assert data["error"]["code"] == "ESTIMATE_NOT_FOUND", data

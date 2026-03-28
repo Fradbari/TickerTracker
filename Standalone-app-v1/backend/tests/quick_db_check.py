@@ -1,7 +1,9 @@
 import asyncio
+
 import sqlalchemy as sa
-from src.shared.infra.config import get_settings
+
 from src.shared.infra.database import engine
+
 
 async def main():
     async with engine.connect() as conn:

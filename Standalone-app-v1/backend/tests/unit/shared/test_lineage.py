@@ -10,11 +10,8 @@ Tests cover:
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-import pytest
-
-from src.shared.domain.lineage import DataSource, LineageTracked
 from src.market_data.domain.market_data import MarketData
-
+from src.shared.domain.lineage import DataSource, LineageTracked
 
 # ---------------------------------------------------------------------------
 # DataSource enum — from_legacy()

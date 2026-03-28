@@ -29,14 +29,13 @@ import structlog
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+import src.infra.logging.config as logging_config_module
 from src.infra.logging.config import (
     CorrelationIDMiddleware,
     add_correlation_id,
     configure_logging,
     correlation_id,
 )
-import src.infra.logging.config as logging_config_module
-
 
 # ---------------------------------------------------------------------------
 # Helpers

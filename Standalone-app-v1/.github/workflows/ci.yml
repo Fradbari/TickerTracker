@@ -2,33 +2,105 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
-  backend-tests:
+  backend-lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
-    - name: Install backend dependencies
+        python-version: '3.13'
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+    - name: Install dependencies
       working-directory: ./Standalone-app-v1/backend
       run: |
         python -m venv .venv
         source .venv/bin/activate
-        pip install -r requirements.txt
         pip install -r requirements-dev.txt
-    - name: Run backend formatting and tests
+    - name: Run linting (Ruff)
       working-directory: ./Standalone-app-v1/backend
       run: |
         source .venv/bin/activate
-        pytest tests/
+        ruff check .
+    - name: Run type checking (MyPy)
+      working-directory: ./Standalone-app-v1/backend
+      run: |
+        source .venv/bin/activate
+        mypy src/
 
-  frontend-tests:
+  backend-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env: { POSTGRES_USER: test, POSTGRES_PASSWORD: test, POSTGRES_DB: tickertracker_test }
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: --health-cmd "redis-cli ping" --health-interval 10s
+        ports:
+          - 6379:6379
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+    - name: Install dependencies
+      working-directory: ./Standalone-app-v1/backend
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install -r requirements-dev.txt
+    - name: Run tests with coverage
+      working-directory: ./Standalone-app-v1/backend
+      env:
+        DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/tickertracker_test
+        REDIS_URL: redis://localhost:6379/0
+      run: |
+        source .venv/bin/activate
+        pytest --cov=src --cov-report=xml tests/
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./Standalone-app-v1/backend/coverage.xml
+        flags: backend
+
+  backend-security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: './Standalone-app-v1/backend'
+        format: 'table'
+        exit-code: '1'
+        severity: 'CRITICAL,HIGH'
+
+  frontend-lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -36,15 +108,49 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 20
-    - name: Install frontend dependencies
+    - name: Cache npm dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+    - name: Install dependencies
       working-directory: ./Standalone-app-v1/frontend
       run: npm ci
-    - name: Run frontend tests
+    - name: Run ESLint
       working-directory: ./Standalone-app-v1/frontend
-      run: npm run test -- --run
+      run: npm run lint
+    - name: Run TypeScript check
+      working-directory: ./Standalone-app-v1/frontend
+      run: npx tsc --noEmit
 
-  e2e:
-    needs: [backend-tests, frontend-tests]
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+    - name: Cache npm dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+    - name: Install dependencies
+      working-directory: ./Standalone-app-v1/frontend
+      run: npm ci
+    - name: Run tests with coverage
+      working-directory: ./Standalone-app-v1/frontend
+      run: npm run test -- --run --coverage
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./Standalone-app-v1/frontend/coverage/lcov.info
+        flags: frontend
+
+  e2e-test:
+    needs: [backend-test, frontend-test, backend-lint, frontend-lint]
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
@@ -52,7 +158,12 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.13'
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
     - name: Install backend dependencies
       working-directory: ./Standalone-app-v1/backend
       run: |
@@ -64,6 +175,11 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 20
+    - name: Cache npm dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
     - name: Install frontend dependencies
       working-directory: ./Standalone-app-v1/frontend
       run: npm ci

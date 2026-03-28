@@ -1,4 +1,4 @@
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
 
@@ -39,8 +39,8 @@ class ApiResponse(BaseModel, Generic[T]):
     """
 
     success: bool
-    data: Optional[T] = None
-    error: Optional[ApiError] = None
+    data: T | None = None
+    error: ApiError | None = None
     trace_id: str = ""
 
     @classmethod

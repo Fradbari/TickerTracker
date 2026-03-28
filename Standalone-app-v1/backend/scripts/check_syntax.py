@@ -2,6 +2,7 @@ import py_compile
 import sys
 from pathlib import Path
 
+
 def check_syntax():
     """Verifica la sintassi di tutti i file Python nella cartella src."""
     root = Path(__file__).parent.parent

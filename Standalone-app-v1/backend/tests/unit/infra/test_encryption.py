@@ -20,7 +20,6 @@ Coverage
   TestEncryptionErrors     – EncryptionConfigError, DecryptionError
 """
 
-import base64
 import os
 from unittest.mock import MagicMock, patch
 
@@ -28,13 +27,12 @@ import pytest
 from cryptography.fernet import Fernet
 
 from src.infra.security.encryption import (
+    DecryptionError,
     EncryptedString,
     EncryptionConfigError,
-    DecryptionError,
     _fernet_from_hex,
     rotate_key,
 )
-
 
 # ---------------------------------------------------------------------------
 # Shared fixtures / helpers

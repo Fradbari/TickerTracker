@@ -33,15 +33,14 @@ Severity semantics
 from __future__ import annotations
 
 import asyncio
-import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Callable, Dict, List, Literal, Optional
-
-from sqlalchemy import select
+from typing import Literal
 
 import structlog
+from sqlalchemy import select
 
 from src.market_data.domain.entities import Ticker
 from src.market_data.domain.market_data import MarketData
@@ -73,7 +72,7 @@ class QualityRule:
 
     name: str
     description: str
-    check_fn: Callable[[str, List[MarketData]], List[str]]
+    check_fn: Callable[[str, list[MarketData]], list[str]]
     severity: Severity
 
 
@@ -107,9 +106,9 @@ class QualityIssue:
 # ---------------------------------------------------------------------------
 
 
-def _check_positive_prices(ticker: str, rows: List[MarketData]) -> List[str]:
+def _check_positive_prices(ticker: str, rows: list[MarketData]) -> list[str]:
     """Rule: all OHLC prices must be strictly positive."""
-    issues: List[str] = []
+    issues: list[str] = []
     for row in rows:
         for field_name, value in [
             ("open", row.open),
@@ -124,11 +123,11 @@ def _check_positive_prices(ticker: str, rows: List[MarketData]) -> List[str]:
     return issues
 
 
-def _check_no_large_gaps(ticker: str, rows: List[MarketData]) -> List[str]:
+def _check_no_large_gaps(ticker: str, rows: list[MarketData]) -> list[str]:
     """Rule: no gap > 5 calendar days between consecutive data rows."""
-    issues: List[str] = []
+    issues: list[str] = []
     sorted_rows = sorted(rows, key=lambda r: r.date)
-    for prev, curr in zip(sorted_rows, sorted_rows[1:]):
+    for prev, curr in zip(sorted_rows, sorted_rows[1:], strict=False):
         delta = (curr.date - prev.date).days
         if delta > 5:
             issues.append(
@@ -137,11 +136,11 @@ def _check_no_large_gaps(ticker: str, rows: List[MarketData]) -> List[str]:
     return issues
 
 
-def _check_daily_change_lt50(ticker: str, rows: List[MarketData]) -> List[str]:
+def _check_daily_change_lt50(ticker: str, rows: list[MarketData]) -> list[str]:
     """Rule: daily close-to-close change must be ≤ ±50 %."""
-    issues: List[str] = []
+    issues: list[str] = []
     sorted_rows = sorted(rows, key=lambda r: r.date)
-    for prev, curr in zip(sorted_rows, sorted_rows[1:]):
+    for prev, curr in zip(sorted_rows, sorted_rows[1:], strict=False):
         if prev.close and Decimal(str(prev.close)) != 0:
             pct = abs(
                 (Decimal(str(curr.close)) - Decimal(str(prev.close)))
@@ -154,9 +153,9 @@ def _check_daily_change_lt50(ticker: str, rows: List[MarketData]) -> List[str]:
     return issues
 
 
-def _check_positive_volume(ticker: str, rows: List[MarketData]) -> List[str]:
+def _check_positive_volume(ticker: str, rows: list[MarketData]) -> list[str]:
     """Rule: trading volume must be > 0."""
-    issues: List[str] = []
+    issues: list[str] = []
     for row in rows:
         if row.volume is not None and int(row.volume) <= 0:
             issues.append(f"{row.date}: volume={row.volume} is not positive")
@@ -167,7 +166,7 @@ def _check_positive_volume(ticker: str, rows: List[MarketData]) -> List[str]:
 # Default rule set
 # ---------------------------------------------------------------------------
 
-DEFAULT_RULES: List[QualityRule] = [
+DEFAULT_RULES: list[QualityRule] = [
     QualityRule(
         name="positive_prices",
         description="All OHLC prices must be strictly positive (> 0)",
@@ -225,11 +224,11 @@ class DataQualityMonitor:
 
     def __init__(
         self,
-        rules: Optional[List[QualityRule]] = None,
+        rules: list[QualityRule] | None = None,
         lookback_days: int = 60,
         session_factory=None,
     ) -> None:
-        self._rules: List[QualityRule] = rules if rules is not None else list(DEFAULT_RULES)
+        self._rules: list[QualityRule] = rules if rules is not None else list(DEFAULT_RULES)
         self._lookback_days = lookback_days
         self._session_factory = session_factory or AsyncSessionLocal
 
@@ -239,14 +238,14 @@ class DataQualityMonitor:
 
     async def _get_ticker_rows(
         self, ticker_symbol: str, start: date
-    ) -> List[MarketData]:
+    ) -> list[MarketData]:
         """Load MarketData rows for *ticker_symbol* from *start* to today."""
         async with self._session_factory() as session:
             # Look up the Ticker to get its UUID
             ticker_result = await session.execute(
                 select(Ticker).where(Ticker.symbol == ticker_symbol)
             )
-            ticker: Optional[Ticker] = ticker_result.scalar_one_or_none()
+            ticker: Ticker | None = ticker_result.scalar_one_or_none()
             if ticker is None:
                 return []
 
@@ -261,17 +260,17 @@ class DataQualityMonitor:
             )
             return list(md_result.scalars().all())
 
-    async def _get_all_symbols(self) -> List[str]:
+    async def _get_all_symbols(self) -> list[str]:
         """Return all ticker symbols stored in the database."""
         async with self._session_factory() as session:
             result = await session.execute(select(Ticker.symbol))
             return [row[0] for row in result.all()]
 
     def _apply_rules(
-        self, ticker: str, rows: List[MarketData]
-    ) -> List[QualityIssue]:
+        self, ticker: str, rows: list[MarketData]
+    ) -> list[QualityIssue]:
         """Apply all rules to the provided rows; return list of issues."""
-        issues: List[QualityIssue] = []
+        issues: list[QualityIssue] = []
         for rule in self._rules:
             try:
                 messages = rule.check_fn(ticker, rows)
@@ -297,7 +296,7 @@ class DataQualityMonitor:
     # Public API
     # ------------------------------------------------------------------
 
-    async def run_checks(self, ticker: str) -> List[QualityIssue]:
+    async def run_checks(self, ticker: str) -> list[QualityIssue]:
         """
         Run all quality rules for a single ticker.
 
@@ -322,7 +321,7 @@ class DataQualityMonitor:
         self._log_issues(ticker, issues)
         return issues
 
-    async def run_all_checks(self) -> Dict[str, List[QualityIssue]]:
+    async def run_all_checks(self) -> dict[str, list[QualityIssue]]:
         """
         Run quality checks for every ticker in the database (parallel).
 
@@ -338,8 +337,8 @@ class DataQualityMonitor:
         tasks = [self.run_checks(symbol) for symbol in symbols]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        report: Dict[str, List[QualityIssue]] = {}
-        for symbol, result in zip(symbols, results):
+        report: dict[str, list[QualityIssue]] = {}
+        for symbol, result in zip(symbols, results, strict=False):
             if isinstance(result, Exception):
                 _logger.error(
                     "quality_monitor_ticker_error",
@@ -357,7 +356,7 @@ class DataQualityMonitor:
     # Logging helpers
     # ------------------------------------------------------------------
 
-    def _log_issues(self, ticker: str, issues: List[QualityIssue]) -> None:
+    def _log_issues(self, ticker: str, issues: list[QualityIssue]) -> None:
         """Log individual issues; emit ERROR for critical ones (alert)."""
         for issue in issues:
             if issue.severity == "critical":
@@ -378,7 +377,7 @@ class DataQualityMonitor:
                     detected_at=issue.detected_at.isoformat(),
                 )
 
-    def _log_summary(self, report: Dict[str, List[QualityIssue]]) -> None:
+    def _log_summary(self, report: dict[str, list[QualityIssue]]) -> None:
         """Log a daily summary of the quality check run."""
         total_tickers = len(report)
         tickers_with_issues = sum(1 for v in report.values() if v)

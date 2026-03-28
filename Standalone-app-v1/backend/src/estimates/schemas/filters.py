@@ -5,18 +5,19 @@ Provides type-safe filtering options for EstimateRepository.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
+
 from pydantic import BaseModel, Field, model_validator
+
 from src.shared.schemas.validators import validate_date_range
 
 
 class EstimateFilters(BaseModel):
     """
     Filters for querying Estimate entities.
-    
+
     All filters are optional and combined with AND logic.
-    
+
     Attributes:
         ticker_id: Filter by specific ticker
         user_id: Filter by user who created the estimate
@@ -30,20 +31,20 @@ class EstimateFilters(BaseModel):
         max_confidence: Maximum AI confidence score (0.0 - 1.0)
         include_deleted: Include soft-deleted estimates (default: False)
     """
-    
-    ticker_id: Optional[UUID] = Field(default=None, description="Filter by ticker ID")
-    user_id: Optional[UUID] = Field(default=None, description="Filter by user ID")
-    status: Optional[str] = Field(default=None, description="Filter by status")
-    direction: Optional[str] = Field(default=None, description="Filter by direction (LONG/SHORT)")
-    
-    created_after: Optional[datetime] = Field(default=None, description="Created after date")
-    created_before: Optional[datetime] = Field(default=None, description="Created before date")
-    closed_after: Optional[datetime] = Field(default=None, description="Closed after date")
-    closed_before: Optional[datetime] = Field(default=None, description="Closed before date")
-    
-    min_confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Min AI confidence")
-    max_confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Max AI confidence")
-    
+
+    ticker_id: UUID | None = Field(default=None, description="Filter by ticker ID")
+    user_id: UUID | None = Field(default=None, description="Filter by user ID")
+    status: str | None = Field(default=None, description="Filter by status")
+    direction: str | None = Field(default=None, description="Filter by direction (LONG/SHORT)")
+
+    created_after: datetime | None = Field(default=None, description="Created after date")
+    created_before: datetime | None = Field(default=None, description="Created before date")
+    closed_after: datetime | None = Field(default=None, description="Closed after date")
+    closed_before: datetime | None = Field(default=None, description="Closed before date")
+
+    min_confidence: float | None = Field(default=None, ge=0.0, le=1.0, description="Min AI confidence")
+    max_confidence: float | None = Field(default=None, ge=0.0, le=1.0, description="Max AI confidence")
+
     include_deleted: bool = Field(default=False, description="Include soft-deleted records")
 
     @model_validator(mode="after")
@@ -66,7 +67,7 @@ class EstimateFilters(BaseModel):
                 "include_deleted": False
             }
         }
-    
+
     def has_filters(self) -> bool:
         """Check if any filters are applied (excluding include_deleted)."""
         return any([

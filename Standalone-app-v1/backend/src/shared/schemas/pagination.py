@@ -4,7 +4,8 @@ Pagination schemas for cursor-based pagination.
 Used by repositories to implement efficient pagination without OFFSET.
 """
 
-from typing import Generic, TypeVar, Optional
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel, Field
 
 T = TypeVar("T")
@@ -13,15 +14,15 @@ T = TypeVar("T")
 class Pagination(BaseModel):
     """
     Cursor-based pagination parameters.
-    
+
     Attributes:
         limit: Maximum number of results to return (default: 20, max: 100)
         cursor: Cursor for next page (opaque string from previous response)
     """
-    
+
     limit: int = Field(default=20, ge=1, le=100, description="Results per page")
-    cursor: Optional[str] = Field(default=None, description="Cursor for next page")
-    
+    cursor: str | None = Field(default=None, description="Cursor for next page")
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -34,7 +35,7 @@ class Pagination(BaseModel):
 class PageInfo(BaseModel):
     """
     Pagination metadata for cursor-based pagination.
-    
+
     Attributes:
         has_next_page: Whether there are more results available
         has_previous_page: Whether there is a previous page
@@ -42,29 +43,29 @@ class PageInfo(BaseModel):
         previous_cursor: Cursor for the previous page (None if first page)
         total_count: Total number of results (optional, expensive to compute)
     """
-    
+
     has_next_page: bool = Field(description="More results available")
     has_previous_page: bool = Field(default=False, description="Previous page exists")
-    next_cursor: Optional[str] = Field(default=None, description="Next page cursor")
-    previous_cursor: Optional[str] = Field(default=None, description="Previous page cursor")
-    total_count: Optional[int] = Field(default=None, description="Total result count")
+    next_cursor: str | None = Field(default=None, description="Next page cursor")
+    previous_cursor: str | None = Field(default=None, description="Previous page cursor")
+    total_count: int | None = Field(default=None, description="Total result count")
 
 
 class PaginatedResult(BaseModel, Generic[T]):
     """
     Generic paginated result container.
-    
+
     Type Parameters:
         T: Type of items in the result
-    
+
     Attributes:
         items: List of result items
         page_info: Pagination metadata
     """
-    
+
     items: list[T] = Field(description="Result items")
     page_info: PageInfo = Field(description="Pagination info")
-    
+
     class Config:
         arbitrary_types_allowed = True
         json_schema_extra = {

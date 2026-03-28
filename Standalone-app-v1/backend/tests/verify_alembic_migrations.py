@@ -1,7 +1,8 @@
 import sys
-from datetime import datetime
+
 from alembic.config import Config
 from alembic.script import ScriptDirectory
+
 
 def get_alembic_config():
     # Path to alembic.ini in backend dir
@@ -57,9 +58,10 @@ def check_last_migration(migrations):
 
 
 def check_indices():
-    import sqlalchemy as sa
     import asyncio
-    from src.shared.infra.config import get_settings
+
+    import sqlalchemy as sa
+
     from src.shared.infra.database import engine
     print("\n== Verifica indici ==")
 

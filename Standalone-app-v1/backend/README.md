@@ -277,6 +277,27 @@ Il sistema supporta la paginazione cursor-based per la history di mercato, con c
 GET /api/market/history/{ticker}/paginated
 ```
 
+## Strumenti CI/CD (GitHub Actions)
+
+Il progetto utilizza **GitHub Actions** per la Continuous Integration (vedi file `.github/workflows/ci.yml`).
+
+- I job vengono avviati per *push* e *pull request* sui rami `main` e `develop`.
+- **backend-lint**: Linting (`Ruff`) e Type Checking (`MyPy`).
+- **backend-test**: Test suite con `pytest` asincrono, simulando i container PostgreSQL e Redis come services effimeri.
+- **backend-security**: Scansione vulnerabilità (`aquasecurity/trivy-action`).
+- **frontend-test & e2e-test**: Suite speculari su React e test end-to-end integrali con *Playwright*.
+- **Codecov**: È supportata la reportistica coverage tramite `codecov-action` caricando `coverage.xml`.  Richiede la variabile segreta repository `CODECOV_TOKEN`.
+
+Per simulare questo task in locale (es. backend tests):
+```bash
+# Eseguire test
+pytest --cov=src --cov-report=xml tests/
+
+# Analisi statica e code convention
+ruff check .
+mypy src/
+```
+
 ### Query Parameters
 
 | Parametro | Default | Descrizione |

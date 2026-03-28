@@ -40,25 +40,21 @@ Job integration:
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import List
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from src.market_data.services.quality_monitor import (
-    DataQualityMonitor,
     DEFAULT_RULES,
+    DataQualityMonitor,
     QualityIssue,
-    QualityRule,
     _check_daily_change_lt50,
     _check_no_large_gaps,
     _check_positive_prices,
     _check_positive_volume,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -84,7 +80,7 @@ def make_row(
     return row
 
 
-def make_rows(n: int = 5, gap: int = 1) -> List[MagicMock]:
+def make_rows(n: int = 5, gap: int = 1) -> list[MagicMock]:
     """Create *n* consecutive rows, each *gap* days apart."""
     base = date(2026, 1, 2)
     return [make_row(base + timedelta(days=i * gap)) for i in range(n)]

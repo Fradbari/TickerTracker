@@ -1,26 +1,25 @@
-import asyncio
+import uuid
+from datetime import date, datetime, timedelta
+from decimal import Decimal
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pandas as pd
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
 from httpx import AsyncClient
 from sqlalchemy.exc import TimeoutError as SATimeoutError
-import pandas as pd
-from datetime import date, datetime, timedelta
-import uuid
-from decimal import Decimal
-
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.main import app
-from src.shared.infra.database import get_db
-from src.market_data.infrastructure.cached_provider import CachedMarketDataProvider
-from src.estimates.domain.entities import Estimate, EstimateStatus, Direction
-from src.sync.services.sync_service import SyncService
-from src.sync.domain.entities import SyncJobType
-from src.market_data.repositories.market_data_repository import MarketDataRepository
+
+from src.estimates.domain.entities import Direction, Estimate, EstimateStatus
 from src.estimates.repositories.estimate_repository import EstimateRepository
-from src.sync.repositories.sync_job_repository import SyncJobRepository
+from src.infra.drive.client import GoogleDriveClient
+from src.main import app
+from src.market_data.infrastructure.cached_provider import CachedMarketDataProvider
+from src.market_data.repositories.market_data_repository import MarketDataRepository
+from src.shared.infra.database import get_db
 from src.sync.infra.csv_parser import LegacyCsvParser
 from src.sync.infra.json_parser import LegacyJsonParser
-from src.infra.drive.client import GoogleDriveClient
+from src.sync.repositories.sync_job_repository import SyncJobRepository
+from src.sync.services.sync_service import SyncService
 
 pytestmark = [pytest.mark.chaos, pytest.mark.timeout(15)]
 
@@ -44,6 +43,7 @@ async def test_db_pool_exhausted_returns_503(test_client: AsyncClient):
 
 from src.market_data.services.yahoo_provider_enhanced import EnhancedYahooMarketDataProvider
 
+
 @pytest.mark.asyncio
 async def test_yahoo_api_timeout_uses_cache():
     """
@@ -54,7 +54,7 @@ async def test_yahoo_api_timeout_uses_cache():
     provider = CachedMarketDataProvider(underlying)
     symbol = "TSLA"
     provider._cache.clear()
-    
+
     with patch("yfinance.Ticker") as mock_ticker_class:
         mock_instance = MagicMock()
         mock_history = pd.DataFrame({
@@ -63,34 +63,34 @@ async def test_yahoo_api_timeout_uses_cache():
         }, index=[pd.Timestamp(date.today())])
         mock_instance.history.return_value = mock_history
         mock_ticker_class.return_value = mock_instance
-        
+
         price1 = await provider.get_current_price(symbol)
         assert price1.close == 200.0
         assert price1.is_stale is False
         assert mock_ticker_class.call_count == 1
-        
+
         mock_ticker_class.reset_mock()
-        mock_instance.history.side_effect = asyncio.TimeoutError("Timeout!")
-        
+        mock_instance.history.side_effect = TimeoutError("Timeout!")
+
         price2 = await provider.get_current_price(symbol)
         assert price2.close == 200.0
         assert price2.is_stale is False
-        assert mock_ticker_class.call_count == 0  
+        assert mock_ticker_class.call_count == 0
 
         cache_key = f"price:{symbol}:current"
         cached_item = provider._cache._cache[cache_key]
         cached_item.cached_at = datetime.now() - timedelta(seconds=120)
-        
+
         mock_ticker_class.reset_mock()
-        mock_instance.history.side_effect = asyncio.TimeoutError("Timeout!")
-        
+        mock_instance.history.side_effect = TimeoutError("Timeout!")
+
         with patch("asyncio.sleep", new_callable=AsyncMock):
             price3 = await provider.get_current_price(symbol)
-        
+
         assert price3.close == 200.0
         assert price3.is_stale is True
         # initial try + 3 retries = 4
-        assert mock_ticker_class.call_count == 4  
+        assert mock_ticker_class.call_count == 4
 
 
 @pytest.mark.asyncio
@@ -109,16 +109,16 @@ async def test_intermittent_network_retries():
             "Close": [300.0],
             "Volume": [1000]
         }, index=[pd.Timestamp(date.today())])
-        
+
         mock_instance.history.side_effect = [
             Exception("Intermittent error 1"),
             Exception("Intermittent error 2"),
             mock_history
         ]
         mock_ticker_class.return_value = mock_instance
-        
+
         price = await provider.get_current_price(symbol)
-        
+
         assert price.close == 300.0
         assert price.is_stale is False
         assert mock_instance.history.call_count == 3
@@ -148,20 +148,20 @@ async def test_drive_sync_partial_failure(async_session: AsyncSession):
     await async_session.commit()
 
     drive_client = AsyncMock(spec=GoogleDriveClient)
-    
+
     # Mock dei file iniziali ritornati
     file1 = MagicMock()
     file1.name = "backup.json"
     file1.id = "f1"
-    
+
     file2 = MagicMock()
     file2.name = "History_AAPL.csv"
     file2.id = "f2"
-    
+
     file3 = MagicMock()
     file3.name = "History_MSFT.csv"
     file3.id = "f3"
-    
+
     drive_client.list_files.return_value = [file1, file2, file3]
 
     # Verrà chiamato su 'f1' poi su 'f2' o 'f3' per history scaricati
@@ -196,7 +196,7 @@ async def test_drive_sync_partial_failure(async_session: AsyncSession):
 
     # 3. Esecuzione
     job = await service.run_initial_import()
-    
+
     # 4. Verifica - Nonostante il fallimento di f3, il job deve terminare (Completed vs Failed items)
     assert job.records_failed > 0 or job.records_processed >= 0
 

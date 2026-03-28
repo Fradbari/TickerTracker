@@ -1,6 +1,6 @@
 """Market data infrastructure components."""
 
-from .cached_provider import CachedMarketDataProvider, CacheConfig
+from .cached_provider import CacheConfig, CachedMarketDataProvider
 
 __all__ = [
     "CachedMarketDataProvider",

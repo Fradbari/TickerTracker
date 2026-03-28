@@ -1,10 +1,11 @@
 import os
+
 import pytest
 from httpx import AsyncClient
+
 from src.main import app
-from src.shared.infra.config import get_settings, Settings
 from src.market_data.api.dependencies import get_market_data_provider
-from src.market_data.domain.providers import MarketDataProvider
+from src.shared.infra.config import Settings, get_settings
 
 # Load .env.e2e if present
 _env = os.path.join(os.path.dirname(__file__), '..', '..', '.env.e2e')
@@ -26,6 +27,6 @@ async def provider():
     # Return the DI provider instance used by the app
     p = get_market_data_provider()
     # If provider is a dependency generator, call it
-    if hasattr(p, '__call__'):
+    if callable(p):
         p = p()
     return p

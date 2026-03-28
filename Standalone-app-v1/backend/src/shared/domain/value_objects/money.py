@@ -114,7 +114,7 @@ class Money:
         Raises:
             TypeError: If factor is not Decimal or int.
         """
-        if not isinstance(factor, (Decimal, int)):
+        if not isinstance(factor, Decimal | int):
             raise TypeError(
                 f"Can only multiply Money by Decimal or int, got {type(factor).__name__}"
             )

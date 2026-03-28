@@ -25,10 +25,9 @@ Coverage
 """
 
 from unittest.mock import MagicMock, patch
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import pytest
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -58,7 +57,7 @@ def _make_settings(
 
 def _make_app(limit: str = "5/minute", whitelist: list[str] | None = None) -> FastAPI:
     """Create a minimal FastAPI app with the rate limiter wired up."""
-    from src.infra.security.rate_limit import setup_rate_limiter, limiter as _global_limiter
+    from src.infra.security.rate_limit import setup_rate_limiter
 
     settings = _make_settings(default_limit=limit, whitelist=whitelist or [])
 
@@ -187,7 +186,7 @@ class TestWhitelistFunction:
             assert is_whitelisted() is True
 
     def test_no_context_returns_false(self):
-        from src.infra.security.rate_limit import is_whitelisted, _current_request
+        from src.infra.security.rate_limit import _current_request, is_whitelisted
 
         _current_request.set(None)  # explicitly clear
         with patch(
@@ -206,6 +205,7 @@ class TestBuildLimiter:
 
     def test_returns_limiter_instance(self):
         from slowapi import Limiter
+
         from src.infra.security.rate_limit import _build_limiter
 
         lim = _build_limiter(_make_settings())
@@ -214,6 +214,7 @@ class TestBuildLimiter:
     def test_falls_back_to_memory_when_redis_unreachable(self):
         """When Redis host does not exist, storage falls back to memory."""
         from slowapi import Limiter
+
         from src.infra.security.rate_limit import _build_limiter
 
         settings = _make_settings(redis_url="redis://nonexistent_host_xyz:6379/0")
@@ -245,6 +246,7 @@ class TestSetupRateLimiter:
 
     def test_registers_429_exception_handler(self):
         from slowapi.errors import RateLimitExceeded
+
         from src.infra.security.rate_limit import setup_rate_limiter
 
         app = FastAPI()
@@ -262,6 +264,7 @@ class TestSetupRateLimiter:
 
     def test_middleware_registered(self):
         from slowapi.middleware import SlowAPIMiddleware
+
         from src.infra.security.rate_limit import setup_rate_limiter
 
         app = FastAPI()
@@ -282,11 +285,11 @@ class TestRateLimitExceededHandler:
         Build an app with a *very* low per-route limit, hit it twice,
         and return the 429 response.
         """
-        from slowapi import Limiter
         from slowapi.errors import RateLimitExceeded
         from slowapi.middleware import SlowAPIMiddleware
         from starlette.requests import Request as StarletteRequest
         from starlette.responses import Response
+
         from src.infra.security.rate_limit import (
             _build_limiter,
             _rate_limit_exceeded_handler,
@@ -350,6 +353,7 @@ class TestRateLimitEnforced:
         from slowapi.middleware import SlowAPIMiddleware
         from starlette.requests import Request as StarletteRequest
         from starlette.responses import Response
+
         from src.infra.security.rate_limit import (
             _build_limiter,
             _rate_limit_exceeded_handler,
@@ -415,11 +419,12 @@ class TestWhitelistExempt:
         from slowapi.middleware import SlowAPIMiddleware
         from starlette.requests import Request as StarletteRequest
         from starlette.responses import Response
+
         from src.infra.security.rate_limit import (
             _build_limiter,
+            _current_request,
             _rate_limit_exceeded_handler,
             _RequestContextMiddleware,
-            _current_request,
         )
 
         settings = _make_settings(default_limit=limit, whitelist=[whitelisted_ip])

@@ -9,19 +9,23 @@ Defines:
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import Enum as PyEnum
 from uuid import uuid4
-from datetime import datetime
+
 from sqlalchemy import (
     Column,
+    DateTime,
+    Index,
+    Integer,
     String,
     Text,
-    Integer,
-    DateTime,
+)
+from sqlalchemy import (
     Enum as SAEnum,
-    Index,
 )
 from sqlalchemy.dialects.postgresql import UUID
+
 from src.shared.infra.database import Base
 
 

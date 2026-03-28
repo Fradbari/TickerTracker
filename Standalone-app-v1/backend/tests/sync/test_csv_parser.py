@@ -4,13 +4,12 @@ Unit tests for Legacy CSV Parser.
 Tests parsing and export of legacy CSV formats with various edge cases.
 """
 
-import pytest
 from datetime import date, datetime
 from decimal import Decimal
-from io import BytesIO
+
+import pytest
 
 from src.sync.infra.csv_parser import LegacyCsvParser
-from src.sync.infra.legacy_models import LegacyEstimateRow, LegacyHistoryRow
 
 
 @pytest.fixture
@@ -42,7 +41,7 @@ def sample_history_csv():
 
 class TestLegacyCsvParserInit:
     """Test parser initialization."""
-    
+
     def test_init(self, parser):
         """Test parser initializes with mappings."""
         assert parser.estimates_map is not None
@@ -53,67 +52,67 @@ class TestLegacyCsvParserInit:
 
 class TestSafeConversions:
     """Test safe type conversion methods."""
-    
+
     def test_safe_decimal_valid(self, parser):
         """Test safe_decimal with valid input."""
         result = parser._safe_decimal("150.00")
         assert result == Decimal("150.00")
-    
+
     def test_safe_decimal_with_comma(self, parser):
         """Test safe_decimal removes commas."""
         result = parser._safe_decimal("1,234.56")
         assert result == Decimal("1234.56")
-    
+
     def test_safe_decimal_with_currency(self, parser):
         """Test safe_decimal removes currency symbols."""
         result = parser._safe_decimal("$150.00")
         assert result == Decimal("150.00")
-    
+
     def test_safe_decimal_empty(self, parser):
         """Test safe_decimal with empty string."""
         result = parser._safe_decimal("")
         assert result is None
-    
+
     def test_safe_decimal_invalid(self, parser):
         """Test safe_decimal with invalid input."""
         result = parser._safe_decimal("invalid")
         assert result is None
-    
+
     def test_safe_decimal_with_default(self, parser):
         """Test safe_decimal with default value."""
         result = parser._safe_decimal("", Decimal("0"))
         assert result == Decimal("0")
-    
+
     def test_safe_int_valid(self, parser):
         """Test safe_int with valid input."""
         result = parser._safe_int("12345")
         assert result == 12345
-    
+
     def test_safe_int_with_comma(self, parser):
         """Test safe_int removes commas."""
         result = parser._safe_int("1,234,567")
         assert result == 1234567
-    
+
     def test_safe_int_empty(self, parser):
         """Test safe_int with empty string."""
         result = parser._safe_int("")
         assert result is None
-    
+
     def test_safe_date_iso(self, parser):
         """Test safe_date with ISO format."""
         result = parser._safe_date("2024-01-15")
         assert result == date(2024, 1, 15)
-    
+
     def test_safe_date_us_format(self, parser):
         """Test safe_date with US format."""
         result = parser._safe_date("01/15/2024")
         assert result == date(2024, 1, 15)
-    
+
     def test_safe_date_empty(self, parser):
         """Test safe_date with empty string."""
         result = parser._safe_date("")
         assert result is None
-    
+
     def test_safe_datetime_iso(self, parser):
         """Test safe_datetime with ISO format."""
         result = parser._safe_datetime("2024-01-15T09:30:00")
@@ -122,13 +121,13 @@ class TestSafeConversions:
 
 class TestParseEstimatesCsv:
     """Test parse_estimates_csv method."""
-    
+
     def test_parse_valid_csv(self, parser, sample_estimates_csv):
         """Test parsing valid estimates CSV."""
         rows = parser.parse_estimates_csv(sample_estimates_csv)
-        
+
         assert len(rows) == 2
-        
+
         # Check first row (AAPL CLOSED_WIN)
         aapl = rows[0]
         assert aapl.ticker == "AAPL"
@@ -140,7 +139,7 @@ class TestParseEstimatesCsv:
         assert aapl.exit_price == Decimal("164.50")
         assert aapl.ai_model == "gpt-4"
         assert aapl.ai_confidence == Decimal("85")
-        
+
         # Check second row (MSFT OPEN)
         msft = rows[1]
         assert msft.ticker == "MSFT"
@@ -148,28 +147,28 @@ class TestParseEstimatesCsv:
         assert msft.status == "OPEN"
         assert msft.exit_price is None
         assert msft.ai_model == "gemini"
-    
+
     def test_parse_empty_csv(self, parser):
         """Test parsing empty CSV."""
         csv_content = b"Ticker,Start Date,Start Price,Target Price,Stop Loss,Target %,Stop Loss %,Direction,Status\n"
         rows = parser.parse_estimates_csv(csv_content)
         assert len(rows) == 0
-    
+
     def test_parse_missing_required_fields(self, parser):
         """Test parsing CSV with missing required fields."""
-        csv_content = """Ticker,Start Date,Start Price,Target Price,Stop Loss
+        csv_content = b"""Ticker,Start Date,Start Price,Target Price,Stop Loss
 AAPL,2024-01-15,,,
-""".encode('utf-8')
+"""
         rows = parser.parse_estimates_csv(csv_content)
         assert len(rows) == 0  # Row should be skipped
-    
+
     def test_parse_utf8_bom(self, parser):
         """Test parsing CSV with UTF-8 BOM."""
         csv_content = b'\xef\xbb\xbf' + b"Ticker,Start Date,Start Price,Target Price,Stop Loss,Target %,Stop Loss %,Direction,Status\nAAPL,2024-01-15,150.00,165.00,140.00,10.00,-6.67,LONG,OPEN\n"
         rows = parser.parse_estimates_csv(csv_content)
         assert len(rows) == 1
         assert rows[0].ticker == "AAPL"
-    
+
     def test_parse_invalid_encoding(self, parser):
         """Test parsing CSV with invalid encoding."""
         csv_content = b'\xff\xfe'  # UTF-16 BOM
@@ -179,11 +178,11 @@ AAPL,2024-01-15,,,
 
 class TestExportEstimateToCsvRow:
     """Test export_estimate_to_csv_row method."""
-    
+
     def test_export_basic_estimate(self, parser):
         """Test exporting basic estimate without fundamentals."""
         from unittest.mock import Mock
-        
+
         # Create mock estimate
         estimate = Mock()
         estimate.ticker = Mock(symbol="AAPL")
@@ -203,10 +202,10 @@ class TestExportEstimateToCsvRow:
         estimate.ai_reasoning = "Strong upward momentum"
         estimate.user_id = "a1b2c3d4"
         estimate.updated_at = datetime(2024, 1, 15, 9, 30, 0)
-        
+
         # Export to CSV row
         csv_row = parser.export_estimate_to_csv_row(estimate)
-        
+
         # Verify content
         assert "AAPL" in csv_row
         assert "150.00" in csv_row
@@ -217,13 +216,13 @@ class TestExportEstimateToCsvRow:
 
 class TestParseHistoryCsv:
     """Test parse_history_csv method."""
-    
+
     def test_parse_valid_history(self, parser, sample_history_csv):
         """Test parsing valid history CSV."""
         rows = parser.parse_history_csv(sample_history_csv)
-        
+
         assert len(rows) == 3
-        
+
         # Check first row
         row1 = rows[0]
         assert row1.date == date(2024, 1, 15)
@@ -234,36 +233,36 @@ class TestParseHistoryCsv:
         assert row1.close == Decimal("150.00")
         assert row1.volume == 95234567
         assert row1.adjusted_close == Decimal("149.85")
-    
+
     def test_parse_empty_history(self, parser):
         """Test parsing empty history CSV."""
         csv_content = b"Date,Ticker,Open,High,Low,Close,Volume\n"
         rows = parser.parse_history_csv(csv_content)
         assert len(rows) == 0
-    
+
     def test_parse_history_missing_fields(self, parser):
         """Test parsing history CSV with missing fields."""
-        csv_content = """Date,Ticker,Open,High,Low,Close,Volume
+        csv_content = b"""Date,Ticker,Open,High,Low,Close,Volume
 2024-01-15,AAPL,,,,,
-""".encode('utf-8')
+"""
         rows = parser.parse_history_csv(csv_content)
         assert len(rows) == 0  # Row should be skipped
 
 
 class TestExportHistoryToCsv:
     """Test export_history_to_csv method."""
-    
+
     def test_export_empty_list(self, parser):
         """Test exporting empty list."""
         csv_bytes = parser.export_history_to_csv([])
-        
+
         # Should contain BOM + empty CSV
         assert csv_bytes.startswith(b'\xef\xbb\xbf')
-    
+
     def test_export_market_data(self, parser):
         """Test exporting market data list."""
         from unittest.mock import Mock
-        
+
         # Create mock market data
         md1 = Mock()
         md1.date = date(2024, 1, 15)
@@ -274,9 +273,9 @@ class TestExportHistoryToCsv:
         md1.close = Decimal("150.00")
         md1.volume = 95234567
         md1.adjusted_close = Decimal("149.85")
-        
+
         csv_bytes = parser.export_history_to_csv([md1])
-        
+
         # Verify content
         csv_text = csv_bytes.decode('utf-8-sig')
         assert "Date,Ticker,Open,High,Low,Close,Volume,Adj Close" in csv_text
@@ -287,41 +286,41 @@ class TestExportHistoryToCsv:
 
 class TestRoundTrip:
     """Test round-trip parsing and export."""
-    
+
     def test_estimates_round_trip(self, parser, sample_estimates_csv):
         """Test parse -> export -> parse produces same data."""
         # First parse
         rows1 = parser.parse_estimates_csv(sample_estimates_csv)
-        
+
         # Export to CSV
         csv_lines = []
         # Add header (assuming same order as LegacyEstimateRow.to_dict())
         header = rows1[0].to_dict().keys()
         csv_lines.append(",".join(header))
-        
+
         # Add rows
         for row in rows1:
             row_dict = row.to_dict()
             csv_lines.append(",".join(str(v) for v in row_dict.values()))
-        
+
         csv_content = "\n".join(csv_lines).encode('utf-8')
-        
+
         # Second parse
         rows2 = parser.parse_estimates_csv(csv_content)
-        
+
         # Compare
         assert len(rows1) == len(rows2)
-        for r1, r2 in zip(rows1, rows2):
+        for r1, r2 in zip(rows1, rows2, strict=False):
             assert r1.ticker == r2.ticker
             assert r1.start_price == r2.start_price
             assert r1.target_price == r2.target_price
             assert r1.status == r2.status
-    
+
     def test_history_round_trip(self, parser, sample_history_csv):
         """Test parse -> export -> parse produces same data for history."""
         # First parse
         rows1 = parser.parse_history_csv(sample_history_csv)
-        
+
         # Mock MarketData entities
         from unittest.mock import Mock
         market_data = []
@@ -336,16 +335,16 @@ class TestRoundTrip:
             md.volume = row.volume
             md.adjusted_close = row.adjusted_close
             market_data.append(md)
-        
+
         # Export
         csv_bytes = parser.export_history_to_csv(market_data)
-        
+
         # Second parse
         rows2 = parser.parse_history_csv(csv_bytes)
-        
+
         # Compare
         assert len(rows1) == len(rows2)
-        for r1, r2 in zip(rows1, rows2):
+        for r1, r2 in zip(rows1, rows2, strict=False):
             assert r1.date == r2.date
             assert r1.ticker == r2.ticker
             assert r1.open == r2.open
@@ -354,7 +353,7 @@ class TestRoundTrip:
 
 class TestEdgeCases:
     """Test edge cases and error handling."""
-    
+
     def test_parse_very_long_reasoning(self, parser):
         """Test parsing with very long AI reasoning text."""
         csv_content = """Ticker,Start Date,Start Price,Target Price,Stop Loss,Target %,Stop Loss %,Direction,Status,AI Reasoning
@@ -362,20 +361,20 @@ AAPL,2024-01-15,150.00,165.00,140.00,10.00,-6.67,LONG,OPEN,""" + "A" * 10000 + "
         rows = parser.parse_estimates_csv(csv_content.encode('utf-8'))
         assert len(rows) == 1
         assert len(rows[0].ai_reasoning) == 10000
-    
+
     def test_parse_special_characters(self, parser):
         """Test parsing with special characters in text fields."""
-        csv_content = """Ticker,Start Date,Start Price,Target Price,Stop Loss,Target %,Stop Loss %,Direction,Status,Notes
+        csv_content = b"""Ticker,Start Date,Start Price,Target Price,Stop Loss,Target %,Stop Loss %,Direction,Status,Notes
 AAPL,2024-01-15,150.00,165.00,140.00,10.00,-6.67,LONG,OPEN,"Quote with ""nested"" quotes and, commas"
-""".encode('utf-8')
+"""
         rows = parser.parse_estimates_csv(csv_content)
         assert len(rows) == 1
-    
+
     def test_parse_negative_values(self, parser):
         """Test parsing with negative price values."""
-        csv_content = """Ticker,Start Date,Start Price,Target Price,Stop Loss,Target %,Stop Loss %,Direction,Status
+        csv_content = b"""Ticker,Start Date,Start Price,Target Price,Stop Loss,Target %,Stop Loss %,Direction,Status
 AAPL,2024-01-15,150.00,165.00,140.00,-10.00,-6.67,LONG,OPEN
-""".encode('utf-8')
+"""
         rows = parser.parse_estimates_csv(csv_content)
         assert len(rows) == 1
         assert rows[0].target_profit_percent == Decimal("-10.00")

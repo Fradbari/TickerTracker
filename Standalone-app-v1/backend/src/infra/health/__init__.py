@@ -1,8 +1,8 @@
 """Health checks package — Task 3.7."""
 
 from src.infra.health.health_service import (
-    HealthService,
     ComponentHealth,
+    HealthService,
     SystemHealth,
 )
 

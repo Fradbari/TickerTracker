@@ -72,7 +72,7 @@ class Settings(BaseSettings):
         default=3600,
         description="Cache TTL in seconds for Yahoo Finance data (1 hour default)",
     )
-    
+
     # ========== Cache Configuration ==========
     CACHE_CURRENT_PRICE_TTL: int = Field(
         default=60,
@@ -90,7 +90,7 @@ class Settings(BaseSettings):
         default=1000,
         description="Maximum number of items in cache (LRU eviction)",
     )
-    
+
     # ========== Retry Configuration ==========
     RETRY_MAX_ATTEMPTS: int = Field(
         default=3,
@@ -108,7 +108,7 @@ class Settings(BaseSettings):
         default=2.0,
         description="Multiplier for exponential backoff (delay = previous * multiplier)",
     )
-    
+
     GEMINI_API_KEY: SecretStr = Field(
         default=SecretStr(""),
         description="Google Gemini API key for AI features (required in production)",

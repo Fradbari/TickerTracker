@@ -33,8 +33,8 @@ Note:
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from contextvars import ContextVar
-from typing import Callable
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse

@@ -4,14 +4,14 @@ Business exceptions for Estimate operations.
 These custom exceptions represent domain-specific error conditions.
 """
 
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 
 class EstimateServiceError(Exception):
     """Base exception for all estimate service errors."""
-    
-    def __init__(self, message: str, details: Optional[dict[str, Any]] = None):
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None):
         super().__init__(message)
         self.message = message
         self.details = details or {}
@@ -19,7 +19,7 @@ class EstimateServiceError(Exception):
 
 class EstimateNotFoundError(EstimateServiceError):
     """Raised when an estimate cannot be found."""
-    
+
     def __init__(self, estimate_id: UUID):
         super().__init__(
             f"Estimate not found: {estimate_id}",
@@ -30,7 +30,7 @@ class EstimateNotFoundError(EstimateServiceError):
 
 class TickerNotFoundError(EstimateServiceError):
     """Raised when a ticker cannot be found."""
-    
+
     def __init__(self, ticker_id: UUID):
         super().__init__(
             f"Ticker not found: {ticker_id}",
@@ -41,7 +41,7 @@ class TickerNotFoundError(EstimateServiceError):
 
 class MarketDataNotAvailableError(EstimateServiceError):
     """Raised when market data is not available for a ticker."""
-    
+
     def __init__(self, ticker_id: UUID, reason: str = "No market data available"):
         super().__init__(
             f"Market data not available for ticker {ticker_id}: {reason}",
@@ -53,7 +53,7 @@ class MarketDataNotAvailableError(EstimateServiceError):
 
 class EstimateAlreadyClosedError(EstimateServiceError):
     """Raised when attempting to modify a closed estimate."""
-    
+
     def __init__(self, estimate_id: UUID, current_status: str):
         super().__init__(
             f"Cannot modify estimate {estimate_id}: already closed with status {current_status}",
@@ -65,7 +65,7 @@ class EstimateAlreadyClosedError(EstimateServiceError):
 
 class InvalidEstimateStateError(EstimateServiceError):
     """Raised when an estimate is in an invalid state for the requested operation."""
-    
+
     def __init__(self, estimate_id: UUID, operation: str, reason: str):
         super().__init__(
             f"Cannot perform '{operation}' on estimate {estimate_id}: {reason}",
@@ -82,8 +82,8 @@ class InvalidEstimateStateError(EstimateServiceError):
 
 class InvalidPriceError(EstimateServiceError):
     """Raised when price data is invalid or illogical."""
-    
-    def __init__(self, message: str, price_details: Optional[dict[str, Any]] = None):
+
+    def __init__(self, message: str, price_details: dict[str, Any] | None = None):
         super().__init__(
             f"Invalid price: {message}",
             price_details or {}
@@ -92,7 +92,7 @@ class InvalidPriceError(EstimateServiceError):
 
 class ValidationError(EstimateServiceError):
     """Raised when input validation fails."""
-    
+
     def __init__(self, field: str, message: str):
         super().__init__(
             f"Validation failed for '{field}': {message}",

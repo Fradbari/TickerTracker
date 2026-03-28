@@ -61,7 +61,6 @@ Notes
 from __future__ import annotations
 
 import base64
-from typing import Any, Optional
 
 import structlog
 from cryptography.fernet import Fernet, InvalidToken
@@ -168,8 +167,8 @@ class EncryptedString(TypeDecorator):
     cache_ok = True  # Fernet key comes from settings, not from this instance
 
     def process_bind_param(
-        self, value: Optional[str], dialect: Dialect
-    ) -> Optional[str]:
+        self, value: str | None, dialect: Dialect
+    ) -> str | None:
         """Encrypt *value* before it is written to the database."""
         if value is None:
             return None
@@ -178,8 +177,8 @@ class EncryptedString(TypeDecorator):
         return ciphertext.decode("utf-8")
 
     def process_result_value(
-        self, value: Optional[str], dialect: Dialect
-    ) -> Optional[str]:
+        self, value: str | None, dialect: Dialect
+    ) -> str | None:
         """Decrypt *value* after it is read from the database."""
         if value is None:
             return None

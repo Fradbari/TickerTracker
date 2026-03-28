@@ -11,16 +11,16 @@ sys.path.insert(0, str(backend_dir))
 def test_routes_structure():
     """Verify routes module has all required endpoints."""
     from src.estimates.api import routes
-    
+
     print("\n=== Testing Estimates API Routes ===\n")
-    
+
     # Check router exists
     assert hasattr(routes, 'router'), "Router should be defined"
     router = routes.router
-    
+
     print(f"[OK] Router prefix: {router.prefix}")
     print(f"[OK] Router tags: {router.tags}")
-    
+
     # Check endpoints
     required_endpoints = {
         "create_estimate": ("POST", ""),
@@ -30,7 +30,7 @@ def test_routes_structure():
         "close_estimate": ("DELETE", "/{estimate_id}"),
         "get_estimate_history": ("GET", "/{estimate_id}/history"),
     }
-    
+
     # Get all routes
     routes_found = {}
     for route in router.routes:
@@ -39,11 +39,11 @@ def test_routes_structure():
             methods = list(route.methods) if hasattr(route, 'methods') else []
             path = route.path
             routes_found[endpoint_name] = (methods, path)
-    
+
     print(f"\nFound {len(routes_found)} endpoints:")
     for name, (methods, path) in routes_found.items():
         print(f"   - {name}: {methods} {path}")
-    
+
     # Verify all required endpoints exist
     missing = []
     for endpoint_name, (expected_method, expected_path) in required_endpoints.items():
@@ -54,15 +54,15 @@ def test_routes_structure():
             methods, path = routes_found[endpoint_name]
             if expected_method not in methods:
                 print(f"[FAIL] {endpoint_name}: Expected method {expected_method}, found {methods}")
-            elif expected_path not in path:  
+            elif expected_path not in path:
                 print(f"[FAIL] {endpoint_name}: Expected path containing '{expected_path}', found '{path}'")
-    
+
     if not missing:
         print(f"\n[OK] All {len(required_endpoints)} required endpoints are defined!")
     else:
         print(f"\n[FAIL] Missing {len(missing)} endpoints")
         return False
-    
+
     # Check dependency injection
     print("\nChecking dependency injection:")
     assert hasattr(routes, 'get_estimate_service'), "get_estimate_service DI should exist"
@@ -71,11 +71,11 @@ def test_routes_structure():
     print("   [OK] get_estimate_history_service")
     assert hasattr(routes, 'get_estimate_repository'), "get_estimate_repository DI should exist"
     print("   [OK] get_estimate_repository")
-    
+
     print("\n" + "="*50)
     print("[SUCCESS] TASK 2.16 - API Routes Structure Verified!")
     print("="*50)
-    
+
     return True
 
 if __name__ == "__main__":

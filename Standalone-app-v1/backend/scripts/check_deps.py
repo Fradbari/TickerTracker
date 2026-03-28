@@ -4,8 +4,6 @@ Script per verificare che tutte le dipendenze critiche siano installate corretta
 Verifica le dipendenze del file pyproject.toml e segnala eventuali problemi.
 """
 import sys
-from typing import List, Tuple
-import importlib.util
 
 # CRITICAL DEPENDENCIES - Devono essere presenti sempre
 CRITICAL_DEPS = [
@@ -39,7 +37,7 @@ DEV_DEPS = [
     ("httpx", "HTTPX - HTTP Client"),
 ]
 
-def check_import(module_name: str, display_name: str) -> Tuple[bool, str]:
+def check_import(module_name: str, display_name: str) -> tuple[bool, str]:
     """
     Prova ad importare un modulo e restituisce (success, message).
     Supporta nomi con punto per sottommoduli (es: google.auth).
@@ -55,7 +53,7 @@ def check_import(module_name: str, display_name: str) -> Tuple[bool, str]:
     except ImportError as e:
         return False, f"  ✗ {display_name}: {str(e)}"
 
-def check_python_version() -> Tuple[bool, str]:
+def check_python_version() -> tuple[bool, str]:
     """Verifica che la versione Python sia >= 3.11"""
     version = sys.version_info
     if version.major >= 3 and version.minor >= 11:
@@ -67,11 +65,11 @@ def main():
     print("\n╔═══════════════════════════════════════════════════════════════╗")
     print("║           VERIFICA DIPENDENZE TICKERTRACKER BACKEND         ║")
     print("╚═══════════════════════════════════════════════════════════════╝\n")
-    
+
     # Verifica versione Python
     py_ok, py_msg = check_python_version()
     print(f"[Python] {py_msg}")
-    
+
     # Verifica dipendenze critiche
     print("\n[DIPENDENZE CRITICHE] (Obbligatorie)")
     critical_results = []
@@ -79,7 +77,7 @@ def main():
         ok, msg = check_import(module, display_name)
         critical_results.append((ok, msg))
         print(msg)
-    
+
     # Verifica dipendenze opzionali
     print("\n[DIPENDENZE OPZIONALI] (Fase 2)")
     optional_results = []
@@ -87,7 +85,7 @@ def main():
         ok, msg = check_import(module, display_name)
         optional_results.append((ok, msg))
         print(msg)
-    
+
     # Verifica dipendenze di sviluppo
     print("\n[DIPENDENZE SVILUPPO] (Dev/Testing)")
     dev_results = []
@@ -95,13 +93,13 @@ def main():
         ok, msg = check_import(module, display_name)
         dev_results.append((ok, msg))
         print(msg)
-    
+
     # Riepilogo
     print("\n" + "="*65)
     critical_failed = [msg for ok, msg in critical_results if not ok]
     optional_failed = [msg for ok, msg in optional_results if not ok]
     dev_failed = [msg for ok, msg in dev_results if not ok]
-    
+
     if critical_failed:
         print(f"✗ {len(critical_failed)} DIPENDENZA/E CRITICA/E MANCANTE/I:")
         for msg in critical_failed:

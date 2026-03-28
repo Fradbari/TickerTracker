@@ -23,12 +23,10 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.shared.infra.config import Settings, get_settings
-
+from src.shared.infra.config import Settings
 
 # ---------------------------------------------------------------------------
 # Settings pool defaults
@@ -132,11 +130,11 @@ class TestUpdatePoolMetrics:
 
     def test_update_sets_gauges(self):
         from src.infra.metrics.metrics import (
-            update_pool_metrics,
-            db_pool_checked_out,
             db_pool_checked_in,
+            db_pool_checked_out,
             db_pool_overflow,
             db_pool_size,
+            update_pool_metrics,
         )
 
         fake_status = {
@@ -235,7 +233,7 @@ class TestHealthFullIncludesPool:
         }
         with patch("src.shared.api.health_routes.get_pool_status", return_value=fake_pool), \
              patch("src.shared.api.health_routes.HealthService") as MockHS:
-            from src.infra.health.health_service import SystemHealth, ComponentHealth
+            from src.infra.health.health_service import ComponentHealth, SystemHealth
             MockHS.return_value.check_all.return_value = SystemHealth(
                 status="HEALTHY",
                 version="3.0.0",
@@ -245,7 +243,6 @@ class TestHealthFullIncludesPool:
                 ],
             )
             # Make check_all awaitable
-            import asyncio
 
             async def _fake_check_all():
                 return SystemHealth(
@@ -276,11 +273,11 @@ class TestDatabaseModuleImports:
     def test_no_null_pool_import(self):
         """NullPool must NOT be imported in database.py."""
         import importlib
-        import src.shared.infra.database as db_mod
+
         source = importlib.util.find_spec("src.shared.infra.database")
         # Read actual source to verify NullPool is not imported
         if source and source.origin:
-            with open(source.origin, "r", encoding="utf-8") as f:
+            with open(source.origin, encoding="utf-8") as f:
                 content = f.read()
             assert "NullPool" not in content, "NullPool import should have been removed"
 
@@ -289,7 +286,7 @@ class TestDatabaseModuleImports:
         import importlib
         source = importlib.util.find_spec("src.shared.infra.database")
         if source and source.origin:
-            with open(source.origin, "r", encoding="utf-8") as f:
+            with open(source.origin, encoding="utf-8") as f:
                 content = f.read()
             assert "poolclass=" not in content, (
                 "poolclass= should not be set; async engine uses AsyncAdaptedQueuePool by default"
@@ -300,7 +297,7 @@ class TestDatabaseModuleImports:
         import importlib
         source = importlib.util.find_spec("src.shared.infra.database")
         if source and source.origin:
-            with open(source.origin, "r", encoding="utf-8") as f:
+            with open(source.origin, encoding="utf-8") as f:
                 content = f.read()
             for param in ("pool_size", "max_overflow", "pool_timeout", "pool_recycle", "pool_pre_ping"):
                 assert param in content, f"{param} missing from database.py"

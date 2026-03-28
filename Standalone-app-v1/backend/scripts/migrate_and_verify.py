@@ -15,22 +15,21 @@ Usage:
 import asyncio
 import logging
 from datetime import datetime
-from typing import List, Dict, Tuple, Optional
 from decimal import Decimal
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.shared.infra.config import get_settings
-from src.shared.infra.database import AsyncSessionLocal, engine
+from src.estimates.domain.entities import Direction, Estimate, EstimateStatus
 from src.infra.drive.client import GoogleDriveClient
 from src.infra.drive.models import DriveFile
+from src.market_data.domain.entities import Ticker
+from src.market_data.domain.market_data import MarketData
+from src.shared.infra.config import get_settings
+from src.shared.infra.database import AsyncSessionLocal
 from src.sync.infra.csv_parser import LegacyCsvParser
 from src.sync.infra.json_parser import LegacyJsonParser
 from src.sync.infra.legacy_models import LegacyEstimateRow, LegacyHistoryRow
-from src.estimates.domain.entities import Estimate, EstimateStatus, Direction
-from src.market_data.domain.entities import Ticker
-from src.market_data.domain.market_data import MarketData
 
 # Configure logging
 logging.basicConfig(
@@ -51,28 +50,28 @@ class MigrationStats:
         self.tickers_created = 0
         self.market_data_imported = 0
         self.market_data_skipped = 0
-        self.errors: List[str] = []
+        self.errors: list[str] = []
 
 
-async def verify_google_drive(drive_client: GoogleDriveClient, folder_id: str) -> Tuple[List[DriveFile], List[DriveFile]]:
+async def verify_google_drive(drive_client: GoogleDriveClient, folder_id: str) -> tuple[list[DriveFile], list[DriveFile]]:
     """
     List and categorize files in Google Drive folder.
-    
+
     Returns:
         Tuple of (backup_files, history_files)
     """
     logger.info("=" * 60)
     logger.info("FASE 1: VERIFICA GOOGLE DRIVE")
     logger.info("=" * 60)
-    
+
     try:
         files = await drive_client.list_files(folder_id)
         logger.info(f"✅ Trovati {len(files)} file nella cartella")
-        
+
         # Categorize files
         backups = []
         histories = []
-        
+
         for file in files:
             # Escludi debug_logs.json dai backup
             if file.name == "debug_logs.json":
@@ -90,10 +89,10 @@ async def verify_google_drive(drive_client: GoogleDriveClient, folder_id: str) -
                 ticker = file.name.replace('History_', '').replace('.csv', '')
                 size_kb = (file.size or 0) // 1024
                 logger.info(f"  📈 {file.name} - Ticker: {ticker} ({size_kb} KB)")
-        
+
         logger.info(f"\nTotale: {len(backups)} backup, {len(histories)} history files\n")
         return backups, histories
-        
+
     except Exception as e:
         logger.error(f"❌ Errore connessione Google Drive: {e}")
         raise
@@ -106,7 +105,7 @@ async def get_or_create_ticker(session: AsyncSession, symbol: str, stats: Migrat
         {"symbol": symbol.upper()}
     )
     row = result.fetchone()
-    
+
     if row:
         ticker = Ticker()
         ticker.id = row[0]
@@ -116,7 +115,7 @@ async def get_or_create_ticker(session: AsyncSession, symbol: str, stats: Migrat
         ticker.currency = row[4]
         ticker.asset_type = row[5]
         return ticker
-    
+
     # Create new ticker
     new_ticker = Ticker(
         symbol=symbol.upper(),
@@ -136,15 +135,15 @@ async def get_latest_price_for_ticker(
     session: AsyncSession,
     ticker_id: str,
     before_date: datetime
-) -> Optional[Decimal]:
+) -> Decimal | None:
     """
     Get the latest available price for a ticker from market_data.
-    
+
     Args:
         session: Database session
         ticker_id: UUID of the ticker
         before_date: Get price before or on this date
-        
+
     Returns:
         Latest close price as Decimal, or None if no data available
     """
@@ -198,8 +197,8 @@ async def import_estimate_row(
         if row.start_price > 0:
             result = await session.execute(
                 text("""
-                    SELECT COUNT(*) FROM estimates 
-                    WHERE ticker_id = :ticker_id 
+                    SELECT COUNT(*) FROM estimates
+                    WHERE ticker_id = :ticker_id
                     AND DATE(created_at) = :start_date
                     AND ABS(start_price - :start_price) < 0.01
                 """),
@@ -213,8 +212,8 @@ async def import_estimate_row(
             # If start_price=0, check by ticker + date only
             result = await session.execute(
                 text("""
-                    SELECT COUNT(*) FROM estimates 
-                    WHERE ticker_id = :ticker_id 
+                    SELECT COUNT(*) FROM estimates
+                    WHERE ticker_id = :ticker_id
                     AND DATE(created_at) = :start_date
                 """),
                 {
@@ -336,7 +335,7 @@ async def import_estimate_row(
 async def import_history_rows(
     session: AsyncSession,
     ticker_symbol: str,
-    rows: List[LegacyHistoryRow],
+    rows: list[LegacyHistoryRow],
     stats: MigrationStats,
     dry_run: bool
 ) -> None:
@@ -344,10 +343,10 @@ async def import_history_rows(
     try:
         # Get ticker
         ticker = await get_or_create_ticker(session, ticker_symbol, stats)
-        
+
         imported = 0
         skipped = 0
-        
+
         if not dry_run:
             for row in rows:
                 # Check if data already exists
@@ -404,12 +403,12 @@ async def import_history_rows(
                 imported += 1
         else:
             imported = len(rows)
-        
+
         stats.market_data_imported += imported
         stats.market_data_skipped += skipped
-        
+
         logger.info(f"  ✅ {ticker_symbol}: {imported} giorni importati, {skipped} skippati")
-        
+
     except Exception as e:
         error_msg = f"Errore import history {ticker_symbol}: {e}"
         logger.warning(f"⚠️  {error_msg}")
@@ -418,8 +417,8 @@ async def import_history_rows(
 
 async def download_and_import(
     drive_client: GoogleDriveClient,
-    backups: List[DriveFile],
-    histories: List[DriveFile],
+    backups: list[DriveFile],
+    histories: list[DriveFile],
     session: AsyncSession,
     stats: MigrationStats,
     dry_run: bool
@@ -428,11 +427,11 @@ async def download_and_import(
     logger.info("=" * 60)
     logger.info("FASE 2: IMPORT DATI")
     logger.info("=" * 60)
-    
+
     # Initialize parsers
     json_parser = LegacyJsonParser()
     csv_parser = LegacyCsvParser()
-    
+
     # IMPORTANT: Import history files FIRST so market_data is available for price corrections
     if histories:
         logger.info(f"\n📈 History Files ({len(histories)}) - Importing FIRST for price fallback:")
@@ -440,57 +439,57 @@ async def download_and_import(
             try:
                 # Extract ticker from filename
                 ticker_symbol = history_file.name.replace('History_', '').replace('.csv', '')
-                
+
                 # Download and parse
                 content = await drive_client.download_file(history_file.id)
                 rows = csv_parser.parse_history_csv(content, default_ticker=ticker_symbol)
-                
+
                 # Import history
                 await import_history_rows(session, ticker_symbol, rows, stats, dry_run)
-                
+
                 stats.history_files_found += 1
-                
+
             except Exception as e:
                 error_msg = f"Errore processing history {history_file.name}: {e}"
                 logger.error(f"❌ {error_msg}")
                 stats.errors.append(error_msg)
-        
-        logger.info(f"\n✅ History import completato:")
+
+        logger.info("\n✅ History import completato:")
         logger.info(f"  • {stats.market_data_imported} record importati")
         logger.info(f"  • {stats.market_data_skipped} record skippati")
     else:
         logger.warning("⚠️  Nessun file history trovato!")
-    
+
     # Import backup files AFTER history (so we have market_data for fallback)
     if backups:
         logger.info(f"\n📊 Backup Files ({len(backups)}):")
         for backup_file in backups:
             logger.info(f"\n📥 Processing: {backup_file.name}")
-            
+
             try:
                 # Download file
                 content = await drive_client.download_file(backup_file.id)
-                
+
                 # Parse based on file type
                 if backup_file.name.endswith('.json'):
                     rows = json_parser.parse_backup_json(content.decode('utf-8'))
                 else:
                     rows = csv_parser.parse_estimates_csv(content)
-                
+
                 logger.info(f"  📊 Trovate {len(rows)} estimates nel file")
-                
+
                 # Import each estimate
                 for idx, row in enumerate(rows):
                     await import_estimate_row(session, row, stats, dry_run, source_file=backup_file.name, row_idx=idx+1)
-                
+
                 stats.backup_files_found += 1
-                
+
             except Exception as e:
                 error_msg = f"Errore processing backup {backup_file.name}: {e}"
                 logger.error(f"❌ {error_msg}")
                 stats.errors.append(error_msg)
-        
-        logger.info(f"\n✅ Backup import completato:")
+
+        logger.info("\n✅ Backup import completato:")
         logger.info(f"  • {stats.estimates_imported} stime importate")
         logger.info(f"  • {stats.estimates_skipped} stime skippate (già presenti)")
         logger.info(f"  • {stats.estimates_price_corrected} stime con prezzo corretto")
@@ -504,17 +503,17 @@ async def verify_consistency(session: AsyncSession) -> None:
     logger.info("\n" + "=" * 60)
     logger.info("FASE 3: VERIFICA CONSISTENZA")
     logger.info("=" * 60 + "\n")
-    
+
     # Count records
     counts = {}
     for table in ["tickers", "estimates", "estimate_events", "market_data", "sync_jobs"]:
         result = await session.execute(text(f"SELECT COUNT(*) FROM {table}"))
         counts[table] = result.scalar()
-    
+
     logger.info("Database Status:")
     for table, count in counts.items():
         logger.info(f"  • {table:20s}: {count:>6,} records")
-    
+
     # Top tickers by estimates
     result = await session.execute(text("""
         SELECT t.symbol, COUNT(e.id) as estimate_count
@@ -525,16 +524,16 @@ async def verify_consistency(session: AsyncSession) -> None:
         ORDER BY estimate_count DESC
         LIMIT 10
     """))
-    
+
     rows = result.fetchall()
     if rows:
         logger.info("\nTop 10 Tickers per Estimates:")
         for row in rows:
             logger.info(f"  {row[0]:10s}: {row[1]:>3} stime")
-    
+
     # Market data coverage
     result = await session.execute(text("""
-        SELECT 
+        SELECT
             t.symbol,
             COUNT(md.date) as days_of_data,
             MIN(md.date) as first_date,
@@ -547,7 +546,7 @@ async def verify_consistency(session: AsyncSession) -> None:
         ORDER BY days_of_data DESC
         LIMIT 10
     """))
-    
+
     rows = result.fetchall()
     if rows:
         logger.info("\nCopertura Market Data (Top 10 ticker con stime):")
@@ -559,7 +558,7 @@ async def verify_consistency(session: AsyncSession) -> None:
                 logger.info(f"  ⚠️  {symbol:10s}: NESSUN DATO STORICO!")
             else:
                 logger.info(f"  ✅ {symbol:10s}: {days:>4} giorni ({first_date} → {last_date})")
-        
+
         if warnings:
             logger.warning(f"\n⚠️  {len(warnings)} ticker con stime ma SENZA market data: {', '.join(warnings)}")
         else:
@@ -570,75 +569,75 @@ async def main(dry_run: bool = False):
     """Main migration workflow."""
     # Load settings
     settings = get_settings()
-    
+
     # Initialize stats
     stats = MigrationStats()
-    
+
     # Initialize Drive client
     drive_client = GoogleDriveClient(
         service_account_json=settings.GOOGLE_SERVICE_ACCOUNT_JSON.get_secret_value(),
         timeout=30
     )
-    
+
     start_time = datetime.now()
     logger.info(f"\n{'=' * 60}")
     logger.info(f"MIGRATE AND VERIFY - {'DRY RUN MODE' if dry_run else 'LIVE MODE'}")
     logger.info(f"Started: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info(f"{'=' * 60}\n")
-    
+
     try:
         # Verify Drive files
         backups, histories = await verify_google_drive(drive_client, settings.DRIVE_FOLDER_ID)
-        
+
         # Import data
         async with AsyncSessionLocal() as session:
             try:
                 await download_and_import(drive_client, backups, histories, session, stats, dry_run)
-                
+
                 if not dry_run:
                     await session.commit()
                     logger.info("\n✅ Transazione committata")
                 else:
                     await session.rollback()
                     logger.info("\n🔍 DRY RUN: Nessuna modifica al database")
-                
+
                 # Verify consistency (in separate read-only session)
                 async with AsyncSessionLocal() as verify_session:
                     await verify_consistency(verify_session)
-                
+
             except Exception as e:
                 await session.rollback()
                 logger.error(f"❌ Errore durante import: {e}")
                 raise
-    
+
     except Exception as e:
         logger.error(f"❌ Errore fatale: {e}")
         import traceback
         traceback.print_exc()
         return 1
-    
+
     finally:
         # Final report
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
-        
+
         logger.info("\n" + "=" * 60)
         logger.info("RIEPILOGO FINALE")
         logger.info("=" * 60)
         logger.info(f"\nTempo esecuzione: {duration:.2f}s")
-        logger.info(f"\nFile processati:")
+        logger.info("\nFile processati:")
         logger.info(f"  • {stats.backup_files_found} backup files")
         logger.info(f"  • {stats.history_files_found} history files")
-        logger.info(f"\nTickers:")
+        logger.info("\nTickers:")
         logger.info(f"  • {stats.tickers_created} nuovi ticker creati")
-        logger.info(f"\nEstimates:")
+        logger.info("\nEstimates:")
         logger.info(f"  • {stats.estimates_imported} importate")
         logger.info(f"  • {stats.estimates_skipped} skippate (già presenti)")
         logger.info(f"  • {stats.estimates_price_corrected} con start_price corretto")
-        logger.info(f"\nMarket Data:")
+        logger.info("\nMarket Data:")
         logger.info(f"  • {stats.market_data_imported} record importati")
         logger.info(f"  • {stats.market_data_skipped} skippati (già presenti)")
-        
+
         if stats.errors:
             logger.warning(f"\n⚠️  {len(stats.errors)} errori durante l'import:")
             for error in stats.errors[:10]:  # Show first 10
@@ -647,15 +646,15 @@ async def main(dry_run: bool = False):
                 logger.warning(f"  ... e altri {len(stats.errors) - 10} errori")
         else:
             logger.info("\n✅ Import completato senza errori")
-        
+
         logger.info("=" * 60 + "\n")
-    
+
     return 0
 
 
 if __name__ == "__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser(
         description="Migrate legacy data from Google Drive to local database"
     )
@@ -665,6 +664,6 @@ if __name__ == "__main__":
         help="Preview import without making changes to database"
     )
     args = parser.parse_args()
-    
+
     exit_code = asyncio.run(main(dry_run=args.dry_run))
     exit(exit_code)

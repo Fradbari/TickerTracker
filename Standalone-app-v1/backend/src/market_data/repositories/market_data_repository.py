@@ -4,9 +4,14 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Dict, List, Optional
 from uuid import UUID
 
+from sqlalchemy import and_, bindparam, func, select, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.types import Date
+
+from src.market_data.domain.market_data import MarketData
 from src.shared.domain.lineage import DataSource
 from src.shared.repositories.pagination import (
     CursorPagination,
@@ -15,13 +20,6 @@ from src.shared.repositories.pagination import (
     decode_cursor,
     encode_cursor,
 )
-
-from sqlalchemy import and_, bindparam, func, insert, select, text, update
-from sqlalchemy.types import Date
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
-from src.market_data.domain.market_data import MarketData
 
 
 class MarketDataRow:
@@ -37,8 +35,8 @@ class MarketDataRow:
         close: Decimal,
         volume: int,
         data_source: str = DataSource.YAHOO_FINANCE.value,
-        quality_score: Optional[Decimal] = None,
-        source_timestamp: Optional[datetime] = None,
+        quality_score: Decimal | None = None,
+        source_timestamp: datetime | None = None,
     ):
         self.ticker_id = ticker_id
         self.date = date
@@ -83,7 +81,7 @@ class MarketDataRepository:
         self._session_factory = session_factory
 
     async def upsert_daily(
-        self, ticker_id: UUID, data_rows: List[MarketDataRow]
+        self, ticker_id: UUID, data_rows: list[MarketDataRow]
     ) -> int:
         """
         Upsert market data rows into the database.
@@ -152,7 +150,7 @@ class MarketDataRepository:
         ticker_id: UUID,
         start: date,
         end: date,
-    ) -> List[MarketData]:
+    ) -> list[MarketData]:
         """
         Get historical market data for a ticker between dates.
 
@@ -182,8 +180,8 @@ class MarketDataRepository:
         self,
         ticker_id: UUID,
         pagination: CursorPagination,
-        start: Optional[date] = None,
-        end: Optional[date] = None,
+        start: date | None = None,
+        end: date | None = None,
     ) -> PaginatedResult[MarketData]:
         """
         Get historical market data using cursor-based pagination (TASK 3.11).
@@ -259,7 +257,7 @@ class MarketDataRepository:
             )
         """
         # --- Decode cursor date if present ---
-        cursor_date: Optional[date] = None
+        cursor_date: date | None = None
         if pagination.cursor:
             raw = decode_cursor(pagination.cursor)
             if "date" not in raw:
@@ -331,7 +329,7 @@ class MarketDataRepository:
             prev_cursor=prev_cursor,
         )
 
-    async def get_latest_price(self, ticker_id: UUID) -> Optional[MarketData]:
+    async def get_latest_price(self, ticker_id: UUID) -> MarketData | None:
         """
         Get the most recent market data for a ticker.
 
@@ -351,8 +349,8 @@ class MarketDataRepository:
             return result.scalar_one_or_none()
 
     async def get_latest_prices_batch(
-        self, ticker_ids: List[UUID]
-    ) -> Dict[UUID, MarketData]:
+        self, ticker_ids: list[UUID]
+    ) -> dict[UUID, MarketData]:
         """
         Get the most recent market data for multiple tickers efficiently.
 
@@ -375,11 +373,11 @@ class MarketDataRepository:
                 .distinct(MarketData.ticker_id)
                 .order_by(MarketData.ticker_id, MarketData.date.desc())
             )
-            
+
             market_data_list = result.scalars().all()
 
             # Convert to dict mapping ticker_id -> MarketData
-            result_dict: Dict[UUID, MarketData] = {
+            result_dict: dict[UUID, MarketData] = {
                 md.ticker_id: md for md in market_data_list
             }
 
@@ -389,9 +387,9 @@ class MarketDataRepository:
         self,
         ticker_id: UUID,
         interval: str = "1W",
-        start: Optional[date] = None,
-        end: Optional[date] = None,
-    ) -> List[AggregatedData]:
+        start: date | None = None,
+        end: date | None = None,
+    ) -> list[AggregatedData]:
         """
         Get aggregated OHLCV data for a ticker by time interval.
 
@@ -423,7 +421,7 @@ class MarketDataRepository:
             # Build SQL query with DATE_TRUNC for aggregation
             stmt = text(
                 """
-                SELECT 
+                SELECT
                     DATE_TRUNC(:trunc_unit, date)::date AS period_start,
                     (ARRAY_AGG(open ORDER BY date ASC))[1] AS open,
                     MAX(high) AS high,

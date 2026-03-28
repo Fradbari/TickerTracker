@@ -1,7 +1,7 @@
-import pytest
 from datetime import date, timedelta
 
-from src.market_data.api.dependencies import get_market_data_provider
+import pytest
+
 
 @pytest.mark.e2e
 async def test_yahoo_current_price(provider):

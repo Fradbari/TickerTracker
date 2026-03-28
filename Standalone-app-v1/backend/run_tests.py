@@ -1,5 +1,6 @@
-import pytest
 import sys
+
+import pytest
 
 with open("test_out.txt", "w") as f:
     sys.stdout = f

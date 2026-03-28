@@ -7,21 +7,20 @@ SQLAlchemy Estimate entities to JSON-serializable structures.
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class EstimateResponse(BaseModel):
     """
     Standard response schema for a single estimate.
-    
+
     Used for:
     - GET /api/estimates/{id}
     - POST /api/estimates (created estimate)
     - PATCH /api/estimates/{id} (updated estimate)
-    
+
     Attributes:
         id: Unique identifier
         ticker_id: Reference to ticker
@@ -43,7 +42,7 @@ class EstimateResponse(BaseModel):
         closed_at: Close timestamp (nullable)
         is_deleted: Soft delete flag
     """
-    
+
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
@@ -70,10 +69,10 @@ class EstimateResponse(BaseModel):
             }
         }
     )
-    
+
     id: UUID
     ticker_id: UUID
-    user_id: Optional[UUID] = None
+    user_id: UUID | None = None
     direction: str
     status: str
     start_price: Decimal
@@ -81,29 +80,29 @@ class EstimateResponse(BaseModel):
     stop_loss_price: Decimal
     target_profit_percent: Decimal
     stop_loss_percent: Decimal
-    exit_price: Optional[Decimal] = None
-    realized_pnl: Optional[Decimal] = None
-    ai_model: Optional[str] = None
-    ai_confidence: Optional[Decimal] = None
-    ai_reasoning: Optional[str] = None
+    exit_price: Decimal | None = None
+    realized_pnl: Decimal | None = None
+    ai_model: str | None = None
+    ai_confidence: Decimal | None = None
+    ai_reasoning: str | None = None
     created_at: datetime
     updated_at: datetime
-    closed_at: Optional[datetime] = None
+    closed_at: datetime | None = None
     is_deleted: bool
 
 
 class EstimateListResponse(BaseModel):
     """
     Response schema for paginated list of estimates.
-    
+
     Used for: GET /api/estimates
-    
+
     Attributes:
         items: List of estimates
         total: Total count of estimates matching filters
         page_info: Pagination information
     """
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -129,7 +128,7 @@ class EstimateListResponse(BaseModel):
             }
         }
     )
-    
+
     items: list[EstimateResponse]
     total: int = Field(..., description="Total number of items matching filters")
     page_info: dict = Field(..., description="Pagination information")
@@ -138,12 +137,12 @@ class EstimateListResponse(BaseModel):
 class EstimateCreatedResponse(BaseModel):
     """
     Response schema for successful estimate creation.
-    
+
     Includes the created estimate and a message.
-    
+
     Used for: POST /api/estimates
     """
-    
+
     estimate: EstimateResponse
     message: str = Field(default="Estimate created successfully")
 
@@ -151,12 +150,12 @@ class EstimateCreatedResponse(BaseModel):
 class EstimateUpdatedResponse(BaseModel):
     """
     Response schema for successful estimate update.
-    
+
     Includes the updated estimate and a message.
-    
+
     Used for: PATCH /api/estimates/{id}
     """
-    
+
     estimate: EstimateResponse
     message: str = Field(default="Estimate updated successfully")
 
@@ -164,10 +163,10 @@ class EstimateUpdatedResponse(BaseModel):
 class EstimateDeletedResponse(BaseModel):
     """
     Response schema for successful estimate deletion/closure.
-    
+
     Used for: DELETE /api/estimates/{id}
     """
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -177,7 +176,7 @@ class EstimateDeletedResponse(BaseModel):
             }
         }
     )
-    
+
     id: UUID
     status: str
     message: str = Field(default="Estimate deleted successfully")
@@ -186,15 +185,15 @@ class EstimateDeletedResponse(BaseModel):
 class EstimateHistoryResponse(BaseModel):
     """
     Response schema for estimate history/audit trail.
-    
+
     Used for: GET /api/estimates/{id}/history
-    
+
     Attributes:
         estimate_id: UUID of the estimate
         audit_trail: List of audit entries
         summary: History summary statistics
     """
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -215,7 +214,7 @@ class EstimateHistoryResponse(BaseModel):
             }
         }
     )
-    
+
     estimate_id: UUID
     audit_trail: list
     summary: dict

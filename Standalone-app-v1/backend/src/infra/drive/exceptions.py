@@ -7,7 +7,7 @@ Provides typed exceptions for better error handling and debugging.
 
 class DriveError(Exception):
     """Base exception for all Google Drive errors."""
-    
+
     def __init__(self, message: str, details: str = ""):
         super().__init__(message)
         self.message = message
@@ -16,7 +16,7 @@ class DriveError(Exception):
 
 class DriveAuthenticationError(DriveError):
     """Raised when authentication with Google Drive fails."""
-    
+
     def __init__(self, details: str = ""):
         super().__init__(
             "Failed to authenticate with Google Drive",
@@ -26,7 +26,7 @@ class DriveAuthenticationError(DriveError):
 
 class DriveFileNotFoundError(DriveError):
     """Raised when a requested file is not found in Drive."""
-    
+
     def __init__(self, file_id: str, details: str = ""):
         super().__init__(
             f"File not found in Google Drive: {file_id}",
@@ -37,7 +37,7 @@ class DriveFileNotFoundError(DriveError):
 
 class DriveFolderNotFoundError(DriveError):
     """Raised when a requested folder is not found in Drive."""
-    
+
     def __init__(self, folder_id: str, details: str = ""):
         super().__init__(
             f"Folder not found in Google Drive: {folder_id}",
@@ -48,7 +48,7 @@ class DriveFolderNotFoundError(DriveError):
 
 class DriveUploadError(DriveError):
     """Raised when file upload fails."""
-    
+
     def __init__(self, filename: str, details: str = ""):
         super().__init__(
             f"Failed to upload file to Google Drive: {filename}",
@@ -59,7 +59,7 @@ class DriveUploadError(DriveError):
 
 class DriveDownloadError(DriveError):
     """Raised when file download fails."""
-    
+
     def __init__(self, file_id: str, details: str = ""):
         super().__init__(
             f"Failed to download file from Google Drive: {file_id}",
@@ -70,7 +70,7 @@ class DriveDownloadError(DriveError):
 
 class DriveQuotaExceededError(DriveError):
     """Raised when Drive storage quota is exceeded."""
-    
+
     def __init__(self, details: str = ""):
         super().__init__(
             "Google Drive storage quota exceeded",
@@ -80,7 +80,7 @@ class DriveQuotaExceededError(DriveError):
 
 class DrivePermissionError(DriveError):
     """Raised when operation fails due to insufficient permissions."""
-    
+
     def __init__(self, operation: str, details: str = ""):
         super().__init__(
             f"Permission denied for operation: {operation}",
@@ -91,7 +91,7 @@ class DrivePermissionError(DriveError):
 
 class DriveTimeoutError(DriveError):
     """Raised when operation times out."""
-    
+
     def __init__(self, operation: str, timeout: int, details: str = ""):
         super().__init__(
             f"Operation timed out after {timeout}s: {operation}",

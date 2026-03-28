@@ -341,10 +341,10 @@ Dipendenze: TASK 5.4, TASK 5.7
 
 **Acceptance Criteria:**
 
-- [ ] Pipeline esegue su ogni PR
-- [ ] Fallimento blocca merge
-- [ ] Coverage report su Codecov
-- [ ] Tempo esecuzione < 10 minuti
+- [x] Pipeline esegue su ogni PR
+- [x] Fallimento blocca merge
+- [x] Coverage report su Codecov
+- [x] Tempo esecuzione < 10 minuti
 
 ---
 

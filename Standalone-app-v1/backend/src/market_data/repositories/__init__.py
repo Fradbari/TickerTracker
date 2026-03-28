@@ -1,7 +1,7 @@
 from .market_data_repository import (
+    AggregatedData,
     MarketDataRepository,
     MarketDataRow,
-    AggregatedData,
 )
 
 __all__ = [

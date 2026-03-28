@@ -7,20 +7,19 @@ Defines dataclasses representing rows in legacy CSV format.
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
 
 
 @dataclass
 class LegacyEstimateRow:
     """
     Represents a single row from the legacy estimates CSV file.
-    
+
     The legacy format contains 120+ columns including estimate data,
     market data, fundamentals, and AI predictions.
-    
+
     Core estimate fields come first, followed by market data and fundamentals.
     """
-    
+
     # Core estimate fields
     ticker: str
     start_date: date
@@ -31,53 +30,53 @@ class LegacyEstimateRow:
     stop_loss_percent: Decimal
     direction: str  # "LONG" or "SHORT"
     status: str  # "OPEN", "CLOSED_WIN", "CLOSED_LOSS", etc.
-    
+
     # Closure fields (nullable)
-    close_date: Optional[date] = None
-    exit_price: Optional[Decimal] = None
-    realized_pnl: Optional[Decimal] = None
-    realized_pnl_percent: Optional[Decimal] = None
-    
+    close_date: date | None = None
+    exit_price: Decimal | None = None
+    realized_pnl: Decimal | None = None
+    realized_pnl_percent: Decimal | None = None
+
     # AI fields
-    ai_model: Optional[str] = None
-    ai_confidence: Optional[Decimal] = None
-    ai_reasoning: Optional[str] = None
-    
+    ai_model: str | None = None
+    ai_confidence: Decimal | None = None
+    ai_reasoning: str | None = None
+
     # Market data at start (snapshot)
-    current_price: Optional[Decimal] = None
-    day_change: Optional[Decimal] = None
-    day_change_percent: Optional[Decimal] = None
-    volume: Optional[int] = None
-    avg_volume: Optional[int] = None
-    market_cap: Optional[Decimal] = None
-    
+    current_price: Decimal | None = None
+    day_change: Decimal | None = None
+    day_change_percent: Decimal | None = None
+    volume: int | None = None
+    avg_volume: int | None = None
+    market_cap: Decimal | None = None
+
     # Fundamentals (snapshot)
-    pe_ratio: Optional[Decimal] = None
-    eps: Optional[Decimal] = None
-    dividend_yield: Optional[Decimal] = None
-    dividend_rate: Optional[Decimal] = None
-    beta: Optional[Decimal] = None
-    week_52_high: Optional[Decimal] = None
-    week_52_low: Optional[Decimal] = None
-    week_52_change_percent: Optional[Decimal] = None
-    
+    pe_ratio: Decimal | None = None
+    eps: Decimal | None = None
+    dividend_yield: Decimal | None = None
+    dividend_rate: Decimal | None = None
+    beta: Decimal | None = None
+    week_52_high: Decimal | None = None
+    week_52_low: Decimal | None = None
+    week_52_change_percent: Decimal | None = None
+
     # Technical indicators (snapshot)
-    rsi_14: Optional[Decimal] = None
-    sma_20: Optional[Decimal] = None
-    sma_50: Optional[Decimal] = None
-    sma_200: Optional[Decimal] = None
-    ema_20: Optional[Decimal] = None
-    ema_50: Optional[Decimal] = None
-    
+    rsi_14: Decimal | None = None
+    sma_20: Decimal | None = None
+    sma_50: Decimal | None = None
+    sma_200: Decimal | None = None
+    ema_20: Decimal | None = None
+    ema_50: Decimal | None = None
+
     # Additional metadata
-    user_id: Optional[str] = None
-    notes: Optional[str] = None
-    tags: Optional[str] = None  # Comma-separated
-    
+    user_id: str | None = None
+    notes: str | None = None
+    tags: str | None = None  # Comma-separated
+
     # Timestamps
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
     def to_dict(self) -> dict:
         """Convert to dictionary for CSV export."""
         return {
@@ -129,11 +128,11 @@ class LegacyEstimateRow:
 class LegacyHistoryRow:
     """
     Represents a single row from the legacy History_*.csv files.
-    
+
     These files contain daily market data snapshots for tracked tickers.
     Format: Date, Ticker, Open, High, Low, Close, Volume
     """
-    
+
     date: date
     ticker: str
     open: Decimal
@@ -141,8 +140,8 @@ class LegacyHistoryRow:
     low: Decimal
     close: Decimal
     volume: int
-    adjusted_close: Optional[Decimal] = None
-    
+    adjusted_close: Decimal | None = None
+
     def to_dict(self) -> dict:
         """Convert to dictionary for CSV export."""
         return {

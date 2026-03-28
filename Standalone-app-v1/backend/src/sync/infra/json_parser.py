@@ -1,9 +1,8 @@
 
 import json
 import logging
-from datetime import datetime, date
+from datetime import date, datetime
 from decimal import Decimal
-from typing import List, Optional, Dict, Any
 
 from src.sync.infra.legacy_models import LegacyEstimateRow
 
@@ -14,13 +13,13 @@ class LegacyJsonParser:
     Parser for legacy TickerTracker JSON backup format (Version 4.0+).
     """
 
-    def parse_backup_json(self, content: str) -> List[LegacyEstimateRow]:
+    def parse_backup_json(self, content: str) -> list[LegacyEstimateRow]:
         """
         Parse legacy JSON backup into LegacyEstimateRow objects.
-        
+
         Args:
             content: JSON content as string
-            
+
         Returns:
             List of LegacyEstimateRow objects
         """
@@ -43,7 +42,7 @@ class LegacyJsonParser:
                 if isinstance(val, list):
                     estimates_data = val
                     break
-        
+
         rows = []
         for item in estimates_data:
             try:
@@ -69,17 +68,17 @@ class LegacyJsonParser:
                         start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00")).date()
                     except ValueError:
                         pass
-                
+
                 # Prices and Percents
                 start_price = Decimal(str(item.get("startPrice", 0)))
                 target_pct = Decimal(str(item.get("profitTarget", 0)))
                 stop_pct = Decimal(str(item.get("stopLoss", 0)))
-                
+
                 # Calculate absolute target/stop if missing but percents present
                 target_price = Decimal(str(item.get("targetPrice", 0)))
                 if target_price == 0 and start_price > 0 and target_pct != 0:
                     target_price = start_price * (1 + target_pct / 100)
-                
+
                 stop_loss_price = Decimal(str(item.get("stopLossPrice", 0)))
                 if stop_loss_price == 0 and start_price > 0 and stop_pct != 0:
                     stop_loss_price = start_price * (1 + stop_pct / 100)
@@ -101,7 +100,7 @@ class LegacyJsonParser:
                     close_date=None, # Extract if present
                     current_price=Decimal(str(item.get("currentPrice", 0))) if item.get("currentPrice") else None,
                 )
-                
+
                 # Extract end date if present
                 end_date_str = item.get("endDate")
                 if end_date_str:
@@ -114,5 +113,5 @@ class LegacyJsonParser:
             except Exception as e:
                 logger.warning(f"Failed to parse JSON estimate: {e}")
                 continue
-                
+
         return rows

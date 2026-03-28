@@ -11,24 +11,23 @@ All endpoints use MarketDataProvider (TASK 2.18-2.19) for data retrieval.
 """
 
 from datetime import date, datetime
-from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
+from src.infra.security.rate_limit import is_whitelisted, limiter
+from src.market_data.api.dependencies import get_market_data_provider, get_market_data_repository
 from src.market_data.domain.providers import (
+    DataUnavailableError,
+    FundamentalsData,
     MarketDataProvider,
     PriceData,
-    FundamentalsData,
     SymbolNotFoundError,
-    DataUnavailableError,
 )
-from src.market_data.api.dependencies import get_market_data_provider, get_market_data_repository
 from src.market_data.repositories.market_data_repository import MarketDataRepository
 from src.market_data.schemas.lineage import MarketDataLineageSchema
-from src.shared.schemas.api_response import ApiResponse
 from src.shared.repositories.pagination import CursorPagination, Direction, PaginatedResult
-from src.infra.security.rate_limit import limiter, is_whitelisted
-
+from src.shared.schemas.api_response import ApiResponse
 
 # ============================================================================
 # RESPONSE SCHEMAS
@@ -57,7 +56,7 @@ class HistoricalPricePoint(BaseModel):
     low: str
     close: str
     volume: int
-    lineage: Optional[MarketDataLineageSchema] = Field(
+    lineage: MarketDataLineageSchema | None = Field(
         None, description="Data lineage metadata (present when ?include_lineage=true)"
     )
 
@@ -68,7 +67,7 @@ class HistoryResponse(BaseModel):
     interval: str
     start_date: date
     end_date: date
-    data: List[HistoricalPricePoint]
+    data: list[HistoricalPricePoint]
     source: str
     timestamp: datetime
 
@@ -76,17 +75,17 @@ class HistoryResponse(BaseModel):
 class FundamentalsResponse(BaseModel):
     """Response schema for fundamentals endpoint."""
     symbol: str
-    company_name: Optional[str] = None
-    sector: Optional[str] = None
-    industry: Optional[str] = None
-    market_cap: Optional[str] = None
-    pe_ratio: Optional[str] = None
-    eps: Optional[str] = None
-    dividend_yield: Optional[str] = None
-    beta: Optional[str] = None
-    fifty_two_week_high: Optional[str] = None
-    fifty_two_week_low: Optional[str] = None
-    average_volume: Optional[int] = None
+    company_name: str | None = None
+    sector: str | None = None
+    industry: str | None = None
+    market_cap: str | None = None
+    pe_ratio: str | None = None
+    eps: str | None = None
+    dividend_yield: str | None = None
+    beta: str | None = None
+    fifty_two_week_high: str | None = None
+    fifty_two_week_low: str | None = None
+    average_volume: int | None = None
     source: str
     timestamp: datetime
     is_stale: bool = False
@@ -96,13 +95,13 @@ class SearchResult(BaseModel):
     """Single search result."""
     symbol: str
     name: str
-    exchange: Optional[str] = None
+    exchange: str | None = None
 
 
 class SearchResponse(BaseModel):
     """Response schema for symbol search endpoint."""
     query: str
-    results: List[SearchResult]
+    results: list[SearchResult]
     count: int
 
 
@@ -137,9 +136,9 @@ class PaginatedHistoryResponse(BaseModel):
     """
 
     symbol: str
-    items: List[PaginatedHistoryItem]
-    next_cursor: Optional[str] = None
-    prev_cursor: Optional[str] = None
+    items: list[PaginatedHistoryItem]
+    next_cursor: str | None = None
+    prev_cursor: str | None = None
     has_more: bool
     total_in_page: int
     limit: int
@@ -172,16 +171,16 @@ async def get_current_price(
 ):
     """
     Get current/most recent price for a ticker symbol.
-    
+
     **Cache-Control**: Data is cached for 1 hour (3600 seconds).
     """
     try:
         price_data: PriceData = await provider.get_current_price(ticker.upper())
-        
+
         # Set cache headers
         cache_duration = 3600 if not price_data.is_stale else 60
         response.headers["Cache-Control"] = f"public, max-age={cache_duration}"
-        
+
         price_response = PriceResponse(
             symbol=price_data.symbol,
             price=str(price_data.close),
@@ -195,12 +194,12 @@ async def get_current_price(
             timestamp=price_data.timestamp,
             is_stale=price_data.is_stale,
         )
-        
+
         return ApiResponse.success(
             data=price_response,
             message=f"Current price for {ticker.upper()}"
         )
-        
+
     except SymbolNotFoundError:
         raise HTTPException(status_code=404, detail=f"Symbol '{ticker}' not found")
     except DataUnavailableError as e:
@@ -227,12 +226,12 @@ async def get_historical_prices(
 ):
     """
     Get historical price data with optional aggregation.
-    
+
     **Intervals**:
     - `1d`: Daily data (default)
     - `1w`: Weekly aggregated data
     - `1m`: Monthly aggregated data
-    
+
     **Cache-Control**: Data is cached for 1 day (86400 seconds).
     """
     try:
@@ -241,17 +240,17 @@ async def get_historical_prices(
                 status_code=400,
                 detail="start_date must be before or equal to end_date"
             )
-        
-        price_history: List[PriceData] = await provider.get_historical_prices(
+
+        price_history: list[PriceData] = await provider.get_historical_prices(
             symbol=ticker.upper(),
             start_date=start_date,
             end_date=end_date,
             interval=interval,
         )
-        
+
         # Set cache headers (historical data changes less frequently)
         response.headers["Cache-Control"] ="public, max-age=86400"
-        
+
         history_points = [
             HistoricalPricePoint(
                 date=p.date,
@@ -269,7 +268,7 @@ async def get_historical_prices(
             )
             for p in price_history
         ]
-        
+
         history_response = HistoryResponse(
             symbol=ticker.upper(),
             interval=interval,
@@ -279,12 +278,12 @@ async def get_historical_prices(
             source=price_history[0].source if price_history else "unknown",
             timestamp=datetime.utcnow(),
         )
-        
+
         return ApiResponse.success(
             data=history_response,
             message=f"Historical data for {ticker.upper()} ({len(history_points)} points)"
         )
-        
+
     except SymbolNotFoundError:
         raise HTTPException(status_code=404, detail=f"Symbol '{ticker}' not found")
     except DataUnavailableError as e:
@@ -307,18 +306,18 @@ async def get_fundamentals(
 ):
     """
     Get fundamental data for a ticker symbol.
-    
+
     Returns financial metrics and company information.
     Not all fields may be available from all data sources.
-    
+
     **Cache-Control**: Data is cached for 1 day (86400 seconds).
     """
     try:
         fundamentals: FundamentalsData = await provider.get_fundamentals(ticker.upper())
-        
+
         # Set cache headers (fundamentals change infrequently)
         response.headers["Cache-Control"] = "public, max-age=86400"
-        
+
         fundamentals_response = FundamentalsResponse(
             symbol=fundamentals.symbol,
             company_name=fundamentals.company_name,
@@ -336,12 +335,12 @@ async def get_fundamentals(
             timestamp=fundamentals.timestamp,
             is_stale=fundamentals.is_stale,
         )
-        
+
         return ApiResponse.success(
             data=fundamentals_response,
             message=f"Fundamentals for {ticker.upper()}"
         )
-        
+
     except SymbolNotFoundError:
         raise HTTPException(status_code=404, detail=f"Symbol '{ticker}' not found")
     except DataUnavailableError as e:
@@ -364,21 +363,21 @@ async def search_symbols(
 ):
     """
     Search for ticker symbols (autocomplete).
-    
+
     Useful for symbol discovery and autocomplete features.
     Returns max 10 results ordered by relevance.
-    
+
     **Cache-Control**: Search results are cached for 1 hour.
     """
     try:
         search_results = await provider.search_symbol(q)
-        
+
         # Limit to 10 results, ordered by relevance (provider should handle this)
         limited_results = search_results[:10]
-        
+
         # Set cache headers
         response.headers["Cache-Control"] = "public, max-age=3600"
-        
+
         results = [
             SearchResult(
                 symbol=r.get("symbol", ""),
@@ -387,18 +386,18 @@ async def search_symbols(
             )
             for r in limited_results
         ]
-        
+
         search_response = SearchResponse(
             query=q,
             results=results,
             count=len(results),
         )
-        
+
         return ApiResponse.success(
             data=search_response,
             message=f"Found {len(results)} results for '{q}'"
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching symbols: {str(e)}")
 
@@ -414,6 +413,7 @@ async def _resolve_ticker_id(symbol: str, repo: MarketDataRepository):
     Returns the UUID, or raises HTTPException(404) if not found.
     """
     from sqlalchemy import select
+
     from src.market_data.domain.entities import Ticker
     from src.shared.infra.database import AsyncSessionLocal
 
@@ -454,11 +454,11 @@ async def _resolve_ticker_id(symbol: str, repo: MarketDataRepository):
 )
 async def get_paginated_history(
     ticker: str,
-    cursor: Optional[str] = Query(None, description="Opaque cursor from a previous response"),
+    cursor: str | None = Query(None, description="Opaque cursor from a previous response"),
     direction: str = Query("next", pattern="^(next|prev)$", description="Navigation direction"),
     limit: int = Query(50, ge=1, le=500, description="Items per page (1–500)"),
-    start_date: Optional[date] = Query(None, description="Optional lower-bound date filter (inclusive)"),
-    end_date: Optional[date] = Query(None, description="Optional upper-bound date filter (inclusive)"),
+    start_date: date | None = Query(None, description="Optional lower-bound date filter (inclusive)"),
+    end_date: date | None = Query(None, description="Optional upper-bound date filter (inclusive)"),
     repo: MarketDataRepository = Depends(get_market_data_repository),
 ):
     """

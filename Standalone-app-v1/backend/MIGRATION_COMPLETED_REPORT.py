@@ -54,18 +54,18 @@
 📊 TABELLE CREATE NEL DATABASE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
- Schema |      Name       | Type  |     Owner     
+ Schema |      Name       | Type  |     Owner
 --------+-----------------+-------+---------------
- public | ai_model_runs   | table | tickertracker 
- public | alembic_version | table | tickertracker 
- public | estimate_events | table | tickertracker 
- public | estimates       | table | tickertracker 
- public | market_data     | table | tickertracker 
- public | roles           | table | tickertracker 
- public | sync_jobs       | table | tickertracker 
- public | tickers         | table | tickertracker 
- public | user_roles      | table | tickertracker 
- public | users           | table | tickertracker 
+ public | ai_model_runs   | table | tickertracker
+ public | alembic_version | table | tickertracker
+ public | estimate_events | table | tickertracker
+ public | estimates       | table | tickertracker
+ public | market_data     | table | tickertracker
+ public | roles           | table | tickertracker
+ public | sync_jobs       | table | tickertracker
+ public | tickers         | table | tickertracker
+ public | user_roles      | table | tickertracker
+ public | users           | table | tickertracker
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -82,7 +82,7 @@
 
 ✓ estimates.domain.entities.Estimate
   └─ Tabella: estimates
-  └─ Indici: ix_estimate_ticker_id, ix_estimate_status, 
+  └─ Indici: ix_estimate_ticker_id, ix_estimate_status,
             ix_estimate_created_at, ix_estimate_open_status (partial)
   └─ Check Constraints: 4 (price validation, ai_confidence range)
 
@@ -204,9 +204,9 @@ Il database è ora pronto per essere utilizzato dall'applicazione!
 Per sviluppo futuro:
 1. Quando aggiungi/modifichi modelli, esegui:
    alembic revision --autogenerate -m "Descrizione"
-   
+
 2. Verifica sempre la migration generata prima di applicarla
-   
+
 3. Applica la migration con:
    alembic upgrade head
 

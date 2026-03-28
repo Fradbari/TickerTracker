@@ -15,16 +15,16 @@ backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from uuid import uuid4
 
-from src.shared.infra.database import AsyncSessionLocal
+from src.estimates.domain.entities import Estimate
 from src.estimates.repositories import EstimateRepository
 from src.estimates.schemas.filters import EstimateFilters
-from src.shared.schemas.pagination import Pagination
-from src.estimates.domain.entities import Estimate
 from src.market_data.domain.entities import Ticker
+from src.shared.infra.database import AsyncSessionLocal
+from src.shared.schemas.pagination import Pagination
 
 
 async def create_test_ticker(session_factory) -> Ticker:
@@ -37,7 +37,7 @@ async def create_test_ticker(session_factory) -> Ticker:
         currency="USD",
         asset_type="stock",
     )
-    
+
     async with session_factory() as session:
         session.add(ticker)
         await session.commit()
@@ -50,14 +50,14 @@ async def test_repository():
     print("\n" + "="*60)
     print("TASK 2.12 - EstimateRepository Verification")
     print("="*60 + "\n")
-    
+
     repo = EstimateRepository(AsyncSessionLocal)
-    
+
     # Test 1: Create a test ticker
     print("[1/10] Creating test ticker...")
     ticker = await create_test_ticker(AsyncSessionLocal)
     print(f"✅ Ticker created: {ticker.symbol} ({ticker.id})\n")
-    
+
     # Test 2: Create estimate
     print("[2/10] Testing create()...")
     estimate = Estimate(
@@ -75,12 +75,12 @@ async def test_repository():
         ai_confidence=Decimal("0.85"),
         ai_reasoning="Strong bullish trend",
     )
-    
+
     created = await repo.create(estimate)
     print(f"✅ Estimate created: {created.id}")
     print(f"   Status: {created.status}, Direction: {created.direction}")
     print(f"   Target: ${created.target_price}, Stop Loss: ${created.stop_loss_price}\n")
-    
+
     # Test 3: Get by ID
     print("[3/10] Testing get_by_id()...")
     retrieved = await repo.get_by_id(created.id)
@@ -88,7 +88,7 @@ async def test_repository():
     assert retrieved.id == created.id, "IDs should match"
     print(f"✅ Retrieved estimate: {retrieved.id}")
     print(f"   Ticker: {retrieved.ticker.symbol if retrieved.ticker else 'N/A'}\n")
-    
+
     # Test 4: Create more estimates for pagination testing
     print("[4/10] Creating additional estimates for pagination...")
     estimates_created = [created]
@@ -110,19 +110,19 @@ async def test_repository():
         )
         created_est = await repo.create(est)
         estimates_created.append(created_est)
-    
+
     print(f"✅ Created {len(estimates_created)} total estimates\n")
-    
+
     # Test 5: Get all with pagination
     print("[5/10] Testing get_all() with pagination...")
     filters = EstimateFilters(ticker_id=ticker.id)
     pagination = Pagination(limit=3)
-    
+
     result = await repo.get_all(filters, pagination)
     print(f"✅ Retrieved {len(result.items)} estimates (limit: 3)")
     print(f"   Has next page: {result.page_info.has_next_page}")
     print(f"   Next cursor: {result.page_info.next_cursor[:30] if result.page_info.next_cursor else 'None'}...\n")
-    
+
     # Test 6: Get next page
     if result.page_info.has_next_page:
         print("[6/10] Testing pagination - next page...")
@@ -132,7 +132,7 @@ async def test_repository():
         print(f"   Has next page: {result2.page_info.has_next_page}\n")
     else:
         print("[6/10] ⚠️  Not enough data for pagination test\n")
-    
+
     # Test 7: Filter by status
     print("[7/10] Testing filters (status=OPEN)...")
     filters_open = EstimateFilters(ticker_id=ticker.id, status="OPEN")
@@ -142,13 +142,13 @@ async def test_repository():
     for est in result_open.items[:3]:
         print(f"   - {est.id}: {est.status}, ${est.start_price}")
     print()
-    
+
     # Test 8: Get active by ticker
     print("[8/10] Testing get_active_by_ticker()...")
     active = await repo.get_active_by_ticker(ticker.id)
     print(f"✅ Found {len(active)} active estimates")
-    print(f"   (Active = status OPEN, not deleted)\n")
-    
+    print("   (Active = status OPEN, not deleted)\n")
+
     # Test 9: Update estimate
     print("[9/10] Testing update()...")
     first_estimate = estimates_created[0]
@@ -156,25 +156,25 @@ async def test_repository():
     first_estimate.exit_price = Decimal("125.00")
     first_estimate.realized_pnl = Decimal("250.00")
     first_estimate.closed_at = datetime.utcnow()
-    
+
     updated = await repo.update(first_estimate)
     print(f"✅ Updated estimate {updated.id}")
     print(f"   New status: {updated.status}")
     print(f"   Exit price: ${updated.exit_price}")
     print(f"   Realized PnL: ${updated.realized_pnl}\n")
-    
+
     # Test 10: Soft delete
     print("[10/10] Testing soft_delete()...")
     delete_target = estimates_created[1]
     deleted = await repo.soft_delete(delete_target.id)
     assert deleted, "Soft delete should succeed"
     print(f"✅ Soft deleted estimate {delete_target.id}")
-    
+
     # Verify soft delete
     retrieved_deleted = await repo.get_by_id(delete_target.id)
     assert retrieved_deleted is None, "Soft deleted estimate should not be retrieved"
-    print(f"✅ Verified: soft deleted estimate is not returned by get_by_id()\n")
-    
+    print("✅ Verified: soft deleted estimate is not returned by get_by_id()\n")
+
     # Test 11: Statistics
     print("[BONUS] Testing get_statistics_by_ticker()...")
     stats = await repo.get_statistics_by_ticker(ticker.id)
@@ -182,7 +182,7 @@ async def test_repository():
     for key, value in stats.items():
         print(f"   {key}: {value}")
     print()
-    
+
     # Summary
     print("="*60)
     print("✅ ALL TESTS PASSED!")

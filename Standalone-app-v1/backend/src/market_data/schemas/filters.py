@@ -5,17 +5,17 @@ Provides type-safe filtering options for MarketDataRepository.
 """
 
 from datetime import date
-from typing import Optional
 from uuid import UUID
+
 from pydantic import BaseModel, Field
 
 
 class MarketDataFilters(BaseModel):
     """
     Filters for querying MarketData entities.
-    
+
     All filters are optional and combined with AND logic.
-    
+
     Attributes:
         ticker_id: Filter by specific ticker (optional due to range queries)
         start_date: Query data from this date onwards (inclusive)
@@ -23,18 +23,18 @@ class MarketDataFilters(BaseModel):
         min_quality_score: Minimum data quality score (0.0 - 1.0)
         data_source: Filter by data source (default: "yahoo")
     """
-    
-    ticker_id: Optional[UUID] = Field(default=None, description="Filter by ticker ID")
-    start_date: Optional[date] = Field(default=None, description="Start date (inclusive)")
-    end_date: Optional[date] = Field(default=None, description="End date (inclusive)")
-    min_quality_score: Optional[float] = Field(
+
+    ticker_id: UUID | None = Field(default=None, description="Filter by ticker ID")
+    start_date: date | None = Field(default=None, description="Start date (inclusive)")
+    end_date: date | None = Field(default=None, description="End date (inclusive)")
+    min_quality_score: float | None = Field(
         default=None,
         ge=0.0,
         le=1.0,
         description="Minimum quality score filter"
     )
-    data_source: Optional[str] = Field(default=None, description="Data source filter (e.g., 'yahoo')")
-    
+    data_source: str | None = Field(default=None, description="Data source filter (e.g., 'yahoo')")
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -45,7 +45,7 @@ class MarketDataFilters(BaseModel):
                 "data_source": "yahoo"
             }
         }
-    
+
     def has_filters(self) -> bool:
         """Check if any filters are applied."""
         return any([
@@ -60,20 +60,20 @@ class MarketDataFilters(BaseModel):
 class MarketDataAggregationParams(BaseModel):
     """
     Parameters for aggregating MarketData into time periods.
-    
+
     Attributes:
         interval: Aggregation interval ("1D", "1W", "1M")
         start_date: Start date for aggregation (optional)
         end_date: End date for aggregation (optional)
     """
-    
+
     interval: str = Field(
         default="1W",
         description="Aggregation interval (1D=daily, 1W=weekly, 1M=monthly)"
     )
-    start_date: Optional[date] = Field(default=None, description="Start date for aggregation")
-    end_date: Optional[date] = Field(default=None, description="End date for aggregation")
-    
+    start_date: date | None = Field(default=None, description="Start date for aggregation")
+    end_date: date | None = Field(default=None, description="End date for aggregation")
+
     class Config:
         json_schema_extra = {
             "example": {

@@ -7,18 +7,20 @@ Defines:
 
 from __future__ import annotations
 
-from uuid import uuid4
 from datetime import datetime
+from uuid import uuid4
+
 from sqlalchemy import (
     Column,
-    String,
-    Text,
-    Integer,
     DateTime,
     ForeignKey,
     Index,
+    Integer,
+    String,
+    Text,
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+
 from src.shared.infra.database import Base
 
 

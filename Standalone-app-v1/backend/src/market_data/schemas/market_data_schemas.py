@@ -6,16 +6,16 @@ Provides input/output types for repository methods.
 
 from datetime import date
 from decimal import Decimal
-from typing import Optional
+
 from pydantic import BaseModel, Field, field_validator
 
 
 class MarketDataRow(BaseModel):
     """
     Input schema for upserting market data.
-    
+
     Used in upsert_daily() to provide OHLCV data for a single trading day.
-    
+
     Attributes:
         date: Trading date
         open: Opening price
@@ -26,7 +26,7 @@ class MarketDataRow(BaseModel):
         data_source: Source of the data (default: 'yahoo')
         quality_score: Quality score 0.00-1.00 (default: 0.80)
     """
-    
+
     date: date = Field(description="Trading date")
     open: Decimal = Field(gt=0, description="Opening price")
     high: Decimal = Field(gt=0, description="Highest price")
@@ -34,13 +34,13 @@ class MarketDataRow(BaseModel):
     close: Decimal = Field(gt=0, description="Closing price")
     volume: int = Field(ge=0, description="Trading volume")
     data_source: str = Field(default="yahoo", max_length=50, description="Data source")
-    quality_score: Optional[Decimal] = Field(
+    quality_score: Decimal | None = Field(
         default=Decimal("0.80"),
         ge=0,
         le=1,
         description="Quality score 0.00-1.00"
     )
-    
+
     @field_validator('high')
     @classmethod
     def high_must_be_highest(cls, v, info):
@@ -52,7 +52,7 @@ class MarketDataRow(BaseModel):
         if 'close' in info.data and v < info.data['close']:
             raise ValueError('high must be >= close')
         return v
-    
+
     @field_validator('low')
     @classmethod
     def low_must_be_lowest(cls, v, info):
@@ -62,7 +62,7 @@ class MarketDataRow(BaseModel):
         if 'close' in info.data and v > info.data['close']:
             raise ValueError('low must be <= close')
         return v
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -81,9 +81,9 @@ class MarketDataRow(BaseModel):
 class AggregatedData(BaseModel):
     """
     Output schema for aggregated market data.
-    
+
     Used by get_aggregated() to return aggregated OHLCV data over intervals.
-    
+
     Attributes:
         period_start: Start date of the aggregation period
         period_end: End date of the aggregation period
@@ -96,20 +96,20 @@ class AggregatedData(BaseModel):
         avg_close: Average closing price
         days_count: Number of trading days in period
     """
-    
+
     period_start: date = Field(description="Period start date")
     period_end: date = Field(description="Period end date")
     interval: str = Field(description="Aggregation interval")
-    
+
     open: Decimal = Field(description="Opening price (first day)")
     high: Decimal = Field(description="Highest price in period")
     low: Decimal = Field(description="Lowest price in period")
     close: Decimal = Field(description="Closing price (last day)")
     volume: int = Field(description="Total volume in period")
-    
+
     avg_close: Decimal = Field(description="Average closing price")
     days_count: int = Field(description="Number of trading days")
-    
+
     class Config:
         json_schema_extra = {
             "example": {

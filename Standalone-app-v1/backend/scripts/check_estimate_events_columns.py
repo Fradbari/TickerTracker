@@ -1,6 +1,9 @@
-import sqlalchemy as sa
 import asyncio
+
+import sqlalchemy as sa
+
 from src.shared.infra.database import engine
+
 
 def main():
     async def check():

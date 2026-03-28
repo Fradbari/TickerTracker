@@ -13,14 +13,14 @@ Exports:
   DecryptionError              – Raised on ciphertext tampering/key mismatch (Task 3.4)
 """
 
-from .middleware import SecurityMiddleware, register_security_middleware
-from .rate_limit import limiter, is_whitelisted, setup_rate_limiter
 from .encryption import (
-    EncryptedString,
-    rotate_key,
-    EncryptionConfigError,
     DecryptionError,
+    EncryptedString,
+    EncryptionConfigError,
+    rotate_key,
 )
+from .middleware import SecurityMiddleware, register_security_middleware
+from .rate_limit import is_whitelisted, limiter, setup_rate_limiter
 
 __all__ = [
     "SecurityMiddleware",

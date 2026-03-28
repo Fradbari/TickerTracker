@@ -53,7 +53,7 @@ import base64
 import json
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Generic, List, Optional, TypeVar
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 
@@ -88,7 +88,7 @@ class CursorPagination:
     """
 
     limit: int = 50
-    cursor: Optional[str] = None
+    cursor: str | None = None
     direction: Direction = Direction.NEXT
 
     def __post_init__(self) -> None:
@@ -117,9 +117,9 @@ class PaginatedResult(Generic[T]):
         total_in_page: Number of items in this page.
     """
 
-    items: List[T] = field(default_factory=list)
-    next_cursor: Optional[str] = None
-    prev_cursor: Optional[str] = None
+    items: list[T] = field(default_factory=list)
+    next_cursor: str | None = None
+    prev_cursor: str | None = None
 
     @property
     def has_more(self) -> bool:

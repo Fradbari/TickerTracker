@@ -1,25 +1,28 @@
-import pytest
 from decimal import Decimal
+
+import pytest
+
 from src.shared.domain.value_objects.money import Money
 from src.shared.domain.value_objects.price_target import PriceTarget
+
 
 class TestPriceTarget:
     @pytest.fixture
     def money_100(self):
         return Money("100.00", "USD")
-        
+
     @pytest.fixture
     def money_90(self):
         return Money("90.00", "USD")
-        
+
     @pytest.fixture
     def money_120(self):
         return Money("120.00", "USD")
-        
+
     @pytest.fixture
     def money_110(self):
         return Money("110.00", "USD")
-        
+
     @pytest.fixture
     def money_80(self):
         return Money("80.00", "USD")
@@ -33,7 +36,7 @@ class TestPriceTarget:
         )
         assert pt.direction == "LONG"
         assert pt.entry_price == money_100
-        
+
     def test_valid_short_creation(self, money_100, money_110, money_80):
         pt = PriceTarget(
             entry_price=money_100,
@@ -52,7 +55,7 @@ class TestPriceTarget:
                 take_profit=money_120,
                 direction="LONG"
             )
-            
+
         money_eur = Money("100.00", "EUR")
         with pytest.raises(ValueError, match="All prices must have the same currency"):
             PriceTarget(
@@ -61,7 +64,7 @@ class TestPriceTarget:
                 take_profit=money_120,
                 direction="LONG"
             )
-            
+
         with pytest.raises(ValueError, match="Direction must be 'LONG' or 'SHORT'"):
             PriceTarget(
                 entry_price=money_100,
@@ -74,7 +77,7 @@ class TestPriceTarget:
         # entry <= stop_loss
         with pytest.raises(ValueError, match="For LONG: stop_loss"):
             PriceTarget(entry_price=money_90, stop_loss=money_100, take_profit=money_120, direction="LONG")
-            
+
         # take_profit <= entry
         with pytest.raises(ValueError, match="For LONG: stop_loss"):
             PriceTarget(entry_price=money_120, stop_loss=money_90, take_profit=money_100, direction="LONG")
@@ -83,7 +86,7 @@ class TestPriceTarget:
         # stop_loss <= entry
         with pytest.raises(ValueError, match="For SHORT: take_profit"):
             PriceTarget(entry_price=money_110, stop_loss=money_100, take_profit=money_80, direction="SHORT")
-            
+
         # entry <= take_profit
         with pytest.raises(ValueError, match="For SHORT: take_profit"):
             PriceTarget(entry_price=money_80, stop_loss=money_110, take_profit=money_100, direction="SHORT")
@@ -97,7 +100,7 @@ class TestPriceTarget:
             direction="LONG"
         )
         assert pt_long.risk_reward_ratio() == Decimal("2.0")
-        
+
         # SHORT: risk = 10, reward = 20 -> RR = 2.0
         pt_short = PriceTarget(
             entry_price=money_100,
@@ -106,7 +109,7 @@ class TestPriceTarget:
             direction="SHORT"
         )
         assert pt_short.risk_reward_ratio() == Decimal("2.0")
-        
+
     def test_risk_reward_ratio_zero_risk_fallback(self):
         # We need to bypass post_init to force a division by zero error theoretically
         pt = PriceTarget.__new__(PriceTarget)
@@ -122,7 +125,7 @@ class TestPriceTarget:
         assert not pt_long.is_target_hit(Money("119.00", "USD"))
         assert pt_long.is_target_hit(Money("120.00", "USD"))
         assert pt_long.is_target_hit(Money("121.00", "USD"))
-        
+
         pt_short = PriceTarget(entry_price=money_100, stop_loss=money_110, take_profit=money_80, direction="SHORT")
         assert not pt_short.is_target_hit(Money("81.00", "USD"))
         assert pt_short.is_target_hit(Money("80.00", "USD"))
@@ -139,7 +142,7 @@ class TestPriceTarget:
         assert not pt_long.is_stop_hit(Money("91.00", "USD"))
         assert pt_long.is_stop_hit(Money("90.00", "USD"))
         assert pt_long.is_stop_hit(Money("89.00", "USD"))
-        
+
         pt_short = PriceTarget(entry_price=money_100, stop_loss=money_110, take_profit=money_80, direction="SHORT")
         assert not pt_short.is_stop_hit(Money("109.00", "USD"))
         assert pt_short.is_stop_hit(Money("110.00", "USD"))
@@ -160,12 +163,12 @@ class TestPriceTarget:
             "take_profit": {"amount": "120.00", "currency": "USD"},
             "direction": "LONG",
         }
-        
+
         pt_restored = PriceTarget.from_dict(data)
         assert pt_restored.entry_price == pt.entry_price
         assert pt_restored.take_profit == pt.take_profit
         assert pt_restored.direction == pt.direction
-        
+
         # Missing keys
         with pytest.raises(KeyError, match="Missing required keys"):
             PriceTarget.from_dict({"direction": "LONG"})

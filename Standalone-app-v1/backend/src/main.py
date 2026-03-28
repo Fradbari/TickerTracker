@@ -11,18 +11,17 @@ Configures:
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from src.shared.api import health_routes
 from src.estimates.api import router as estimates_router
-from src.market_data.api import routes as market_data_routes
-from src.shared.infra.config import get_settings
-
-from src.shared.infra.security_middleware import setup_security_middleware
-from src.infra.security.rate_limit import setup_rate_limiter
-from src.infra.logging.config import configure_logging, CorrelationIDMiddleware
+from src.infra.logging.config import CorrelationIDMiddleware, configure_logging
 from src.infra.metrics.routes import router as metrics_router
 
 # APScheduler integration
 from src.infra.scheduler import scheduler as app_scheduler
+from src.infra.security.rate_limit import setup_rate_limiter
+from src.market_data.api import routes as market_data_routes
+from src.shared.api import health_routes
+from src.shared.infra.config import get_settings
+from src.shared.infra.security_middleware import setup_security_middleware
 
 # Get application settings
 settings = get_settings()
@@ -87,6 +86,7 @@ async def root() -> dict[str, str]:
 
 
 from sqlalchemy.exc import TimeoutError as SATimeoutError
+
 
 @app.exception_handler(SATimeoutError)
 async def db_timeout_exception_handler(request: Request, exc: SATimeoutError) -> JSONResponse:

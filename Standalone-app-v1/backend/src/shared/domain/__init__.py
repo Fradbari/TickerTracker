@@ -1,7 +1,7 @@
 """Shared domain exports."""
 
-from .user import User, Role, RoleType, user_roles
 from .lineage import DataSource, LineageTracked
+from .user import Role, RoleType, User, user_roles
 
 __all__ = [
     "User",

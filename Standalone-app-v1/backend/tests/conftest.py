@@ -1,10 +1,10 @@
 ﻿import asyncio
-import pytest
-from typing import AsyncGenerator
-from unittest.mock import AsyncMock, MagicMock
+from collections.abc import AsyncGenerator
+from unittest.mock import AsyncMock
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from httpx import AsyncClient, ASGITransport
+import pytest
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.main import app
 from src.shared.infra.database import Base, get_db

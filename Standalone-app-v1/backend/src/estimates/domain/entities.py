@@ -4,27 +4,27 @@ Estimates domain entities - Estimate model.
 This module defines the SQLAlchemy model for trading estimates/predictions.
 """
 
-import uuid
 import enum
-from datetime import datetime
-from decimal import Decimal
-from typing import TYPE_CHECKING
+import uuid
+
 from sqlalchemy import (
+    DECIMAL,
     Boolean,
+    CheckConstraint,
     Column,
-    String,
-    Text,
     DateTime,
     ForeignKey,
     Index,
-    Enum as SQLEnum,
-    CheckConstraint,
-    DECIMAL,
+    String,
+    Text,
     text,
 )
+from sqlalchemy import (
+    Enum as SQLEnum,
+)
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from src.shared.infra.database import Base
 
@@ -47,7 +47,7 @@ class Direction(str, enum.Enum):
 class Estimate(Base):
     """
     Estimate entity representing a trading prediction/estimate.
-    
+
     Attributes:
         id: Unique identifier (UUID)
         ticker_id: Reference to the traded ticker
@@ -70,9 +70,9 @@ class Estimate(Base):
         exit_price: Actual exit price (nullable until closed)
         realized_pnl: Realized profit/loss (nullable until closed)
     """
-    
+
     __tablename__ = "estimates"
-    
+
     # Primary key
     id = Column(
         UUID(as_uuid=True),
@@ -80,7 +80,7 @@ class Estimate(Base):
         default=uuid.uuid4,
         nullable=False,
     )
-    
+
     # Foreign keys
     ticker_id = Column(
         UUID(as_uuid=True),
@@ -89,46 +89,46 @@ class Estimate(Base):
         index=True,
         doc="Reference to the ticker being predicted"
     )
-    
+
     user_id = Column(
         UUID(as_uuid=True),
         # ForeignKey to User table will be added later
         nullable=True,
         doc="Reference to the user who created the estimate"
     )
-    
+
     # Price fields (using DECIMAL for precision)
     start_price = Column(
         DECIMAL(10, 4),
         nullable=False,
         doc="Entry price for the estimate"
     )
-    
+
     target_price = Column(
         DECIMAL(10, 4),
         nullable=False,
         doc="Target price for profit"
     )
-    
+
     stop_loss_price = Column(
         DECIMAL(10, 4),
         nullable=False,
         doc="Stop loss price"
     )
-    
+
     # Target percentages
     target_profit_percent = Column(
         DECIMAL(8, 4),
         nullable=False,
         doc="Target profit percentage"
     )
-    
+
     stop_loss_percent = Column(
         DECIMAL(8, 4),
         nullable=False,
         doc="Stop loss percentage"
     )
-    
+
     # Status and direction
     status = Column(
         SQLEnum(EstimateStatus, name="estimate_status"),
@@ -137,32 +137,32 @@ class Estimate(Base):
         index=True,
         doc="Current status of the estimate"
     )
-    
+
     direction = Column(
         SQLEnum(Direction, name="direction"),
         nullable=False,
         doc="Trading direction: LONG or SHORT"
     )
-    
+
     # AI-related fields
     ai_model = Column(
         String(100),
         nullable=True,
         doc="AI model identifier used for the estimate"
     )
-    
+
     ai_confidence = Column(
         DECIMAL(5, 2),
         nullable=True,
         doc="AI confidence score (0-100)"
     )
-    
+
     ai_reasoning = Column(
         Text,
         nullable=True,
         doc="AI reasoning and explanation for the estimate"
     )
-    
+
     # Date fields
     created_at = Column(
         DateTime(timezone=True),
@@ -171,7 +171,7 @@ class Estimate(Base):
         index=True,
         doc="Timestamp of estimate creation"
     )
-    
+
     updated_at = Column(
         DateTime(timezone=True),
         nullable=False,
@@ -179,7 +179,7 @@ class Estimate(Base):
         onupdate=func.now(),
         doc="Timestamp of last update"
     )
-    
+
     closed_at = Column(
         DateTime(timezone=True),
         nullable=True,
@@ -200,27 +200,27 @@ class Estimate(Base):
         nullable=True,
         doc="Timestamp when estimate was soft deleted"
     )
-    
+
     # Exit fields (nullable until closed)
     exit_price = Column(
         DECIMAL(10, 4),
         nullable=True,
         doc="Actual exit price (set when closed)"
     )
-    
+
     realized_pnl = Column(
         DECIMAL(12, 4),
         nullable=True,
         doc="Realized profit/loss (set when closed)"
     )
-    
+
     # Relationship to Ticker
     ticker = relationship(
         "Ticker",
         backref="estimates",
         lazy="select"
     )
-    
+
     # Indexes and constraints
     __table_args__ = (
         # Standard indexes
@@ -228,14 +228,14 @@ class Estimate(Base):
         Index("ix_estimate_status", "status"),
         Index("ix_estimate_created_at", "created_at"),
         Index("ix_estimate_is_deleted", "is_deleted"),
-        
+
         # Partial index for open estimates (most frequent query)
         Index(
             "ix_estimate_open_status",
             "status",
             postgresql_where=text("status = 'OPEN'")
         ),
-        
+
         # Check constraints
         CheckConstraint(
             "ai_confidence IS NULL OR (ai_confidence >= 0 AND ai_confidence <= 100)",
@@ -254,7 +254,7 @@ class Estimate(Base):
             name="ck_estimate_stop_loss_price_positive"
         ),
     )
-    
+
     def __repr__(self) -> str:
         """String representation for debugging."""
         return (

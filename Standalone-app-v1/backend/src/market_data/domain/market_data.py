@@ -7,15 +7,21 @@ quality_score) is provided by the ``LineageTracked`` mixin (TASK 3.9).
 """
 
 from decimal import Decimal
+
 from sqlalchemy import (
-    Column, Date, ForeignKey,
-    Index, CheckConstraint, DECIMAL, BigInteger,
+    DECIMAL,
+    BigInteger,
+    CheckConstraint,
+    Column,
+    Date,
+    ForeignKey,
+    Index,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from src.shared.infra.database import Base
 from src.shared.domain.lineage import LineageTracked
+from src.shared.infra.database import Base
 
 
 class MarketData(LineageTracked, Base):
@@ -46,9 +52,9 @@ class MarketData(LineageTracked, Base):
         0.50-0.79 = Aggregated/derived data
         0.00-0.49 = Estimated/low-confidence data
     """
-    
+
     __tablename__ = "market_data"
-    
+
     # Composite Primary Key: ticker_id + date
     ticker_id = Column(
         UUID(as_uuid=True),
@@ -57,45 +63,45 @@ class MarketData(LineageTracked, Base):
         nullable=False,
         doc="Reference to the ticker"
     )
-    
+
     date = Column(
         Date,
         primary_key=True,
         nullable=False,
         doc="Trading date (part of composite PK)"
     )
-    
+
     # OHLCV fields (all prices use DECIMAL for precision)
     open = Column(
         DECIMAL(10, 4),
         nullable=False,
         doc="Opening price for the day"
     )
-    
+
     high = Column(
         DECIMAL(10, 4),
         nullable=False,
         doc="Highest price during the day"
     )
-    
+
     low = Column(
         DECIMAL(10, 4),
         nullable=False,
         doc="Lowest price during the day"
     )
-    
+
     close = Column(
         DECIMAL(10, 4),
         nullable=False,
         doc="Closing price for the day"
     )
-    
+
     volume = Column(
         BigInteger,
         nullable=False,
         doc="Trading volume (number of shares/units traded)"
     )
-    
+
     # NOTE: data_source, source_timestamp, ingestion_timestamp, quality_score
     # are inherited from the LineageTracked mixin (TASK 3.9).
 
@@ -105,7 +111,7 @@ class MarketData(LineageTracked, Base):
         backref="market_data",
         lazy="select"
     )
-    
+
     # Indexes and constraints
     __table_args__ = (
         # Unique constraint on composite PK (implicit from primary_key=True)
@@ -116,10 +122,10 @@ class MarketData(LineageTracked, Base):
             "date",
             unique=True
         ),
-        
+
         # Index on date for time-series queries
         Index("ix_market_data_date", "date"),
-        
+
         # Check constraints for data validation
         CheckConstraint(
             "open > 0",
@@ -166,24 +172,24 @@ class MarketData(LineageTracked, Base):
             name="ck_market_data_quality_score_range"
         ),
     )
-    
+
     def __repr__(self) -> str:
         """String representation for debugging."""
         return (
             f"<MarketData(ticker_id={self.ticker_id}, date={self.date}, "
             f"close={self.close}, volume={self.volume})>"
         )
-    
+
     @property
     def day_range(self) -> Decimal:
         """Calculate the day's price range (high - low)."""
         return self.high - self.low
-    
+
     @property
     def day_change(self) -> Decimal:
         """Calculate the day's price change (close - open)."""
         return self.close - self.open
-    
+
     @property
     def day_change_percent(self) -> Decimal:
         """Calculate the day's price change percentage."""

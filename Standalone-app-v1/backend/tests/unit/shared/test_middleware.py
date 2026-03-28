@@ -8,9 +8,10 @@ Tests cover:
 - Health check endpoints
 """
 
+from unittest.mock import AsyncMock, patch
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch
 
 from src.shared.api.health_routes import router as health_router
 from src.shared.infra.security_middleware import (

@@ -9,6 +9,7 @@ print('Using Python:', sys.executable)
 
 # Test 1: DataSource enum
 from src.shared.domain.lineage import DataSource, LineageTracked
+
 assert DataSource.YAHOO_FINANCE.value == 'yahoo_finance'
 assert DataSource.from_legacy('yahoo') == DataSource.YAHOO_FINANCE
 assert DataSource.from_legacy('manual') == DataSource.MANUAL_ENTRY
@@ -18,13 +19,14 @@ print('✅ DataSource enum OK')
 # Test 2: LineageTracked mixin basic import check
 expected = {'data_source', 'source_timestamp', 'ingestion_timestamp', 'quality_score'}
 # best-effort introspection: check attributes on class dict and presence of compute_quality_score
-mixin_keys = set(k for k in LineageTracked.__dict__.keys())
-print(f'  LineageTracked keys (sample): {sorted(list(mixin_keys))[:10]}')
+mixin_keys = set(LineageTracked.__dict__.keys())
+print(f'  LineageTracked keys (sample): {sorted(mixin_keys)[:10]}')
 assert hasattr(LineageTracked, 'compute_quality_score')
 print('✅ LineageTracked mixin importato OK')
 
 # Test 3: MarketData inherits from LineageTracked
 from src.market_data.domain.market_data import MarketData
+
 assert issubclass(MarketData, LineageTracked), 'MarketData deve ereditare LineageTracked'
 print('✅ MarketData eredita LineageTracked OK')
 

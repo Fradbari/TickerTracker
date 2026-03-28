@@ -14,19 +14,21 @@ from __future__ import annotations
 
 from enum import Enum as PyEnum
 from uuid import uuid4
-from datetime import datetime
-from typing import List
 
 from sqlalchemy import (
-    Column,
-    String,
     Boolean,
+    Column,
     DateTime,
-    Table,
     ForeignKey,
     Index,
-    func as sa_func,
+    String,
+    Table,
+)
+from sqlalchemy import (
     Enum as SAEnum,
+)
+from sqlalchemy import (
+    func as sa_func,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship

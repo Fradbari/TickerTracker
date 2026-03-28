@@ -198,7 +198,18 @@ docker compose -f docker-compose.base.yml down -v
 
 ---
 
-## 📋 Struttura Docker Compose
+## � CI/CD e Pipeline Actions
+
+Il progetto include pipeline CI configurate con GitHub Actions (vedi `.github/workflows/ci.yml`).
+
+- **backend-lint**: Type checking/linting
+- **backend-test** / **frontend-test**: Test suite con postgres/redis e reportistica Codecov
+- **backend-security**: File system vulnerality scanner (`aquasecurity/trivy-action`)
+- **e2e-test**: Playwright actions in sandboxed OS containers
+
+---
+
+## �📋 Struttura Docker Compose
 
 - **`docker-compose.yml`** (TASK 3.12) ← **Entry point principale**
   - Tutti i servizi: PostgreSQL 16, Redis 7, Backend FastAPI, Frontend React

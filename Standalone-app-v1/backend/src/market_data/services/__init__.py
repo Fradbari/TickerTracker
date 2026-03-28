@@ -1,14 +1,14 @@
 """Market data services exports."""
 
 from .market_data_service import MarketDataService
-from .yahoo_provider import YahooMarketDataProvider
 from .provider_implementations import (
+    AlphaVantageMarketDataProvider,
     FakeMarketDataProvider,
     FinnhubMarketDataProvider,
-    AlphaVantageMarketDataProvider,
     PolygonMarketDataProvider,
 )
 from .quality_monitor import DataQualityMonitor, QualityIssue, QualityRule
+from .yahoo_provider import YahooMarketDataProvider
 
 __all__ = [
     "MarketDataService",

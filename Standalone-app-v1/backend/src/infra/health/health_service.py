@@ -31,8 +31,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Literal
 
-import structlog
 import redis.asyncio as aioredis  # type: ignore[import]
+import structlog
 import yfinance as yf  # type: ignore[import]
 from sqlalchemy import text
 
@@ -105,7 +105,6 @@ class HealthService:
 
         Timeout: 3 s.  Any exception → UNHEALTHY.
         """
-        from sqlalchemy import text
 
 
         t0 = time.perf_counter()
@@ -345,7 +344,7 @@ class HealthService:
 
         components: list[ComponentHealth] = []
         _names = ["database", "redis", "yahoo_finance", "google_drive"]
-        for name, result in zip(_names, results):
+        for name, result in zip(_names, results, strict=False):
             if isinstance(result, ComponentHealth):
                 components.append(result)
             else:

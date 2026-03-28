@@ -1,6 +1,6 @@
 from .filters import (
-    MarketDataFilters,
     MarketDataAggregationParams,
+    MarketDataFilters,
 )
 from .lineage import MarketDataLineageSchema
 

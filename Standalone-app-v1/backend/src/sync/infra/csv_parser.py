@@ -11,11 +11,11 @@ import io
 import logging
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
-from typing import List, Optional, Dict, Any
+from typing import Any
 
-from src.sync.infra.legacy_models import LegacyEstimateRow, LegacyHistoryRow
 from src.estimates.domain.entities import Estimate
 from src.market_data.domain.market_data import MarketData
+from src.sync.infra.legacy_models import LegacyEstimateRow, LegacyHistoryRow
 
 logger = logging.getLogger(__name__)
 
@@ -81,47 +81,47 @@ HISTORY_COLUMN_MAP = {
 class LegacyCsvParser:
     """
     Parser for legacy TickerTracker CSV formats.
-    
+
     Handles:
     - UTF-8 encoding with BOM
     - Missing/empty columns
     - Type conversions with fallbacks
     - Bidirectional parse/export
-    
+
     Example:
         ```python
         parser = LegacyCsvParser()
-        
+
         # Parse estimates
         with open('estimates.csv', 'rb') as f:
             content = f.read()
             estimates = parser.parse_estimates_csv(content)
-        
+
         # Export estimate
         csv_row = parser.export_estimate_to_csv_row(estimate, fundamentals)
         ```
     """
-    
+
     def __init__(self):
         """Initialize parser with column mappings."""
         self.estimates_map = ESTIMATES_COLUMN_MAP
         self.history_map = HISTORY_COLUMN_MAP
-    
+
     @staticmethod
-    def _safe_decimal(value: str, default: Optional[Decimal] = None) -> Optional[Decimal]:
+    def _safe_decimal(value: str, default: Decimal | None = None) -> Decimal | None:
         """
         Safely convert string to Decimal.
-        
+
         Args:
             value: String value to convert
             default: Default value if conversion fails
-            
+
         Returns:
             Decimal value or default
         """
         if not value or value.strip() == "":
             return default
-        
+
         try:
             # Remove any currency symbols, commas, etc.
             cleaned = value.strip().replace(",", "").replace("$", "").replace("%", "")
@@ -129,22 +129,22 @@ class LegacyCsvParser:
         except (InvalidOperation, ValueError) as e:
             logger.warning(f"Failed to convert '{value}' to Decimal: {e}")
             return default
-    
+
     @staticmethod
-    def _safe_int(value: str, default: Optional[int] = None) -> Optional[int]:
+    def _safe_int(value: str, default: int | None = None) -> int | None:
         """
         Safely convert string to int.
-        
+
         Args:
             value: String value to convert
             default: Default value if conversion fails
-            
+
         Returns:
             Int value or default
         """
         if not value or value.strip() == "":
             return default
-        
+
         try:
             # Remove any commas
             cleaned = value.strip().replace(",", "")
@@ -152,29 +152,29 @@ class LegacyCsvParser:
         except (ValueError, TypeError) as e:
             logger.warning(f"Failed to convert '{value}' to int: {e}")
             return default
-    
+
     @staticmethod
-    def _safe_date(value: str, default: Optional[date] = None) -> Optional[date]:
+    def _safe_date(value: str, default: date | None = None) -> date | None:
         """
         Safely convert string to date.
-        
+
         Supports formats:
         - YYYY-MM-DD (ISO)
         - MM/DD/YYYY
         - DD/MM/YYYY
-        
+
         Args:
             value: String value to convert
             default: Default value if conversion fails
-            
+
         Returns:
             Date value or default
         """
         if not value or value.strip() == "":
             return default
-        
+
         value = value.strip()
-        
+
         # Try different date formats
         formats = [
             "%Y-%m-%d",        # ISO format
@@ -182,104 +182,104 @@ class LegacyCsvParser:
             "%d/%m/%Y",        # EU format
             "%Y/%m/%d",        # Alternative ISO
         ]
-        
+
         for fmt in formats:
             try:
                 return datetime.strptime(value, fmt).date()
             except ValueError:
                 continue
-        
+
         logger.warning(f"Failed to parse date '{value}'")
         return default
-    
+
     @staticmethod
-    def _safe_datetime(value: str, default: Optional[datetime] = None) -> Optional[datetime]:
+    def _safe_datetime(value: str, default: datetime | None = None) -> datetime | None:
         """
         Safely convert string to datetime.
-        
+
         Args:
             value: String value to convert
             default: Default value if conversion fails
-            
+
         Returns:
             Datetime value or default
         """
         if not value or value.strip() == "":
             return default
-        
+
         value = value.strip()
-        
+
         # Try ISO format
         try:
             return datetime.fromisoformat(value.replace("Z", "+00:00"))
         except ValueError:
             pass
-        
+
         # Try common formats
         formats = [
             "%Y-%m-%d %H:%M:%S",
             "%Y-%m-%d %H:%M:%S.%f",
             "%m/%d/%Y %H:%M:%S",
         ]
-        
+
         for fmt in formats:
             try:
                 return datetime.strptime(value, fmt)
             except ValueError:
                 continue
-        
+
         logger.warning(f"Failed to parse datetime '{value}'")
         return default
-    
-    def parse_estimates_csv(self, content: bytes) -> List[LegacyEstimateRow]:
+
+    def parse_estimates_csv(self, content: bytes) -> list[LegacyEstimateRow]:
         """
         Parse estimates CSV file into LegacyEstimateRow objects.
-        
+
         Handles:
         - UTF-8 encoding with BOM
         - Missing columns (uses defaults)
         - Empty values (converts to None)
         - Type conversions with error handling
-        
+
         Args:
             content: Raw CSV content as bytes
-            
+
         Returns:
             List of LegacyEstimateRow objects
-            
+
         Raises:
             ValueError: If CSV is malformed or required columns missing
-            
+
         Example:
             >>> with open('estimates.csv', 'rb') as f:
             ...     rows = parser.parse_estimates_csv(f.read())
             >>> print(f"Parsed {len(rows)} estimates")
         """
         logger.info("Parsing estimates CSV")
-        
+
         # Decode with UTF-8, handling BOM
         try:
             text = content.decode('utf-8-sig')  # Removes BOM if present
         except UnicodeDecodeError as e:
             logger.error(f"Failed to decode CSV: {e}")
             raise ValueError(f"Invalid UTF-8 encoding: {e}")
-        
+
         # Parse CSV
         reader = csv.DictReader(io.StringIO(text))
-        
+
         # Create a normalized field mapping (lowercase, no spaces)
         def normalize_key(k: str) -> str:
             return k.lower().replace(" ", "").replace("_", "")
-            
+
         rows = []
-        
+
         for row_num, row in enumerate(reader, start=2):
             try:
                 # Create a case-insensitive, space-insensitive row access
                 normalized_row = {normalize_key(k): v for k, v in row.items()}
-                
+
                 # Get fields using various common names
-                def get_field(names: List[str], default: Any = "") -> Any:
+                def get_field(names: list[str], default: Any = "") -> Any:
                     for name in names:
                         norm = normalize_key(name)
                         if norm in normalized_row:
@@ -290,15 +290,15 @@ class LegacyCsvParser:
                 if not ticker:
                     logger.warning(f"Row {row_num}: Missing ticker, skipping")
                     continue
-                
+
                 start_price = self._safe_decimal(get_field(["Start Price", "startPrice"]))
                 target_price = self._safe_decimal(get_field(["Target Price", "targetPrice", "TP"]))
                 stop_loss_price = self._safe_decimal(get_field(["Stop Loss", "stopLoss", "SL"]))
-                
+
                 if not all([start_price, target_price, stop_loss_price]):
                     logger.warning(f"Row {row_num}: Missing required price fields, skipping")
                     continue
-                
+
                 # Build LegacyEstimateRow
                 legacy_row = LegacyEstimateRow(
                     ticker=ticker,
@@ -310,18 +310,18 @@ class LegacyCsvParser:
                     stop_loss_percent=self._safe_decimal(get_field(["Stop Loss %", "stopLossPct", "stopLossPercent"]), Decimal("0")),
                     direction=get_field(["Direction", "type"], "LONG").strip().upper(),
                     status=get_field(["Status", "state"], "OPEN").strip().upper(),
-                    
+
                     # Optional closure fields
                     close_date=self._safe_date(get_field(["Close Date", "closeDate", "endDate"])),
                     exit_price=self._safe_decimal(get_field(["Exit Price", "exitPrice", "closePrice"])),
                     realized_pnl=self._safe_decimal(get_field(["Realized P/L", "realizedPnL", "pnl"])),
                     realized_pnl_percent=self._safe_decimal(get_field(["Realized P/L %", "pnlPct", "realizedPnLPercent"])),
-                    
+
                     # AI fields
                     ai_model=get_field(["AI Model", "aiName", "model"]).strip() or None,
                     ai_confidence=self._safe_decimal(get_field(["AI Confidence", "confidence"])),
                     ai_reasoning=get_field(["AI Reasoning", "reasoning", "notes"]).strip() or None,
-                    
+
                     # Market data
                     current_price=self._safe_decimal(get_field(["Current Price", "currentPrice"])),
                     day_change=self._safe_decimal(get_field(["Day Change", "change"])),
@@ -329,7 +329,7 @@ class LegacyCsvParser:
                     volume=self._safe_int(get_field(["Volume", "vol"])),
                     avg_volume=self._safe_int(get_field(["Avg Volume", "avgVolume"])),
                     market_cap=self._safe_decimal(get_field(["Market Cap", "marketCap"])),
-                    
+
                     # Fundamentals
                     pe_ratio=self._safe_decimal(get_field(["P/E Ratio", "peRatio", "trailingPE"])),
                     eps=self._safe_decimal(get_field(["EPS", "trailingEps"])),
@@ -339,7 +339,7 @@ class LegacyCsvParser:
                     week_52_high=self._safe_decimal(get_field(["52W High", "fiftyTwoWeekHigh"])),
                     week_52_low=self._safe_decimal(get_field(["52W Low", "fiftyTwoWeekLow"])),
                     week_52_change_percent=self._safe_decimal(get_field(["52W Change %"])),
-                    
+
                     # Technical indicators
                     rsi_14=self._safe_decimal(get_field(["RSI(14)", "rsi"])),
                     sma_20=self._safe_decimal(get_field(["SMA(20)", "sma20"])),
@@ -347,7 +347,7 @@ class LegacyCsvParser:
                     sma_200=self._safe_decimal(get_field(["SMA(200)", "sma200"])),
                     ema_20=self._safe_decimal(get_field(["EMA(20)", "ema20"])),
                     ema_50=self._safe_decimal(get_field(["EMA(50)", "ema50"])),
-                    
+
                     # Metadata
                     user_id=get_field(["User ID", "userId"]).strip() or None,
                     notes=get_field(["Notes", "note"]).strip() or None,
@@ -355,31 +355,31 @@ class LegacyCsvParser:
                     created_at=self._safe_datetime(get_field(["Created At", "createdAt", "timestamp"])),
                     updated_at=self._safe_datetime(get_field(["Updated At", "updatedAt"])),
                 )
-                
+
                 rows.append(legacy_row)
-                
+
             except Exception as e:
                 logger.error(f"Row {row_num}: Failed to parse: {e}", exc_info=True)
                 continue
-        
+
         logger.info(f"Parsed {len(rows)} estimate rows from CSV")
         return rows
-    
+
     def export_estimate_to_csv_row(
         self,
         estimate: Estimate,
-        fundamentals: Optional[Dict[str, Any]] = None
+        fundamentals: dict[str, Any] | None = None
     ) -> str:
         """
         Export an Estimate entity to CSV row format.
-        
+
         Args:
             estimate: Estimate entity to export
             fundamentals: Optional dict with market data and fundamentals
-            
+
         Returns:
             CSV row string (single line with values)
-            
+
         Example:
             >>> row = parser.export_estimate_to_csv_row(estimate, fundamentals)
             >>> print(row)
@@ -387,7 +387,7 @@ class LegacyCsvParser:
         """
         # Extract fundamentals if provided
         fund = fundamentals or {}
-        
+
         # Build legacy row from estimate
         legacy_row = LegacyEstimateRow(
             ticker=estimate.ticker.symbol if hasattr(estimate, 'ticker') else "UNKNOWN",
@@ -399,18 +399,18 @@ class LegacyCsvParser:
             stop_loss_percent=estimate.stop_loss_percent,
             direction=estimate.direction.value if hasattr(estimate.direction, 'value') else str(estimate.direction),
             status=estimate.status.value if hasattr(estimate.status, 'value') else str(estimate.status),
-            
+
             # Closure fields
             close_date=estimate.closed_at.date() if estimate.closed_at else None,
             exit_price=estimate.exit_price,
             realized_pnl=estimate.realized_pnl,
             realized_pnl_percent=estimate.realized_pnl / estimate.start_price * 100 if estimate.realized_pnl and estimate.start_price else None,
-            
+
             # AI fields
             ai_model=estimate.ai_model,
             ai_confidence=estimate.ai_confidence,
             ai_reasoning=estimate.ai_reasoning,
-            
+
             # Fundamentals from dict
             current_price=self._safe_decimal(str(fund.get("current_price", ""))),
             day_change=self._safe_decimal(str(fund.get("day_change", ""))),
@@ -432,7 +432,7 @@ class LegacyCsvParser:
             sma_200=self._safe_decimal(str(fund.get("sma_200", ""))),
             ema_20=self._safe_decimal(str(fund.get("ema_20", ""))),
             ema_50=self._safe_decimal(str(fund.get("ema_50", ""))),
-            
+
             # Metadata
             user_id=str(estimate.user_id) if estimate.user_id else None,
             notes=None,  # Not in Estimate model
@@ -440,57 +440,57 @@ class LegacyCsvParser:
             created_at=estimate.created_at,
             updated_at=estimate.updated_at,
         )
-        
+
         # Convert to dict and build CSV row
         row_dict = legacy_row.to_dict()
-        
+
         # Create CSV string with proper quoting
         output = io.StringIO()
         writer = csv.DictWriter(output, fieldnames=row_dict.keys(), quoting=csv.QUOTE_MINIMAL)
         writer.writerow(row_dict)
-        
+
         return output.getvalue().strip()
-    
-    def parse_history_csv(self, content: bytes, default_ticker: Optional[str] = None) -> List[LegacyHistoryRow]:
+
+    def parse_history_csv(self, content: bytes, default_ticker: str | None = None) -> list[LegacyHistoryRow]:
         """
         Parse history CSV file into LegacyHistoryRow objects.
-        
+
         Format: Date,Ticker,Open,High,Low,Close,Volume,Adj Close
         Accepts various naming variations (case-insensitive, space-insensitive).
-        
+
         Args:
             content: Raw CSV content as bytes
             default_ticker: Optional fallback ticker if column missing
-            
+
         Returns:
             List of LegacyHistoryRow objects
-            
+
         Raises:
             ValueError: If CSV is malformed
         """
         logger.info("Parsing history CSV")
-        
+
         # Decode with UTF-8, handling BOM
         try:
             text = content.decode('utf-8-sig')
         except UnicodeDecodeError as e:
             logger.error(f"Failed to decode CSV: {e}")
             raise ValueError(f"Invalid UTF-8 encoding: {e}")
-        
+
         # Parse CSV
         reader = csv.DictReader(io.StringIO(text))
-        
+
         # Normalized field mapping
         def normalize_key(k: str) -> str:
             return k.lower().replace(" ", "").replace("_", "")
-            
+
         rows = []
-        
+
         for row_num, row in enumerate(reader, start=2):
             try:
                 normalized_row = {normalize_key(k): v for k, v in row.items()}
-                
-                def get_field(names: List[str], default: Any = "") -> Any:
+
+                def get_field(names: list[str], default: Any = "") -> Any:
                     for name in names:
                         norm = normalize_key(name)
                         if norm in normalized_row:
@@ -505,13 +505,13 @@ class LegacyCsvParser:
                 low = self._safe_decimal(get_field(["Low", "low"]))
                 close = self._safe_decimal(get_field(["Close", "close"]))
                 volume = self._safe_int(get_field(["Volume", "vol", "volume"]))
-                
+
                 if not all([date_val, ticker, open_price, high, low, close]):
                     # Volume can be 0 or missing in some legacy formats, treat as optional if others present
                     if not all([date_val, ticker, open_price, high, low, close]):
                          logger.warning(f"Row {row_num}: Missing required fields, skipping")
                          continue
-                
+
                 legacy_row = LegacyHistoryRow(
                     date=date_val,
                     ticker=ticker.strip().upper(),
@@ -522,26 +522,26 @@ class LegacyCsvParser:
                     volume=volume or 0,
                     adjusted_close=self._safe_decimal(get_field(["Adj Close", "adjClose", "adjustedClose"])),
                 )
-                
+
                 rows.append(legacy_row)
-                
+
             except Exception as e:
                 logger.error(f"Row {row_num}: Failed to parse: {e}", exc_info=True)
                 continue
-        
+
         logger.info(f"Parsed {len(rows)} history rows from CSV")
         return rows
-    
-    def export_history_to_csv(self, data: List[MarketData]) -> bytes:
+
+    def export_history_to_csv(self, data: list[MarketData]) -> bytes:
         """
         Export list of MarketData to history CSV format.
-        
+
         Args:
             data: List of MarketData entities
-            
+
         Returns:
             CSV content as bytes (UTF-8 encoded with BOM)
-            
+
         Example:
             >>> market_data = [...] # List of MarketData
             >>> csv_bytes = parser.export_history_to_csv(market_data)
@@ -549,7 +549,7 @@ class LegacyCsvParser:
             ...     f.write(csv_bytes)
         """
         logger.info(f"Exporting {len(data)} market data records to CSV")
-        
+
         # Create history rows from MarketData
         rows = []
         for md in data:
@@ -564,7 +564,7 @@ class LegacyCsvParser:
                 adjusted_close=md.adjusted_close,
             )
             rows.append(legacy_row.to_dict())
-        
+
         # Write to CSV
         output = io.StringIO()
         if rows:
@@ -572,15 +572,15 @@ class LegacyCsvParser:
             writer = csv.DictWriter(output, fieldnames=fieldnames, quoting=csv.QUOTE_MINIMAL)
             writer.writeheader()
             writer.writerows(rows)
-        
+
         # Encode to bytes with BOM
         csv_text = output.getvalue()
         return csv_text.encode('utf-8-sig')
-    
+
     def _get_estimates_header(self) -> str:
         """
         Get CSV header row for estimates file.
-        
+
         Returns:
             CSV header row as string with all column names
         """

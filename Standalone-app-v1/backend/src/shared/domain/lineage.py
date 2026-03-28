@@ -37,11 +37,9 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Optional
 
-from sqlalchemy import Column, DateTime, String, DECIMAL
+from sqlalchemy import DECIMAL, Column, DateTime, String
 from sqlalchemy.sql import func
-
 
 # ---------------------------------------------------------------------------
 # DataSource enum
@@ -63,7 +61,7 @@ class DataSource(str, Enum):
     CALCULATED = "calculated"
 
     @classmethod
-    def from_legacy(cls, value: str) -> "DataSource":
+    def from_legacy(cls, value: str) -> DataSource:
         """
         Convert legacy ``data_source`` string values to the current enum.
 
@@ -83,7 +81,7 @@ class DataSource(str, Enum):
             >>> DataSource.from_legacy("unknown_source")
             <DataSource.YAHOO_FINANCE: 'yahoo_finance'>
         """
-        mapping: dict[str, "DataSource"] = {
+        mapping: dict[str, DataSource] = {
             "yahoo": cls.YAHOO_FINANCE,
             "yahoo_finance": cls.YAHOO_FINANCE,
             "finnhub": cls.FINNHUB,
@@ -156,7 +154,7 @@ class LineageTracked:
 
     def compute_quality_score(
         self,
-        source_ts: Optional[datetime] = None,
+        source_ts: datetime | None = None,
         has_volume: bool = True,
         has_ohlc: bool = True,
     ) -> Decimal:

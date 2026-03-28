@@ -1,6 +1,6 @@
 import pytest
 from httpx import AsyncClient
-from src.main import app
+
 
 @pytest.mark.e2e
 async def test_get_current_price_yahoo_real(async_client: AsyncClient):

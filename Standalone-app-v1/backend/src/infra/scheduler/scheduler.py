@@ -1,12 +1,13 @@
 import logging
+import time
+from datetime import datetime
+
+import pytz
+from apscheduler.executors.asyncio import AsyncIOExecutor
+from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-from apscheduler.jobstores.memory import MemoryJobStore
-from apscheduler.executors.asyncio import AsyncIOExecutor
-from datetime import datetime
-import pytz
-import time
 
 from src.infra.scheduler import jobs
 
@@ -45,7 +46,7 @@ def create_scheduler():
         executors={"default": AsyncIOExecutor()},
         timezone=UTC
     )
-    
+
     # OUTBOX PATTERN JOBS
     # Job: process_outbox_events (ogni 30 secondi)
     scheduler.add_job(
@@ -54,7 +55,7 @@ def create_scheduler():
         id="process_outbox_events",
         replace_existing=True
     )
-    
+
     # Job: handle_dead_letters (ogni giorno alle 02:00 UTC)
     scheduler.add_job(
         job_wrapper(jobs.handle_dead_letters, "handle_dead_letters"),
@@ -62,7 +63,7 @@ def create_scheduler():
         id="handle_dead_letters",
         replace_existing=True
     )
-    
+
     # Job: refresh_market_data (ogni 5 minuti, orari di mercato)
     scheduler.add_job(
         job_wrapper(jobs.refresh_market_data, "refresh_market_data"),
@@ -70,7 +71,7 @@ def create_scheduler():
         id="refresh_market_data",
         replace_existing=True
     )
-    
+
     # Job: daily_history_sync (ogni giorno alle 23:00 UTC)
     scheduler.add_job(
         job_wrapper(jobs.daily_history_sync, "daily_history_sync"),
@@ -78,7 +79,7 @@ def create_scheduler():
         id="daily_history_sync",
         replace_existing=True
     )
-    
+
     # Job: refresh_materialized_views (ogni 5 minuti)
     scheduler.add_job(
         job_wrapper(jobs.refresh_materialized_views, "refresh_materialized_views"),
@@ -86,7 +87,7 @@ def create_scheduler():
         id="refresh_materialized_views",
         replace_existing=True
     )
-    
+
     # Job: check_targets (ogni minuto)
     scheduler.add_job(
         job_wrapper(jobs.check_targets, "check_targets"),

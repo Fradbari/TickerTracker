@@ -20,7 +20,7 @@ Test classes
   TestSchemaIntegration     –  8 cases (XSS/SQL + Pydantic wiring)
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from uuid import uuid4
 
@@ -28,20 +28,19 @@ import pytest
 from pydantic import ValidationError
 
 from src.shared.schemas.validators import (
-    sanitize_ticker,
     sanitize_text,
-    validate_price,
-    validate_percentage,
+    sanitize_ticker,
     validate_date_range,
+    validate_percentage,
+    validate_price,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 def _dt(year: int, month: int = 1, day: int = 1) -> datetime:
-    return datetime(year, month, day, tzinfo=timezone.utc)
+    return datetime(year, month, day, tzinfo=UTC)
 
 
 # ---------------------------------------------------------------------------
@@ -283,14 +282,14 @@ class TestValidateDateRange:
         validate_date_range(_dt(2026, 1, 1), _dt(2026, 1, 2))  # 1-day range ok
 
     def test_exactly_ten_years_no_exception(self):
-        start = _dt(2016, 1, 1)
-        end = _dt(2026, 1, 1)  # 3652 > 3650? — depends on leap years; use timedelta
-        start2 = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        _dt(2016, 1, 1)
+        _dt(2026, 1, 1)  # 3652 > 3650? — depends on leap years; use timedelta
+        start2 = datetime(2020, 1, 1, tzinfo=UTC)
         end2 = start2 + timedelta(days=3650)
         validate_date_range(start2, end2)  # exactly 3650 days — allowed
 
     def test_over_ten_years_raises(self):
-        start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        start = datetime(2020, 1, 1, tzinfo=UTC)
         end = start + timedelta(days=3651)
         with pytest.raises(ValueError, match="Date range cannot exceed 10 years"):
             validate_date_range(start, end)
@@ -317,22 +316,22 @@ class TestSchemaIntegration:
 
     def test_schema_uses_sanitize_ticker(self):
         from pydantic import BaseModel, field_validator
-        
+
         class TickerModel(BaseModel):
             ticker: str
-            
+
             @field_validator("ticker")
             @classmethod
             def _val_ticker(cls, v: str) -> str:
                 return sanitize_ticker(v)
-        
+
         # Valid
         assert TickerModel(ticker="aapl").ticker == "AAPL"
-        
+
         # Invalid
         with pytest.raises(ValidationError) as exc_info:
             TickerModel(ticker="aa pl!")
-        
+
         msg = str(exc_info.value)
         assert "Ticker must be 1–10 characters: A-Z, 0-9, dot or dash" in msg
 
@@ -411,7 +410,7 @@ class TestSchemaIntegration:
     def test_filters_closed_range_over_ten_years_raises(self):
         from src.estimates.schemas.filters import EstimateFilters
 
-        start = datetime(2010, 1, 1, tzinfo=timezone.utc)
+        start = datetime(2010, 1, 1, tzinfo=UTC)
         end = start + timedelta(days=4000)
         with pytest.raises(ValidationError, match="Date range cannot exceed 10 years"):
             EstimateFilters(closed_after=start, closed_before=end)

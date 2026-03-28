@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.shared.infra.database import get_db
 
 router = APIRouter(prefix="/api/test", tags=["test"])
@@ -14,7 +15,7 @@ async def seed_test_database(db: AsyncSession = Depends(get_db)):
         # TRUNCATE estimates cascade
         await db.execute(text("TRUNCATE TABLE estimates CASCADE;"))
         # we can also truncate tickers if we store them
-        # await db.execute(text("TRUNCATE TABLE tickers CASCADE;")) 
+        # await db.execute(text("TRUNCATE TABLE tickers CASCADE;"))
         await db.commit()
     except Exception as e:
         await db.rollback()

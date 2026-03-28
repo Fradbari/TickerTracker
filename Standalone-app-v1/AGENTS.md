@@ -135,8 +135,8 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [ ] **TASK 5.5** - Implementare Property-Based Testing per P&L
 - [x] **TASK 5.7** - Scrivere Component Test per EstimateForm
 - [x] **TASK 5.8** - Setup E2E Test con Playwright
-- [ ] **TASK 5.9** - Implementare Chaos Testing
-- [ ] **TASK 5.10** - Configurare CI Pipeline (GitHub Actions)
+- [x] **TASK 5.9** - Implementare Chaos Testing
+- [x] **TASK 5.10** - Configurare CI Pipeline (GitHub Actions)
 - [ ] **TASK 5.11** - Configurare CD Pipeline (Deploy)
 - [ ] **TASK 5.15** - Creare Runbook Operativo
 - [ ] **TASK 5.16** - Documentare API con OpenAPI

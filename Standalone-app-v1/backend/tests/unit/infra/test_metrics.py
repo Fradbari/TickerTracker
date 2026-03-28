@@ -25,7 +25,7 @@ Coverage
 
 import asyncio
 import json
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import FastAPI
@@ -34,7 +34,6 @@ from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
 
 from src.infra.metrics.metrics import track_duration
 from src.infra.metrics.routes import router as metrics_router
-
 
 # ---------------------------------------------------------------------------
 # Minimal test app (metrics router only)
@@ -63,8 +62,8 @@ class TestCounterBehaviour:
         )
 
     def test_counter_starts_at_zero(self):
-        metric = self._counter.labels(env="test")
-        samples = {
+        self._counter.labels(env="test")
+        {
             s.name: s.value
             for s in self._registry.get_sample_value.__self__  # pragma: no cover
         } if False else {}

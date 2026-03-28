@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+
 def calculate_pnl(
     start_price: Decimal,
     exit_price: Decimal,

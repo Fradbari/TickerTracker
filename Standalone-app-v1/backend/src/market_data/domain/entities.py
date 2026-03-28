@@ -5,8 +5,8 @@ This module defines the SQLAlchemy model for ticker/symbol information.
 """
 
 import uuid
-from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Index, CheckConstraint
+
+from sqlalchemy import CheckConstraint, Column, DateTime, Index, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -16,7 +16,7 @@ from src.shared.infra.database import Base
 class Ticker(Base):
     """
     Ticker entity representing a tradable financial instrument.
-    
+
     Attributes:
         id: Unique identifier (UUID)
         symbol: Trading symbol (e.g., 'AAPL', 'MSFT')
@@ -27,9 +27,9 @@ class Ticker(Base):
         created_at: Timestamp of record creation
         updated_at: Timestamp of last update
     """
-    
+
     __tablename__ = "tickers"
-    
+
     # Primary key
     id = Column(
         UUID(as_uuid=True),
@@ -37,7 +37,7 @@ class Ticker(Base):
         default=uuid.uuid4,
         nullable=False,
     )
-    
+
     # Core fields
     symbol = Column(
         String(10),
@@ -46,32 +46,32 @@ class Ticker(Base):
         index=True,
         doc="Trading symbol (unique identifier)"
     )
-    
+
     name = Column(
         String(255),
         nullable=False,
         doc="Full name of the instrument"
     )
-    
+
     exchange = Column(
         String(50),
         nullable=True,
         doc="Exchange where instrument is traded"
     )
-    
+
     currency = Column(
         String(3),
         nullable=False,
         default="USD",
         doc="Currency code (ISO 4217)"
     )
-    
+
     asset_type = Column(
         String(20),
         nullable=False,
         doc="Type of asset: stock, etf, or crypto"
     )
-    
+
     # Audit timestamps
     created_at = Column(
         DateTime(timezone=True),
@@ -79,7 +79,7 @@ class Ticker(Base):
         server_default=func.now(),
         doc="Timestamp of record creation"
     )
-    
+
     updated_at = Column(
         DateTime(timezone=True),
         nullable=False,
@@ -87,7 +87,7 @@ class Ticker(Base):
         onupdate=func.now(),
         doc="Timestamp of last update"
     )
-    
+
     # Constraints
     __table_args__ = (
         CheckConstraint(
@@ -96,7 +96,7 @@ class Ticker(Base):
         ),
         Index("ix_ticker_symbol", "symbol"),
     )
-    
+
     def __repr__(self) -> str:
         """String representation for debugging."""
         return f"<Ticker(symbol={self.symbol!r}, name={self.name!r}, type={self.asset_type!r})>"

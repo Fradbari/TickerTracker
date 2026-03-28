@@ -20,11 +20,9 @@ Strategy
 
 from __future__ import annotations
 
-import json
 import base64
 from datetime import date
 from decimal import Decimal
-from typing import List, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
@@ -37,11 +35,10 @@ from src.shared.repositories.pagination import (
     CursorPagination,
     Direction,
     PaginatedResult,
+    apply_cursor_pagination,
     decode_cursor,
     encode_cursor,
-    apply_cursor_pagination,
 )
-
 
 # ============================================================================
 # encode_cursor / decode_cursor
@@ -191,7 +188,7 @@ class _FakeModel:
     date = Column("date", Date)
 
 
-from sqlalchemy import Table, Column, Date, MetaData
+from sqlalchemy import Column, Date
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -425,8 +422,8 @@ class TestPaginatedEndpoint:
     """Verify GET /api/market/history/{ticker}/paginated."""
 
     def _client_with_repo(self, mock_repo) -> TestClient:
-        from src.market_data.api.routes import router
         from src.market_data.api.dependencies import get_market_data_repository
+        from src.market_data.api.routes import router
         app = FastAPI()
         app.include_router(router)
         app.dependency_overrides[get_market_data_repository] = lambda: mock_repo

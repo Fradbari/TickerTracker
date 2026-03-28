@@ -13,11 +13,11 @@ Note: ``create_async_engine`` automatically uses ``AsyncAdaptedQueuePool``
 directly — there is no need to set ``poolclass`` explicitly.
 """
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import declarative_base
 import structlog
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import declarative_base
 
 from src.shared.infra.config import get_settings
 

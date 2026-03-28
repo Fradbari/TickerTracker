@@ -22,22 +22,17 @@ Coverage:
 
 from __future__ import annotations
 
-import asyncio
-import time
-from typing import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
 from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
 
 from src.infra.health.health_service import (
     ComponentHealth,
     HealthService,
     SystemHealth,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers / fixtures
@@ -269,7 +264,7 @@ async def test_check_drive_degraded():
 async def test_check_all_healthy_when_all_pass():
     """All components healthy → system HEALTHY."""
     svc = HealthService()
-    healthy = ComponentHealth(name="x", status="HEALTHY", latency_ms=1.0)
+    ComponentHealth(name="x", status="HEALTHY", latency_ms=1.0)
 
     with (
         patch.object(svc, "check_database", AsyncMock(return_value=ComponentHealth("database", "HEALTHY", 1.0))),

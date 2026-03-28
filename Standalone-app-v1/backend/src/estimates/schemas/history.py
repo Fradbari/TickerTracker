@@ -9,10 +9,10 @@ This module defines response schemas for:
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, Any, Dict
+from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.estimates.domain.events import EstimateEventType
 
@@ -20,10 +20,10 @@ from src.estimates.domain.events import EstimateEventType
 class EstimateSnapshot(BaseModel):
     """
     Represents the reconstructed state of an estimate at a specific point in time.
-    
+
     This model is built by replaying events up to a timestamp, providing
     a complete view of what the estimate looked like at that moment.
-    
+
     Attributes:
         estimate_id: Unique identifier of the estimate
         at_timestamp: The point in time this snapshot represents
@@ -44,7 +44,7 @@ class EstimateSnapshot(BaseModel):
         closed_at: When closed (nullable)
         event_count: Number of events that occurred up to this snapshot
     """
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -69,41 +69,41 @@ class EstimateSnapshot(BaseModel):
             }
         }
     )
-    
+
     # Identity
     estimate_id: UUID = Field(..., description="Unique identifier of the estimate")
     at_timestamp: datetime = Field(..., description="Point in time this snapshot represents")
-    
+
     # Relationships
     ticker_id: UUID = Field(..., description="Reference to ticker")
-    user_id: Optional[UUID] = Field(None, description="User who created the estimate")
-    
+    user_id: UUID | None = Field(None, description="User who created the estimate")
+
     # Trade parameters
     direction: str = Field(..., description="Trade direction (LONG or SHORT)")
     status: str = Field(..., description="Status at this point in time")
-    
+
     # Prices (using Decimal for financial precision)
     start_price: Decimal = Field(..., description="Entry price")
     target_price: Decimal = Field(..., description="Target profit price")
     stop_loss_price: Decimal = Field(..., description="Stop loss price")
-    
+
     # Percentages
     target_profit_percent: Decimal = Field(..., description="Target profit %")
     stop_loss_percent: Decimal = Field(..., description="Stop loss %")
-    
+
     # Exit information
-    exit_price: Optional[Decimal] = Field(None, description="Exit price if closed")
-    realized_pnl: Optional[Decimal] = Field(None, description="Realized PnL if closed")
-    
+    exit_price: Decimal | None = Field(None, description="Exit price if closed")
+    realized_pnl: Decimal | None = Field(None, description="Realized PnL if closed")
+
     # AI metadata
-    ai_model: Optional[str] = Field(None, description="AI model used for estimate")
-    ai_confidence: Optional[Decimal] = Field(None, description="AI confidence score")
-    ai_reasoning: Optional[str] = Field(None, description="AI reasoning/explanation")
-    
+    ai_model: str | None = Field(None, description="AI model used for estimate")
+    ai_confidence: Decimal | None = Field(None, description="AI confidence score")
+    ai_reasoning: str | None = Field(None, description="AI reasoning/explanation")
+
     # Timestamps
     created_at: datetime = Field(..., description="When estimate was created")
-    closed_at: Optional[datetime] = Field(None, description="When estimate was closed")
-    
+    closed_at: datetime | None = Field(None, description="When estimate was closed")
+
     # Metadata
     event_count: int = Field(..., description="Number of events up to this snapshot", ge=0)
 
@@ -111,10 +111,10 @@ class EstimateSnapshot(BaseModel):
 class AuditEntry(BaseModel):
     """
     Human-readable audit trail entry for an estimate event.
-    
+
     This model provides a user-friendly representation of an event,
     including formatted descriptions of what changed and why.
-    
+
     Attributes:
         event_id: Unique identifier of the event
         estimate_id: Reference to the estimate
@@ -127,7 +127,7 @@ class AuditEntry(BaseModel):
         user_id: User who triggered the event (nullable for system events)
         is_system_event: True if event was triggered automatically
     """
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -144,33 +144,33 @@ class AuditEntry(BaseModel):
             }
         }
     )
-    
+
     # Identity
     event_id: UUID = Field(..., description="Unique identifier of the event")
     estimate_id: UUID = Field(..., description="Reference to the estimate")
     event_type: EstimateEventType = Field(..., description="Type of event")
     timestamp: datetime = Field(..., description="When the event occurred")
-    
+
     # Human-readable information
     description: str = Field(..., description="Human-readable description of what happened")
-    
+
     # Change details
-    changed_fields: Optional[list[str]] = Field(None, description="Fields that were modified")
-    old_values: Optional[Dict[str, Any]] = Field(None, description="Previous values")
-    new_values: Optional[Dict[str, Any]] = Field(None, description="New values")
-    
+    changed_fields: list[str] | None = Field(None, description="Fields that were modified")
+    old_values: dict[str, Any] | None = Field(None, description="Previous values")
+    new_values: dict[str, Any] | None = Field(None, description="New values")
+
     # Actor information
-    user_id: Optional[UUID] = Field(None, description="User who triggered event")
+    user_id: UUID | None = Field(None, description="User who triggered event")
     is_system_event: bool = Field(..., description="True if triggered automatically")
 
 
 class Change(BaseModel):
     """
     Detailed change information for a specific field or set of fields.
-    
+
     Represents a logical change between two points in time, potentially
     aggregating multiple events that affected the same fields.
-    
+
     Attributes:
         field_name: Name of the field that changed
         old_value: Previous value (at start timestamp)
@@ -179,7 +179,7 @@ class Change(BaseModel):
         event_id: ID of the event that caused this change
         event_type: Type of event that caused this change
     """
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -192,7 +192,7 @@ class Change(BaseModel):
             }
         }
     )
-    
+
     field_name: str = Field(..., description="Name of the field that changed")
     old_value: Any = Field(..., description="Previous value")
     new_value: Any = Field(..., description="New value")
@@ -204,9 +204,9 @@ class Change(BaseModel):
 class EstimateHistorySummary(BaseModel):
     """
     Summary of an estimate's complete history.
-    
+
     Provides high-level statistics about the estimate's lifetime and events.
-    
+
     Attributes:
         estimate_id: Unique identifier of the estimate
         total_events: Total number of events
@@ -216,7 +216,7 @@ class EstimateHistorySummary(BaseModel):
         total_changes: Number of distinct field changes
         is_closed: Whether the estimate is currently closed
     """
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -235,11 +235,11 @@ class EstimateHistorySummary(BaseModel):
             }
         }
     )
-    
+
     estimate_id: UUID = Field(..., description="Unique identifier of the estimate")
     total_events: int = Field(..., description="Total number of events", ge=0)
     first_event_at: datetime = Field(..., description="Timestamp of first event")
     last_event_at: datetime = Field(..., description="Timestamp of most recent event")
-    event_type_counts: Dict[str, int] = Field(..., description="Count of events by type")
+    event_type_counts: dict[str, int] = Field(..., description="Count of events by type")
     total_changes: int = Field(..., description="Number of distinct field changes", ge=0)
     is_closed: bool = Field(..., description="Whether estimate is currently closed")

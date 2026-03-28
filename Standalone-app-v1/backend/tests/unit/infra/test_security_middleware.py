@@ -12,20 +12,17 @@ Coverage targets:
 from __future__ import annotations
 
 import time
-
-import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
 
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from starlette.responses import Response
+
 from src.infra.security.middleware import (
-    SecurityMiddleware,
     _apply_security_headers,
     _client_ip,
     register_security_middleware,
 )
-from starlette.responses import Response
-
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures

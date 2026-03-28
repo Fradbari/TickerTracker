@@ -4,18 +4,18 @@ Command schemas for Estimate operations.
 These Pydantic models define the input contracts for estimate service methods.
 """
 
-from datetime import datetime
 from decimal import Decimal
-from typing import Optional
 from uuid import UUID
+
 from pydantic import BaseModel, Field, field_validator
+
 from src.shared.schemas.validators import sanitize_text, validate_price
 
 
 class CreateEstimateCommand(BaseModel):
     """
     Command to create a new estimate.
-    
+
     Attributes:
         ticker_id: UUID of the ticker to estimate
         direction: Trading direction ('LONG' or 'SHORT')
@@ -25,40 +25,40 @@ class CreateEstimateCommand(BaseModel):
         ai_model: Optional AI model identifier
         ai_confidence: Optional AI confidence score (0-100)
         ai_reasoning: Optional AI reasoning text
-    
+
     Note:
         - start_price, target_price, and stop_loss_price are calculated automatically
           from current market price and percentages
         - Percentages must be positive numbers
     """
-    
+
     ticker_id: UUID = Field(..., description="Ticker ID to create estimate for")
     direction: str = Field(..., description="Trade direction: LONG or SHORT")
-    
+
     target_profit_percent: Decimal = Field(
         ...,
         gt=0,
         le=1000,
         description="Target profit percentage (e.g., 10.0 for 10%)"
     )
-    
+
     stop_loss_percent: Decimal = Field(
         ...,
         gt=0,
         le=100,
         description="Stop loss percentage (e.g., 5.0 for 5%)"
     )
-    
-    user_id: Optional[UUID] = Field(default=None, description="User creating the estimate")
-    ai_model: Optional[str] = Field(default=None, max_length=100, description="AI model used")
-    ai_confidence: Optional[Decimal] = Field(
+
+    user_id: UUID | None = Field(default=None, description="User creating the estimate")
+    ai_model: str | None = Field(default=None, max_length=100, description="AI model used")
+    ai_confidence: Decimal | None = Field(
         default=None,
         ge=0,
         le=100,
         description="AI confidence score (0-100)"
     )
-    ai_reasoning: Optional[str] = Field(default=None, description="AI reasoning text")
-    
+    ai_reasoning: str | None = Field(default=None, description="AI reasoning text")
+
     @field_validator("direction")
     @classmethod
     def validate_direction(cls, v: str) -> str:
@@ -69,12 +69,12 @@ class CreateEstimateCommand(BaseModel):
 
     @field_validator("ai_reasoning")
     @classmethod
-    def validate_ai_reasoning(cls, v: Optional[str]) -> Optional[str]:
+    def validate_ai_reasoning(cls, v: str | None) -> str | None:
         """Strip HTML and trim ai_reasoning to 2000 characters."""
         if v is None:
             return v
         return sanitize_text(v, max_len=2000)
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -92,7 +92,7 @@ class CreateEstimateCommand(BaseModel):
 class UpdateEstimateCommand(BaseModel):
     """
     Command to update an existing estimate.
-    
+
     Attributes:
         estimate_id: UUID of the estimate to update
         target_profit_percent: Optional new target profit percentage
@@ -100,49 +100,49 @@ class UpdateEstimateCommand(BaseModel):
         ai_confidence: Optional updated AI confidence score
         ai_reasoning: Optional updated AI reasoning
         user_id: Optional UUID of user performing the update
-    
+
     Note:
         - All fields are optional (only provided fields will be updated)
         - Updating percentages will recalculate target_price and stop_loss_price
         - Cannot update estimate if status is not OPEN
     """
-    
+
     estimate_id: UUID = Field(..., description="Estimate ID to update")
-    
-    target_profit_percent: Optional[Decimal] = Field(
+
+    target_profit_percent: Decimal | None = Field(
         default=None,
         gt=0,
         le=1000,
         description="New target profit percentage"
     )
-    
-    stop_loss_percent: Optional[Decimal] = Field(
+
+    stop_loss_percent: Decimal | None = Field(
         default=None,
         gt=0,
         le=100,
         description="New stop loss percentage"
     )
-    
-    ai_confidence: Optional[Decimal] = Field(
+
+    ai_confidence: Decimal | None = Field(
         default=None,
         ge=0,
         le=100,
         description="Updated AI confidence score"
     )
-    
-    ai_reasoning: Optional[str] = Field(
+
+    ai_reasoning: str | None = Field(
         default=None,
         description="Updated AI reasoning"
     )
-    
-    user_id: Optional[UUID] = Field(
+
+    user_id: UUID | None = Field(
         default=None,
         description="User performing the update"
     )
-    
+
     @field_validator("target_profit_percent", "stop_loss_percent", "ai_confidence")
     @classmethod
-    def validate_positive(cls, v: Optional[Decimal]) -> Optional[Decimal]:
+    def validate_positive(cls, v: Decimal | None) -> Decimal | None:
         """Ensure percentages are positive if provided."""
         if v is not None and v <= 0:
             raise ValueError("Percentages must be positive")
@@ -150,12 +150,12 @@ class UpdateEstimateCommand(BaseModel):
 
     @field_validator("ai_reasoning")
     @classmethod
-    def validate_ai_reasoning(cls, v: Optional[str]) -> Optional[str]:
+    def validate_ai_reasoning(cls, v: str | None) -> str | None:
         """Strip HTML and trim ai_reasoning to 2000 characters."""
         if v is None:
             return v
         return sanitize_text(v, max_len=2000)
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -170,23 +170,23 @@ class UpdateEstimateCommand(BaseModel):
 class CloseEstimateCommand(BaseModel):
     """
     Command to manually close an estimate.
-    
+
     Attributes:
         estimate_id: UUID of the estimate to close
         exit_price: Actual exit price
         reason: Reason for closing (e.g., 'manual', 'target_hit', 'stop_hit')
         user_id: Optional UUID of user closing the estimate
-    
+
     Note:
         - PnL will be calculated automatically based on entry and exit prices
         - Status will be set to CLOSED_WIN, CLOSED_LOSS, or CLOSED_MANUAL
         - Cannot close an estimate that is already closed
     """
-    
+
     estimate_id: UUID = Field(..., description="Estimate ID to close")
     exit_price: Decimal = Field(..., gt=0, description="Actual exit price")
     reason: str = Field(..., description="Reason for closing")
-    user_id: Optional[UUID] = Field(default=None, description="User closing the estimate")
+    user_id: UUID | None = Field(default=None, description="User closing the estimate")
 
     @field_validator("exit_price")
     @classmethod
@@ -201,7 +201,7 @@ class CloseEstimateCommand(BaseModel):
         if not v or not v.strip():
             raise ValueError("Reason cannot be empty")
         return v.strip()
-    
+
     class Config:
         json_schema_extra = {
             "example": {

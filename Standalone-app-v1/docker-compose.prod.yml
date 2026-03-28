@@ -1,0 +1,115 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tickertracker-db-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tt_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tt_password}
+      POSTGRES_DB: ${POSTGRES_DB:-tickertracker}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - tt-db-data-prod:/var/lib/postgresql/data
+    networks:
+      - tickertracker_net_prod
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tt_user} -d ${POSTGRES_DB:-tickertracker}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: tickertracker-redis-prod
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - tt-redis-data-prod:/data
+    networks:
+      - tickertracker_net_prod
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tickertracker-backend-prod
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tt_user}:${POSTGRES_PASSWORD:-tt_password}@db:5432/${POSTGRES_DB:-tickertracker}
+      REDIS_URL: redis://redis:6379/0
+      API_V1_STR: /api/v1
+      ENVIRONMENT: production
+      GOOGLE_SERVICE_ACCOUNT_CREDENTIALS: ${GOOGLE_SERVICE_ACCOUNT_CREDENTIALS}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
+    networks:
+      - tickertracker_net_prod
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "1G"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tickertracker-frontend-prod
+    networks:
+      - tickertracker_net_prod
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tickertracker-scheduler-prod
+    command: ["python", "-m", "src.main_scheduler"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tt_user}:${POSTGRES_PASSWORD:-tt_password}@db:5432/${POSTGRES_DB:-tickertracker}
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+      GOOGLE_SERVICE_ACCOUNT_CREDENTIALS: ${GOOGLE_SERVICE_ACCOUNT_CREDENTIALS}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
+    networks:
+      - tickertracker_net_prod
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+
+networks:
+  tickertracker_net_prod:
+    driver: bridge
+
+volumes:
+  tt-db-data-prod:
+  tt-redis-data-prod:

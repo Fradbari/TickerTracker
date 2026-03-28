@@ -1,18 +1,19 @@
-# TickerTracker Frontend — Development Dockerfile
-# Node 20 Alpine, runs Vite dev server with HMR on port 3000
-FROM node:20-alpine
+# Multi-stage production build for TickerTracker Frontend
 
+# Stage 1: Build static assets
+FROM node:20-alpine AS build
 WORKDIR /app
-
-# Install dependencies first (cached layer)
 COPY package*.json ./
 RUN npm install
-
-# Copy source code
 COPY . .
+RUN npm run build
 
-EXPOSE 3000
+# Stage 2: Serve via Nginx
+FROM nginx:alpine
+# Copy built output from stage 1 to nginx html served folder
+COPY --from=build /app/dist /usr/share/nginx/html
+# Copy custom nginx configuration specifying proxy rules
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Start Vite dev server
-# VITE_API_TARGET env var is injected by docker-compose to point to the backend service
-CMD ["npm", "run", "dev"]
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

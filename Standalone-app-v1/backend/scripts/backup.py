@@ -94,10 +94,10 @@ async def create_full_backup() -> None:
                 "--format=custom",
                 "--compress=9",
                 f"--file={dump_path}"
-            ], capture_output=True, text=True)
+            ], capture_output=True, text=True, check=False)
             
             if result.returncode != 0:
-                raise Exception(f"pg_dump failed: {result.stderr}")
+                raise RuntimeError(f"pg_dump failed (exit {result.returncode}):\n{result.stderr or result.stdout}")
                 
             logger.info(f"Dump successful. Size: {dump_path.stat().st_size} bytes")
 
@@ -186,13 +186,13 @@ async def verify_backup(backup_file_id: str) -> bool:
                 "--list",
                 "--format=custom",
                 str(dump_path)
-            ], capture_output=True, text=True)
+            ], capture_output=True, text=True, check=False)
             
             if result.returncode == 0 and result.stdout.strip():
                 logger.info("Backup verification successful! Content listed correctly.")
                 return True
             else:
-                raise Exception(f"pg_restore verification failed. Exit code {result.returncode}: {result.stderr}")
+                raise RuntimeError(f"pg_restore verification failed (exit {result.returncode}):\n{result.stderr or result.stdout}")
                 
     except Exception as e:
         err_msg = f"Backup verification failed for file {backup_file_id}: {str(e)}"

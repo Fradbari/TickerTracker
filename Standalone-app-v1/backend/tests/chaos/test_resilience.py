@@ -31,7 +31,6 @@ async def test_db_pool_exhausted_returns_503(test_client: AsyncClient):
     """
     async def override_get_db_timeout():
         raise SATimeoutError("QueuePool limit of size 5 overflow 10 reached")
-        yield
 
     app.dependency_overrides[get_db] = override_get_db_timeout
 
@@ -83,12 +82,15 @@ async def test_yahoo_api_timeout_uses_cache():
         cached_item.cached_at = datetime.now() - timedelta(seconds=120)
         
         mock_ticker_class.reset_mock()
-        mock_instance.history.side_effect = Exception("Timeout!")
+        mock_instance.history.side_effect = asyncio.TimeoutError("Timeout!")
         
-        price3 = await provider.get_current_price(symbol)
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+            price3 = await provider.get_current_price(symbol)
+        
         assert price3.close == 200.0
         assert price3.is_stale is True
-        assert mock_ticker_class.call_count > 0  
+        # initial try + 3 retries = 4
+        assert mock_ticker_class.call_count == 4  
 
 
 @pytest.mark.asyncio

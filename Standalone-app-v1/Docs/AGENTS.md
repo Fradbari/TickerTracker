@@ -399,15 +399,15 @@ Dipendenze: -
 
 **Microstep:**
 
-1. Creare file [`docs/runbook/README.md`](../docs/runbook/README.md) con indice
-2. Creare [`docs/runbook/startup-shutdown.md`](../docs/runbook/startup-shutdown.md): procedure avvio/stop servizi
-3. Creare [`docs/runbook/monitoring.md`](../docs/runbook/monitoring.md): dove guardare metriche, log, alert
-4. Creare [`docs/runbook/database-recovery.md`](../docs/runbook/database-recovery.md): procedura restore da backup
-5. Creare [`docs/runbook/yahoo-outage.md`](../docs/runbook/yahoo-outage.md): azioni durante outage Yahoo
-6. Creare [`docs/runbook/drive-sync-issues.md`](../docs/runbook/drive-sync-issues.md): troubleshooting sync
-7. Creare [`docs/runbook/scaling.md`](../docs/runbook/scaling.md): come scalare servizi
-8. Includere comandi copia-incolla per ogni procedura
-9. Includere contatti e escalation path
+- [x] 1. Creare file [`docs/runbook/README.md`](../docs/runbook/README.md) con indice
+- [x] 2. Creare [`docs/runbook/startup-shutdown.md`](../docs/runbook/startup-shutdown.md): procedure avvio/stop servizi
+- [x] 3. Creare [`docs/runbook/monitoring.md`](../docs/runbook/monitoring.md): dove guardare metriche, log, alert
+- [x] 4. Creare [`docs/runbook/database-recovery.md`](../docs/runbook/database-recovery.md): procedura restore da backup
+- [x] 5. Creare [`docs/runbook/yahoo-outage.md`](../docs/runbook/yahoo-outage.md): azioni durante outage Yahoo
+- [x] 6. Creare [`docs/runbook/drive-sync-issues.md`](../docs/runbook/drive-sync-issues.md): troubleshooting sync
+- [x] 7. Creare [`docs/runbook/scaling.md`](../docs/runbook/scaling.md): come scalare servizi
+- [x] 8. Includere comandi copia-incolla per ogni procedura
+- [x] 9. Includere contatti e escalation path
 
 **Acceptance Criteria:**
 

@@ -130,23 +130,23 @@ Dipendenze: -
 
 **Microstep:**
 
-1. Creare file [`docker-compose.prod.yml`](../docker-compose.prod.yml)
-2. Definire servizio `db`: PostgreSQL 16 con volume persistente
-3. Definire servizio `redis`: Redis 7 con volume persistente
-4. Definire servizio `backend`: immagine custom, env vars da file .env, healthcheck
-5. Definire servizio `frontend`: Nginx con build statico, proxy pass a backend
-6. Definire servizio `scheduler`: stesso backend ma comando diverso per worker
-7. Configurare network interna tra servizi
-8. Configurare resource limits per ogni servizio
-9. Creare file [`.env.prod.example`](../.env.prod.example) con variabili richieste
+- [x] 1. Creare file [`docker-compose.prod.yml`](../docker-compose.prod.yml)
+- [x] 2. Definire servizio `db`: PostgreSQL 16 con volume persistente
+- [x] 3. Definire servizio `redis`: Redis 7 con volume persistente
+- [x] 4. Definire servizio `backend`: immagine custom, env vars da file .env, healthcheck
+- [x] 5. Definire servizio `frontend`: Nginx con build statico, proxy pass a backend
+- [x] 6. Definire servizio `scheduler`: stesso backend ma comando diverso per worker
+- [x] 7. Configurare network interna tra servizi
+- [x] 8. Configurare resource limits per ogni servizio
+- [x] 9. Creare file [`.env.prod.example`](../.env.prod.example) con variabili richieste
 
 **Acceptance Criteria:**
 
-- [ ] `docker compose -f docker-compose.prod.yml up` avvia tutto
-- [ ] Servizi comunicano internamente
-- [ ] Solo frontend esposto all'esterno
-- [ ] Healthcheck funzionanti
-- [ ] Dati persistono tra restart
+- [x] `docker compose -f docker-compose.prod.yml up` avvia tutto
+- [x] Servizi comunicano internamente
+- [x] Solo frontend esposto all'esterno
+- [x] Healthcheck funzionanti
+- [x] Dati persistono tra restart
 
 ---
 

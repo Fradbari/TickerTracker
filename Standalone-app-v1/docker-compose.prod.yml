@@ -17,6 +17,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "512M"
 
   redis:
     image: redis:7-alpine
@@ -32,6 +37,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "256M"
 
   backend:
     build:
@@ -47,8 +57,6 @@ services:
       BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
     networks:
       - tickertracker_net_prod
-    ports:
-      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -115,6 +123,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
 
 networks:
   tickertracker_net_prod:

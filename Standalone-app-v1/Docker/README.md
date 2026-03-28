@@ -16,7 +16,9 @@ Questo folder contiene la documentazione relativa alla containerizzazione di Tic
 - **Services**: Backend (FastAPI), Frontend (React), extends base
 - **Documentation**: Will be in docs/TASK_3_12_*
 
-### ⏳ TASK 5.14: Docker Compose Production
+### ✅ TASK 5.14: Docker Compose Production
+
+Stato: Completato. Sono stati aggiunti all'infrastruttura i container per backend, nginx proxy, database relazionale con dbinit, e scheduler separato.
 - **Status**: PENDING (Dependency: TASK 2.2 ✅)
 - **Files**: `docker-compose.prod.yml` (root)
 - **Configuration**: Production-optimized, extends base
@@ -415,7 +417,7 @@ docker compose -f docker-compose.base.yml -f docker-compose.prod.yml up -d
 | Management Scripts | ✅ Complete | docker-manage.ps1/.sh | 2.2 |
 | Test Script | ✅ Complete | scripts/test_docker_services.py | 2.2 |
 | Dev Environment | ⏳ Pending | docker-compose.dev.yml | 3.12 |
-| Prod Environment | ⏳ Pending | docker-compose.prod.yml | 5.14 |
+| Prod Environment | ✅ Complete | docker-compose.prod.yml | 5.14 |
 
 ---
 

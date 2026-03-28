@@ -1,13 +1,27 @@
 # Avvio e Spegnimento
 
-Assicurarsi di utilizzare gli script forniti per l'ambiente operativo:
-- **Linux/Mac**: `./docker-manage.sh`
-- **Windows**: `.\docker-manage.ps1`
+Per la gestione dei container Docker, utilizzare in via preferenziale i comandi nativi tramite la CLI di `docker compose`. Questo assicura che il setup sia costantemente manutenibile senza dipendere da script non standardizzati.
+
+## Comandi Operativi
+
+```bash
+# Avvio (Modalità "Detached")
+docker compose -f docker-compose.prod.yml up -d
+
+# Verifica salute e stato container
+docker compose -f docker-compose.prod.yml ps
+
+# Arresto "Graceful" (mantiene i volumi persistenti intatti)
+docker compose -f docker-compose.prod.yml down
+
+# Arresto Distruttivo (elimina anche i volumi persistenti del Database e di Redis - USARE CON ESTREMA CAUTELA)
+docker compose -f docker-compose.prod.yml down -v
+```
 
 ## Ordine di Avvio Obbligatorio
-1. **PostgreSQL** (Database primario)
-2. **Redis** (Cache e messaggistica)
-3. **Backend** (API e logica)
-4. **Frontend** (Nginx proxy/static)
+Il file `docker-compose.prod.yml` usa `depends_on` con la condizione `service_healthy`. Questa gerarchia avvierà il sistema unicamente nel seguente ordine logico di precedenza:
 
-Verificare con `docker compose -f docker-compose.prod.yml ps` che tutti i container siano *healthy*.
+1. **PostgreSQL** e **Redis**
+2. **Backend**, in attesa del ping di db/redis.
+3. **Scheduler** (parallelo al backend, attende db/redis)
+4. **Frontend**, in attesa dello start del backend.

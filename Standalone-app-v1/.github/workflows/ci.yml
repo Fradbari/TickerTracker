@@ -155,31 +155,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.13'
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
-    - name: Install backend dependencies
-      working-directory: ./Standalone-app-v1/backend
+    - name: Start Production Environment
+      working-directory: ./Standalone-app-v1
       run: |
-        python -m venv .venv
-        source .venv/bin/activate
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
+        docker compose -f docker-compose.prod.yml up -d --build
+        # Attendiamo l'healthcheck
+        sleep 30
+      env:
+        POSTGRES_USER: test
+        POSTGRES_PASSWORD: test
+        POSTGRES_DB: tickertracker_test
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 20
-    - name: Cache npm dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
     - name: Install frontend dependencies
       working-directory: ./Standalone-app-v1/frontend
       run: npm ci
@@ -190,8 +179,12 @@ jobs:
       working-directory: ./Standalone-app-v1
       run: npx playwright test
       env:
-        ENVIRONMENT: local
-        VITE_API_BASE_URL: "http://localhost:8000"
+        ENVIRONMENT: production
+        VITE_API_BASE_URL: "http://localhost:80"
+    - name: Ensure containers shutdown
+      if: always()
+      working-directory: ./Standalone-app-v1
+      run: docker compose -f docker-compose.prod.yml down -v
     - name: Upload Playwright report
       uses: actions/upload-artifact@v4
       if: always()

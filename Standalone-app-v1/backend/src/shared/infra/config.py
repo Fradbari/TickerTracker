@@ -30,6 +30,12 @@ class Settings(BaseSettings):
         default="local",
         description="Application environment",
     )
+    
+    # ========== Admin Configuration ==========
+    ADMIN_TOKEN: SecretStr = Field(
+        default=SecretStr("dev-admin-token"),
+        description="Static token for admin API authentication",
+    )
     DEBUG: bool = Field(
         default=True,
         description="Enable debug mode (should be False in production)",

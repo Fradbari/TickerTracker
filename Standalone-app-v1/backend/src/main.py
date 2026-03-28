@@ -11,6 +11,7 @@ Configures:
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from src.shared.api import admin_routes
 from src.estimates.api import router as estimates_router
 from src.infra.logging.config import CorrelationIDMiddleware, configure_logging
 from src.infra.metrics.routes import router as metrics_router
@@ -53,6 +54,7 @@ app.include_router(health_routes.router)
 app.include_router(estimates_router)
 app.include_router(market_data_routes.router)
 app.include_router(metrics_router)
+app.include_router(admin_routes.router)
 if settings.ENVIRONMENT in ['local', 'test']:
     from src.shared.api import test_routes
     app.include_router(test_routes.router)  # ✅ [3.6] GET /metrics — Prometheus scrape endpoint

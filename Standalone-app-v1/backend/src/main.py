@@ -53,7 +53,10 @@ app.add_middleware(CorrelationIDMiddleware)
 app.include_router(health_routes.router)
 app.include_router(estimates_router)
 app.include_router(market_data_routes.router)
-app.include_router(metrics_router)  # ✅ [3.6] GET /metrics — Prometheus scrape endpoint
+app.include_router(metrics_router)
+if settings.ENVIRONMENT in ['local', 'test']:
+    from src.shared.api import test_routes
+    app.include_router(test_routes.router)  # ✅ [3.6] GET /metrics — Prometheus scrape endpoint
 
 # TODO: Register additional bounded context routers
 # - sync

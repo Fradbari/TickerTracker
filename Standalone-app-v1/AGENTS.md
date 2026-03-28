@@ -133,8 +133,8 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 #### Sezione 5: Testing & CI/CD Completo (0/9)
 - [ ] **TASK 5.5** - Implementare Property-Based Testing per P&L
-- [ ] **TASK 5.7** - Scrivere Component Test per EstimateForm
-- [ ] **TASK 5.8** - Setup E2E Test con Playwright
+- [x] **TASK 5.7** - Scrivere Component Test per EstimateForm
+- [x] **TASK 5.8** - Setup E2E Test con Playwright
 - [ ] **TASK 5.9** - Implementare Chaos Testing
 - [ ] **TASK 5.10** - Configurare CI Pipeline (GitHub Actions)
 - [ ] **TASK 5.11** - Configurare CD Pipeline (Deploy)

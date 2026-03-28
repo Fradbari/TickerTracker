@@ -1,20 +1,21 @@
 # Ripristino Database (Recovery)
 
-Gli script di backup (`backup.py`) usano la crittografia (Fernet/AES).
+**RTO: < 30 min | RPO: 24h (Ultimo backup giornaliero)**
 
-## RTO Target: < 30 minuti
+Gli script di backup (`backup.py`) usano la crittografia (Fernet Python library).
 
-**Procedura di Restore:**
+## Procedura di Restore:
 1. Recuperare l'ultimo backup cifrato.
-2. Assicurarsi di avere la variabile d'ambiente `BACKUP_ENCRYPTION_KEY` impostata correttamente.
-3. Decriptare il file utilizzando uno script Python basato sulla libreria `cryptography` (la stessa utilizzata in fase di backup), poiché la CLI OpenSSL originariamente suggerita non risolve la logica di crittografia Fernet:
+2. Assicurarsi di avere la variabile d'ambiente `BACKUP_ENCRYPTION_KEY` impostata.
+3. Decriptare il file utilizzando uno script Python `cryptography` direttamente dall'host o da un ambiente isolato:
 
 ```python
 # decripta_backup.py
 import sys
+import os
 from cryptography.fernet import Fernet
 
-key = b"<LA_TUA_BACKUP_ENCRYPTION_KEY>"
+key = os.getenv("BACKUP_ENCRYPTION_KEY").encode()
 f = Fernet(key)
 
 with open("backup.enc", "rb") as enc, open("backup.sql", "wb") as out:
@@ -22,8 +23,12 @@ with open("backup.enc", "rb") as enc, open("backup.sql", "wb") as out:
 ```
 Esegui: `python decripta_backup.py`
 
-4. Una volta ottenuto `backup.sql`, procedere con la rigenerazione nel database primario PostgreSQL lanciando il comando dall'host:
+4. Ottenuto `backup.sql`, muoversi nella radice del progetto e rigenerare il DB:
 
 ```bash
-docker exec -i tickertracker-db-prod pg_restore -c -U tt_prod_user -d tickertracker_prod < backup.sql
+cd Standalone-app-v1/
+docker compose -f docker-compose.prod.yml exec -T db pg_restore -c -U tt_prod_user -d tickertracker_prod < backup.sql
 ```
+
+## Contatti ed Escalation
+Per assistenza tecnica al database, fare riferimento ai DB Admin o DevOps su [CONTACTS.md](CONTACTS.md).

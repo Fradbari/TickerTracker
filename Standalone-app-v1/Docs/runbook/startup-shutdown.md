@@ -1,10 +1,15 @@
 # Avvio e Spegnimento
 
-Per la gestione dei container Docker, utilizzare in via preferenziale i comandi nativi tramite la CLI di `docker compose`. Questo assicura che il setup sia costantemente manutenibile senza dipendere da script non standardizzati.
+**RTO: < 5 min | RPO: n/a** (Per container restart)
+
+Per la gestione dei container Docker, utilizzare nativamente la CLI di `docker compose`. Questo assicura che il setup sia costantemente mantenibile operando dalla root di progetto (`Standalone-app-v1/`).
 
 ## Comandi Operativi
 
 ```bash
+# Entrare nella cartella Root del progetto
+cd Standalone-app-v1/
+
 # Avvio (Modalità "Detached")
 docker compose -f docker-compose.prod.yml up -d
 
@@ -25,3 +30,6 @@ Il file `docker-compose.prod.yml` usa `depends_on` con la condizione `service_he
 2. **Backend**, in attesa del ping di db/redis.
 3. **Scheduler** (parallelo al backend, attende db/redis)
 4. **Frontend**, in attesa dello start del backend.
+
+## Contatti ed Escalation
+Per problemi legati all'infrastruttura di deploy, riferirsi a DevOps in [CONTACTS.md](CONTACTS.md).

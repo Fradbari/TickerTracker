@@ -7,7 +7,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
-  globalSetup: require.resolve('./e2e/setup/global-setup.ts'),
+  globalSetup: './e2e/setup/global-setup.ts',
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
@@ -22,7 +22,9 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: '..\\.venv\\Scripts\\activate && uvicorn src.main:app --port 8000',
+      command: process.platform === 'win32'
+        ? '.venv\\Scripts\\activate && uvicorn src.main:app --port 8000'
+        : 'source .venv/bin/activate && uvicorn src.main:app --port 8000',
       cwd: './backend',
       port: 8000,
       reuseExistingServer: !process.env.CI,

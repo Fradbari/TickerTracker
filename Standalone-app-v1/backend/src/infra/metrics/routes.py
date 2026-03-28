@@ -26,13 +26,20 @@ router = APIRouter(tags=["metrics"])
 
 @router.get(
     "/metrics",
-    summary="Prometheus metrics",
+    summary="Prometheus metrics (Non autenticato — solo scraping interno)",
     description=(
         "Exposes all registered Prometheus metrics in the standard text "
-        "exposition format.  Meant to be scraped by a Prometheus server."
+        "exposition format.  Meant to be scraped by a Prometheus server.\n\n"
+        "**Note**: Non autenticato — solo scraping interno."
     ),
     response_class=Response,
     include_in_schema=False,  # hide from Swagger — monitoring-only endpoint
+    responses={
+        200: {
+            "description": "Prometheus metrics content",
+            "content": {"text/plain": {"example": "python_gc_objects_collected_total 123.0\n"}}
+        }
+    }
 )
 def metrics_endpoint() -> Response:
     """Return all Prometheus metrics in text/plain; version=0.0.4 format."""

@@ -219,6 +219,17 @@ async def create_estimate(
 
     Returns paginated results with cursor-based navigation.
     """,
+    response_description="A paginated list of estimates",
+    responses={
+        200: {
+            "description": "Estimates retrieved successfully",
+            "content": {"application/json": {"example": {"data": {"items": [{"id": "123", "ticker_id": "456", "status": "OPEN", "trigger_price": 100.0}], "total": 1, "page_info": {"has_next_page": False, "next_cursor": None}}, "meta": {"correlation_id": "abc"}}}}
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {"application/json": {"example": {"error": {"code": "INTERNAL_ERROR", "message": "Failed to list estimates"}}}}
+        }
+    }
 )
 async def list_estimates(
     ticker_id: UUID | None = Query(None, description="Filter by ticker ID"),
@@ -301,6 +312,21 @@ async def list_estimates(
     Returns all estimate fields including calculated prices, AI metadata,
     timestamps, and exit data (if estimate is closed).
     """,
+    response_description="Estimate details",
+    responses={
+        200: {
+            "description": "Estimate found",
+            "content": {"application/json": {"example": {"data": {"id": "123", "ticker_id": "456", "status": "OPEN", "trigger_price": 100.0}, "meta": {}}}}
+        },
+        404: {
+            "description": "Estimate not found",
+            "content": {"application/json": {"example": {"error": {"code": "ESTIMATE_NOT_FOUND", "message": "Estimate with ID 123 not found"}}}}
+        },
+        422: {
+            "description": "Validation Error - Invalid UUID",
+            "content": {"application/json": {"example": {"detail": [{"loc": ["path", "estimate_id"], "msg": "value is not a valid uuid"}]}}}
+        }
+    }
 )
 async def get_estimate(
     estimate_id: UUID,
@@ -361,6 +387,24 @@ async def get_estimate(
 
     Publishes ESTIMATE_UPDATED domain event.
     """,
+    responses={
+        200: {
+            "description": "Estimate successfully updated",
+            "content": {"application/json": {"example": {"data": {"estimate": {"id": "123", "target_price": 110.0, "status": "OPEN"}, "message": "Estimate updated successfully"}, "meta": {}}}}
+        },
+        400: {
+            "description": "Invalid parameters or status",
+            "content": {"application/json": {"example": {"error": {"code": "INVALID_PRICE", "message": "Target price must be greater than current price"}}}}
+        },
+        404: {
+            "description": "Estimate not found",
+            "content": {"application/json": {"example": {"error": {"code": "ESTIMATE_NOT_FOUND", "message": "Estimate 123 not found"}}}}
+        },
+        422: {
+            "description": "Validation Error - Invalid body/UUID",
+            "content": {"application/json": {"example": {"detail": [{"loc": ["body", "target_percentage"], "msg": "Input should be greater than 0"}]}}}
+        }
+    }
 )
 async def update_estimate(
     estimate_id: UUID,
@@ -439,6 +483,24 @@ async def update_estimate(
 
     Publishes ESTIMATE_CLOSED domain event.
     """,
+    responses={
+        200: {
+            "description": "Estimate closed successfully",
+            "content": {"application/json": {"example": {"data": {"id": "123", "status": "CLOSED_WIN", "message": "Estimate closed successfully with status CLOSED_WIN"}, "meta": {}}}}
+        },
+        400: {
+            "description": "Estimate already closed or invalid state",
+            "content": {"application/json": {"example": {"error": {"code": "ESTIMATE_ALREADY_CLOSED", "message": "Estimate is already closed"}}}}
+        },
+        404: {
+            "description": "Estimate not found",
+            "content": {"application/json": {"example": {"error": {"code": "ESTIMATE_NOT_FOUND", "message": "Estimate 123 not found"}}}}
+        },
+        422: {
+            "description": "Validation Error",
+            "content": {"application/json": {"example": {"detail": [{"loc": ["body", "exit_price"], "msg": "Field required"}]}}}
+        }
+    }
 )
 async def close_estimate(
     estimate_id: UUID,
@@ -527,6 +589,20 @@ async def close_estimate(
     - First and last event timestamps
     - Current estimate state
     """,
+    responses={
+        200: {
+            "description": "Audit trail retrieved successfully",
+            "content": {"application/json": {"example": {"data": {"events": [{"event_type": "CREATED", "timestamp": "2023-10-27T10:00:00Z"}], "summary": {"total_events": 1}}, "meta": {}}}}
+        },
+        404: {
+            "description": "Estimate not found",
+            "content": {"application/json": {"example": {"error": {"code": "ESTIMATE_NOT_FOUND", "message": "Estimate 123 not found"}}}}
+        },
+        422: {
+            "description": "Validation Error - Invalid UUID",
+            "content": {"application/json": {"example": {"detail": [{"loc": ["path", "estimate_id"], "msg": "value is not a valid uuid"}]}}}
+        }
+    }
 )
 async def get_estimate_history(
     estimate_id: UUID,

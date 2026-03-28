@@ -1469,3 +1469,13 @@ Scenari validati:
 - Load testing e isolamento a livello di asyncpg pool con Graceful Degradation (503 Service Unavailable).
 - Transazioni atomiche per non corrompere dati preesistenti durante sincronizzazioni parziali.
 
+## Migrazione Dati Legacy (v2.4 -> v3.0)  
+  
+Per importare i file storici da Google Drive al nuovo database locale PostgreSQL in modo idempotente:  
+```bash  
+# Testa la lettura con --dry-run  
+py scripts/migrate_from_legacy.py --dry-run --source-folder-id "YOUR_DRIVE_FOLDER_ID"  
+  
+# Esegui importazione (richiede GOOGLE_SERVICE_ACCOUNT_CREDENTIALS in .env)  
+py scripts/migrate_from_legacy.py --source-folder-id "YOUR_DRIVE_FOLDER_ID"  
+``` 

@@ -140,7 +140,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 5.11** - Configurare CD Pipeline (Deploy)
 - [x] **TASK 5.15** - Creare Runbook Operativo
 - [ ] **TASK 5.16** - Documentare API con OpenAPI
-- [ ] **TASK 5.17** - Creare Script Migrazione Dati v2.4 → v3.0
+- [x] **TASK 5.17** - Creare Script Migrazione Dati v2.4 → v3.0
 
 #### Docker & Deployment (2/2)
 - [x] **TASK 3.12** - Setup Docker Compose Ambiente Locale *(in Docker/AGENTS.md)*

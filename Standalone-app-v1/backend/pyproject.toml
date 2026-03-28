@@ -90,6 +90,9 @@ exclude = ["alembic/", "tests/"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::RuntimeWarning:greenlet"
+]
 addopts = "-v --tb=short --strict-markers"
 markers = [
     "unit: Unit tests",

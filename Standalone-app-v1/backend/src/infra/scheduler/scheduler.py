@@ -10,6 +10,10 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
 from src.infra.scheduler import jobs
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+import scripts.backup as backup
 
 logger = logging.getLogger("scheduler")
 
@@ -102,6 +106,21 @@ def create_scheduler():
         CronTrigger(hour=6, minute=0, timezone=UTC),
         id="daily_quality_check",
         replace_existing=True,
+    )
+
+    # DB Backup Jobs (Task 5.13)
+    scheduler.add_job(
+        job_wrapper(backup.create_full_backup, "create_full_backup"),
+        CronTrigger(hour=2, minute=0, timezone=UTC),
+        id="db_full_backup_daily",
+        replace_existing=True
+    )
+
+    scheduler.add_job(
+        job_wrapper(backup.verify_latest_backup, "verify_latest_backup"),
+        CronTrigger(day_of_week="mon", hour=3, minute=0, timezone=UTC),
+        id="db_backup_verify_weekly",
+        replace_existing=True
     )
 
     return scheduler

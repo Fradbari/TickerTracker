@@ -45,6 +45,20 @@ class Settings(BaseSettings):
         description="Logging level for application",
     )
 
+    # ========== Backup Configuration ==========
+    BACKUP_ENCRYPTION_KEY: SecretStr = Field(
+        default=SecretStr("MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE="),
+        description="Fernet key for encrypting database backups (32 bytes base64 url-safe)",
+    )
+    BACKUP_DRIVE_FOLDER_ID: str = Field(
+        default="backup_folder_test_id",
+        description="Google Drive folder ID where backups are uploaded",
+    )
+    ALERT_WEBHOOK_URL: str | None = Field(
+        default=None,
+        description="Webhook URL for generic system alerts and backup failures",
+    )
+
     # ========== Database Configuration ==========
     DATABASE_URL: SecretStr = Field(
         default=SecretStr("postgresql+asyncpg://tickertracker:devpassword@localhost:5432/tickertracker_dev"),

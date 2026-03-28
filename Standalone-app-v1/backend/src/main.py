@@ -37,6 +37,16 @@ app = FastAPI(
     description="Trading estimates tracking system with DDD/CQRS architecture",
     version="3.0.0",
     debug=settings.DEBUG,
+    contact={"name": "TickerTracker", "email": "fra.dilecce@gmail.com"},
+    license_info={"name": "MIT"},
+    openapi_tags=[
+        {"name": "estimates", "description": "Gestione stime analisti"},
+        {"name": "market-data", "description": "Dati di mercato Yahoo Finance"},
+        {"name": "health", "description": "Health check e status"},
+        {"name": "admin", "description": "Feature flags e admin"},
+        {"name": "metrics", "description": "Prometheus metrics"},
+    ],
+    swagger_ui_parameters={"defaultModelsExpandDepth": -1}
 )
 
 # Setup slowapi rate limiter (BEFORE include_router so state is ready)

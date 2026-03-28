@@ -26,9 +26,34 @@ class FeatureFlagUpdateRequest(BaseModel):
     enabled: bool
     percentage: int
     whitelist: list[str]
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "enabled": True,
+                "percentage": 100,
+                "whitelist": ["user_123", "user_456"]
+            }
+        }
+    }
 
 
-@router.get("/feature-flags", dependencies=[Depends(verify_admin_token)])
+@router.get(
+    "/feature-flags",
+    dependencies=[Depends(verify_admin_token)],
+    summary="List all feature flags",
+    description="Returns all active feature flags and their current state (percentage, whitelist, etc.).",
+    response_description="A dictionary of feature flags",
+    responses={
+        200: {
+            "description": "Success",
+            "content": {"application/json": {"example": {"flags": {"FF_NEW_UI": {"enabled": True, "percentage": 50, "whitelist": []}}}}}
+        },
+        401: {
+            "description": "Unauthorized - Missing or invalid admin token",
+            "content": {"application/json": {"example": {"detail": "Invalid administrative token"}}}
+        }
+    }
+)
 async def list_feature_flags(
     feature_flag_svc: FeatureFlagServiceDep
 ) -> dict[str, Any]:
@@ -37,7 +62,27 @@ async def list_feature_flags(
     return {"flags": flags}
 
 
-@router.post("/feature-flags/{flag_name}", dependencies=[Depends(verify_admin_token)])
+@router.post(
+    "/feature-flags/{flag_name}",
+    dependencies=[Depends(verify_admin_token)],
+    summary="Update a feature flag",
+    description="Updates a specific feature flag (e.g., changes its percentage or adds users to a whitelist). Needs valid admin token.",
+    response_description="The updated feature flag mapping",
+    responses={
+        200: {
+            "description": "Successfully updated",
+            "content": {"application/json": {"example": {"status": "success", "flag": {"enabled": True, "percentage": 100, "whitelist": ["user_abc"]}}}}
+        },
+        401: {
+            "description": "Unauthorized - Missing or invalid admin token",
+            "content": {"application/json": {"example": {"detail": "Invalid administrative token"}}}
+        },
+        422: {
+            "description": "Validation Error - Invalid flag name or body",
+            "content": {"application/json": {"example": {"detail": [{"msg": "Input should be a valid boolean"}]}}}
+        }
+    }
+)
 async def update_feature_flag(
     flag_name: FeatureFlag,
     request: FeatureFlagUpdateRequest,

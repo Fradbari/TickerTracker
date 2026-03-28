@@ -126,6 +126,20 @@ async def get_estimate_repository(
 
     Returns the created estimate with calculated prices.
     """,
+    responses={
+        201: {
+            "description": "Estimate created successfully",
+            "content": {"application/json": {"example": {"data": {"estimate": {"id": "123e4567-e89b-12d3-a456-426614174000", "ticker_id": "987e6543-e21b-34c5-b678-526614174000", "status": "OPEN", "trigger_price": 150.0, "target_price": 165.0, "stop_loss_price": 135.0}, "message": "Estimate created successfully"}, "meta": {"correlation_id": "abc"}}}},
+        },
+        400: {
+            "description": "Invalid input - Ticker not found, invalid price, etc.",
+            "content": {"application/json": {"example": {"error": {"code": "invalid_request", "message": "Ticker not found"}}}},
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {"application/json": {"example": {"error": {"code": "internal_error", "message": "Failed to fetch market data"}}}},
+        }
+    }
 )
 @limiter.limit("30/minute", exempt_when=is_whitelisted)
 async def create_estimate(

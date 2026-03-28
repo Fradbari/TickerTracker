@@ -76,7 +76,56 @@ def _system_health_to_dict(health: SystemHealth) -> dict:
 # ---------------------------------------------------------------------------
 
 
-@router.get("")
+@router.get(
+    "",
+    summary="Full system health check",
+    description="Runs all component checks IN PARALLEL (database, Redis, Yahoo Finance, Google Drive) and returns the aggregated result. Returns HTTP 200 if status is HEALTHY or DEGRADED (system is functional). Returns HTTP 503 if status is UNHEALTHY (critical dependency is DOWN).",
+    response_description="System health status",
+    responses={
+        200: {
+            "description": "System functional (HEALTHY or DEGRADED)",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "HEALTHY",
+                        "version": "1.0.0",
+                        "uptime_seconds": 120.5,
+                        "ready": True,
+                        "components": [
+                            {
+                                "name": "database",
+                                "status": "HEALTHY",
+                                "latency_ms": 15,
+                                "message": ""
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        503: {
+            "description": "Critical dependency DOWN",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "UNHEALTHY",
+                        "version": "1.0.0",
+                        "uptime_seconds": 120.5,
+                        "ready": False,
+                        "components": [
+                            {
+                                "name": "database",
+                                "status": "UNHEALTHY",
+                                "latency_ms": 0,
+                                "message": "Connection refused"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+)
 async def health_check() -> JSONResponse:
     """
     Full system health check.
@@ -94,7 +143,22 @@ async def health_check() -> JSONResponse:
     return JSONResponse(content=_system_health_to_dict(health), status_code=http_status)
 
 
-@router.get("/ready")
+@router.get(
+    "/ready",
+    summary="Kubernetes readiness probe",
+    description="Verifies only the database (the single critical dependency). Returns HTTP 200 if HEALTHY; HTTP 503 otherwise.",
+    response_description="Readiness status",
+    responses={
+        200: {
+            "description": "Database HEALTHY",
+            "content": {"application/json": {"example": {"ready": True, "database": "HEALTHY", "latency_ms": 10}}}
+        },
+        503: {
+            "description": "Database UNHEALTHY",
+            "content": {"application/json": {"example": {"ready": False, "database": "UNHEALTHY", "latency_ms": 0, "message": "Connection error"}}}
+        }
+    }
+)
 async def ready_check() -> JSONResponse:
     """
     Kubernetes readiness probe.
@@ -114,7 +178,18 @@ async def ready_check() -> JSONResponse:
     return JSONResponse(content=payload, status_code=200 if is_ready else 503)
 
 
-@router.get("/live")
+@router.get(
+    "/live",
+    summary="Kubernetes liveness probe",
+    description="No external checks — if this endpoint responds the process is alive. Always returns HTTP 200.",
+    response_description="Liveness status",
+    responses={
+        200: {
+            "description": "Process alive",
+            "content": {"application/json": {"example": {"alive": True, "uptime_seconds": 360.5}}}
+        }
+    }
+)
 async def liveness_check() -> JSONResponse:
     """
     Kubernetes liveness probe.
@@ -129,7 +204,18 @@ async def liveness_check() -> JSONResponse:
     )
 
 
-@router.get("/pool")
+@router.get(
+    "/pool",
+    summary="Database connection pool diagnostics",
+    description="Returns current pool utilisation: pool_size, checked_in, checked_out, overflow, invalid. Useful for dashboards and alerting on connection leaks. Always returns HTTP 200 — if the pool is unreachable, values will be null.",
+    response_description="Connection pool status",
+    responses={
+        200: {
+            "description": "Connection pool diagnostics",
+            "content": {"application/json": {"example": {"size": 10, "checkedin": 5, "checkedout": 5, "overflow": 0}}}
+        }
+    }
+)
 async def pool_status() -> JSONResponse:
     """
     Database connection pool diagnostics (Task 3.10).

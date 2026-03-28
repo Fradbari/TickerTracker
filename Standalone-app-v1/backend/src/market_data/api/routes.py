@@ -159,8 +159,22 @@ router = APIRouter(prefix="/api/market", tags=["Market Data"])
     "/price/{ticker}",
     response_model=ApiResponse[PriceResponse],
     summary="Get current price for a ticker",
-    description="Returns the most recent price data for the specified ticker symbol. "
-                "Includes OHLCV data and metadata (source, timestamp, stale flag)."
+    description="Returns the most recent price data for the specified ticker symbol. Includes OHLCV data and metadata (source, timestamp, stale flag).",
+    response_description="Current price and volume data",
+    responses={
+        200: {
+            "description": "Successfully retrieved price data",
+            "content": {"application/json": {"example": {"data": {"symbol": "AAPL", "price": "150.00", "open": "149.00", "high": "151.00", "low": "148.00", "close": "150.00", "volume": 1000000, "date": "2023-10-27", "source": "yahoo", "timestamp": "2023-10-27T14:30:00Z", "is_stale": False}}}}
+        },
+        404: {
+            "description": "Symbol not found",
+            "content": {"application/json": {"example": {"error": {"code": "not_found", "message": "Ticker AAPL not found"}}}}
+        },
+        503: {
+            "description": "Market data service unavailable",
+            "content": {"application/json": {"example": {"error": {"code": "service_unavailable", "message": "Provider Yahoo is unavailable"}}}}
+        }
+    }
 )
 @limiter.limit("60/minute", exempt_when=is_whitelisted)
 async def get_current_price(
@@ -212,8 +226,22 @@ async def get_current_price(
     "/history/{ticker}",
     response_model=ApiResponse[HistoryResponse],
     summary="Get historical price data",
-    description="Returns historical OHLCV data for the specified ticker and date range. "
-                "Supports aggregation intervals: 1d (daily), 1w (weekly), 1m (monthly)."
+    description="Returns historical OHLCV data for the specified ticker and date range. Supports aggregation intervals: 1d (daily), 1w (weekly), 1m (monthly).",
+    response_description="Historical price data",
+    responses={
+        200: {
+            "description": "Successfully retrieved historical data",
+            "content": {"application/json": {"example": {"data": {"symbol": "AAPL", "interval": "1d", "start_date": "2023-01-01", "end_date": "2023-01-31", "data": [{"date": "2023-01-01", "open": "149.00", "high": "151.00", "low": "148.00", "close": "150.00", "volume": 1000000}], "source": "yahoo", "timestamp": "2023-10-27T14:30:00Z"}}}}
+        },
+        400: {
+            "description": "Invalid date range",
+            "content": {"application/json": {"example": {"error": {"code": "bad_request", "message": "start_date must be before or equal to end_date"}}}}
+        },
+        404: {
+            "description": "Symbol not found",
+            "content": {"application/json": {"example": {"error": {"code": "not_found", "message": "Ticker AAPL not found"}}}}
+        }
+    }
 )
 async def get_historical_prices(
     ticker: str,
@@ -296,8 +324,18 @@ async def get_historical_prices(
     "/fundamentals/{ticker}",
     response_model=ApiResponse[FundamentalsResponse],
     summary="Get fundamental data",
-    description="Returns fundamental/company data for the specified ticker. "
-                "Includes metrics like P/E ratio, market cap, dividend yield, etc."
+    description="Returns fundamental/company data for the specified ticker. Includes metrics like P/E ratio, market cap, dividend yield, etc.",
+    response_description="Fundamentals data",
+    responses={
+        200: {
+            "description": "Successfully retrieved fundamentals data",
+            "content": {"application/json": {"example": {"data": {"symbol": "AAPL", "company_name": "Apple Inc.", "market_cap": "2.5T", "pe_ratio": "25.5", "eps": "5.6", "source": "yahoo", "timestamp": "2023-10-27T14:30:00Z"}}}}
+        },
+        404: {
+            "description": "Symbol not found",
+            "content": {"application/json": {"example": {"error": {"code": "not_found", "message": "Ticker AAPL not found"}}}}
+        }
+    }
 )
 async def get_fundamentals(
     ticker: str,
@@ -353,8 +391,14 @@ async def get_fundamentals(
     "/search",
     response_model=ApiResponse[SearchResponse],
     summary="Search for ticker symbols",
-    description="Search for ticker symbols by company name or symbol fragment. "
-                "Returns up to 10 results ordered by relevance."
+    description="Search for ticker symbols by company name or symbol fragment. Returns up to 10 results ordered by relevance.",
+    response_description="List of matching symbols",
+    responses={
+        200: {
+            "description": "Successfully retrieved search results",
+            "content": {"application/json": {"example": {"data": {"query": "Apple", "results": [{"symbol": "AAPL", "name": "Apple Inc.", "exchange": "NASDAQ"}], "count": 1}}}}
+        }
+    }
 )
 async def search_symbols(
     response: Response,

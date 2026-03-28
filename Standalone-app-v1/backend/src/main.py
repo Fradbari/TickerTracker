@@ -86,6 +86,16 @@ async def root() -> dict[str, str]:
     }
 
 
+from sqlalchemy.exc import TimeoutError as SATimeoutError
+
+@app.exception_handler(SATimeoutError)
+async def db_timeout_exception_handler(request: Request, exc: SATimeoutError) -> JSONResponse:
+    """Handle database pool exhaustion / timeout."""
+    return JSONResponse(
+        status_code=503,
+        content={"status": 503, "code": "DB_UNAVAILABLE", "detail": "Service temporally unavailable due to high load"},
+    )
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Global exception handler for unhandled exceptions."""

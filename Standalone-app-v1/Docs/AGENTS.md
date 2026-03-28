@@ -304,10 +304,10 @@ Dipendenze: TASK 5.4
 
 **Acceptance Criteria:**
 
-- [ ] Sistema non crasha su fallimenti esterni
-- [ ] Fallback a cache funziona
-- [ ] Errori restituiti sono informativi
-- [ ] Dati non corrotti da fallimenti parziali
+- [x] Sistema non crasha su fallimenti esterni
+- [x] Fallback a cache funziona
+- [x] Errori restituiti sono informativi
+- [x] Dati non corrotti da fallimenti parziali
 
 ---
 

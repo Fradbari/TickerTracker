@@ -1425,3 +1425,18 @@ Il modello `AiModelRun` è utilizzato per tracciare le esecuzioni dei modelli AI
 - **created_at**: Timestamp di creazione dell'esecuzione.
 
 Il modello include un indice sui campi `model_name` e `created_at` per ottimizzare le query cronologiche e per modello.
+
+## Chaos Testing
+
+Il sistema implementa test di resilienza per verificare la tenuta sotto carico o in condizioni di API esterne fallite. Per eseguire i test di Chaos:
+
+````bash
+pytest -m chaos tests/chaos/
+```
+Scenari validati:
+- Timeout e failure provider esterni (es: Google Drive / Yahoo).
+- Fallback a memoria in cache con dati markati come stale.
+- Retries esponenziali ed intermittenza di rete.
+- Load testing e isolamento a livello di asyncpg pool con Graceful Degradation (503 Service Unavailable).
+- Transazioni atomiche per non corrompere dati preesistenti durante sincronizzazioni parziali.
+

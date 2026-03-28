@@ -271,9 +271,6 @@ async def import_to_database(valid_data, dry_run: bool):
                 else:
                     logger.info(f"[DRY-RUN] Would create ticker {symbol}")
                     existing_tickers[symbol] = uuid.uuid4() # Mock ID
-                    
-        if not dry_run:
-            await session.commit()
 
         # 2. Insert market_data (History) idempotently
         if valid_data["history"]:
@@ -293,12 +290,9 @@ async def import_to_database(valid_data, dry_run: bool):
             if not dry_run:
                 # Use insert().on_conflict_do_nothing()
                 stmt = insert(MarketData).values(history_rows)
-                stmt = stmt.on_conflict_do_nothing(
-                    index_elements=['ticker_id', 'date']
-                )
+                stmt = stmt.on_conflict_do_nothing()
                 res = await session.execute(stmt)
                 stats["history_inserted"] += res.rowcount
-                await session.commit()
             else:
                 logger.info(f"[DRY-RUN] Would insert chunk of {len(history_rows)} historical prices")
                 stats["history_inserted"] += len(history_rows)
@@ -308,7 +302,8 @@ async def import_to_database(valid_data, dry_run: bool):
             estimate_rows = []
             for e in valid_data["estimates"]:
                 # Generate a stable UUID5 to allow idempotency without DB unique constraints
-                stable_id = uuid.uuid5(uuid.NAMESPACE_OID, f"legacy_{e.ticker}_{e.created_at.isoformat()}")
+                ts_normalized = e.created_at.replace(tzinfo=None, microsecond=0).isoformat()
+                stable_id = uuid.uuid5(uuid.NAMESPACE_OID, f"legacy_{e.ticker}_{ts_normalized}")
                 
                 estimate_rows.append({
                     "id": stable_id,
@@ -328,15 +323,15 @@ async def import_to_database(valid_data, dry_run: bool):
             
             if not dry_run:
                 stmt = insert(Estimate).values(estimate_rows)
-                stmt = stmt.on_conflict_do_nothing(
-                    index_elements=['id']  # Unique constraint on PK
-                )
+                stmt = stmt.on_conflict_do_nothing()
                 res = await session.execute(stmt)
                 stats["estimates_inserted"] += res.rowcount
-                await session.commit()
             else:
                 logger.info(f"[DRY-RUN] Would insert chunk of {len(estimate_rows)} estimates")
                 stats["estimates_inserted"] += len(estimate_rows)
+
+        if not dry_run:
+            await session.commit()
 
     return stats
 

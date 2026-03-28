@@ -375,10 +375,10 @@ Dipendenze: TASK 5.10
 
 **Acceptance Criteria:**
 
-- [ ] Immagini Docker buildate e pushate
-- [ ] Deploy staging automatico
-- [ ] Deploy production richiede approval
-- [ ] Rollback possibile
+- [x] Immagini Docker buildate e pushate
+- [x] Deploy staging automatico
+- [x] Deploy production richiede approval
+- [x] Rollback possibile
 
 ---
 

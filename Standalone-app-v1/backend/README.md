@@ -279,13 +279,21 @@ GET /api/market/history/{ticker}/paginated
 
 ## Strumenti CI/CD (GitHub Actions)
 
-Il progetto utilizza **GitHub Actions** per la Continuous Integration (vedi file `.github/workflows/ci.yml`).
+Il progetto utilizza **GitHub Actions** per la Continuous Integration e il Deploy automatico (vedi file `.github/workflows/ci.yml` e `.github/workflows/cd.yml`).
 
+### Workflow `ci.yml`
 - I job vengono avviati per *push* e *pull request* sui rami `main` e `develop`.
 - **backend-lint**: Linting (`Ruff`) e Type Checking (`MyPy`).
 - **backend-test**: Test suite con `pytest` asincrono, simulando i container PostgreSQL e Redis come services effimeri.
 - **backend-security**: Scansione vulnerabilità (`aquasecurity/trivy-action`).
 - **frontend-test & e2e-test**: Suite speculari su React e test end-to-end integrali con *Playwright*.
+
+### Workflow `cd.yml`
+Pipeline di Continuous Deployment con trigger separato.
+- Crea *Build* delle nuove immagini Docker (backend e frontend).
+- Push sul *GitHub Container Registry* (GHCR).
+- Applica i tag corti tramite metadati (es. `sha-<commit>`). 
+- Avvia Webhooks remoti verso Staging (da `develop`) e verso Production (da `main` - **Richiede Approval**). Include possibilità passiva di Rollback lanciando lo stesso yml con un Tag personalizzato.
 - **Codecov**: È supportata la reportistica coverage tramite `codecov-action` caricando `coverage.xml`.  Richiede la variabile segreta repository `CODECOV_TOKEN`.
 
 Per simulare questo task in locale (es. backend tests):

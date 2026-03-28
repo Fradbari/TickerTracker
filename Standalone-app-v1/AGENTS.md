@@ -137,7 +137,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 5.8** - Setup E2E Test con Playwright
 - [x] **TASK 5.9** - Implementare Chaos Testing
 - [x] **TASK 5.10** - Configurare CI Pipeline (GitHub Actions)
-- [ ] **TASK 5.11** - Configurare CD Pipeline (Deploy)
+- [x] **TASK 5.11** - Configurare CD Pipeline (Deploy)
 - [ ] **TASK 5.15** - Creare Runbook Operativo
 - [ ] **TASK 5.16** - Documentare API con OpenAPI
 - [ ] **TASK 5.17** - Creare Script Migrazione Dati v2.4 → v3.0

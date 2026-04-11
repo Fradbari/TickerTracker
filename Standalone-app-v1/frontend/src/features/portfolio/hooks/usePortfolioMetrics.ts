@@ -6,7 +6,7 @@ import type { Estimate } from '@/shared/types'
 export function usePortfolioMetrics() {
   // Use useEstimates with a 5 minute refetch interval
   const { data, isLoading, isError, error } = useEstimates(
-    { limit: 1000 },
+    { limit: 100 },
     { refetchInterval: 5 * 60 * 1000 }
   ) as { data: { items: Estimate[] } | undefined, isLoading: boolean, isError: boolean, error: unknown }
 

@@ -21,7 +21,7 @@ import { formatMoney } from '@/shared/finance'
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a28bff', '#ff7373']
 
 export function Dashboard() {
-  const { metrics, isLoading, isError } = usePortfolioMetrics()
+  const { metrics, isLoading, isError, error } = usePortfolioMetrics()
   const { t } = useTranslation('common')
 
   if (isLoading) {
@@ -29,7 +29,7 @@ export function Dashboard() {
   }
 
   if (isError || !metrics) {
-    return <div className="p-4 text-red-500" aria-live="polite">Error loading dashboard</div>
+    return <div className="p-4 text-red-500" aria-live="polite">Error loading dashboard: {error instanceof Error ? error.message : JSON.stringify(error)}</div>
   }
 
   const {
@@ -135,7 +135,7 @@ export function Dashboard() {
                   fill="#8884d8"
                   dataKey="pnl"
                 >
-                  {tickerDistribution.map((entry, index) => (
+                  {tickerDistribution.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -152,7 +152,7 @@ export function Dashboard() {
             <h2 className="text-lg font-semibold mb-4 text-green-600">Top Performers</h2>
             <ul className="space-y-2">
               {topPerformers.length === 0 && <li className="text-sm text-gray-500">No data</li>}
-              {topPerformers.map((item, idx) => (
+              {topPerformers.map((item: any, idx: number) => (
                 <li key={idx} className="flex justify-between border-b pb-1 last:border-0 border-gray-100 dark:border-gray-700">
                   <span className="font-medium">{item.ticker}</span>
                   <span className="text-green-600">{formatCurrency(item.pnl)}</span>
@@ -165,7 +165,7 @@ export function Dashboard() {
             <h2 className="text-lg font-semibold mb-4 text-red-600">Worst Performers</h2>
             <ul className="space-y-2">
               {worstPerformers.length === 0 && <li className="text-sm text-gray-500">No data</li>}
-              {worstPerformers.map((item, idx) => (
+              {worstPerformers.map((item: any, idx: number) => (
                 <li key={idx} className="flex justify-between border-b pb-1 last:border-0 border-gray-100 dark:border-gray-700">
                   <span className="font-medium">{item.ticker}</span>
                   <span className="text-red-600">{formatCurrency(item.pnl)}</span>

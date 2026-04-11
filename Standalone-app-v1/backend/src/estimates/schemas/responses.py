@@ -12,6 +12,12 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class TickerNestedResponse(BaseModel):
+    symbol: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class EstimateResponse(BaseModel):
     """
     Standard response schema for a single estimate.
@@ -89,6 +95,7 @@ class EstimateResponse(BaseModel):
     updated_at: datetime
     closed_at: datetime | None = None
     is_deleted: bool
+    ticker: TickerNestedResponse | None = None
 
 
 class EstimateListResponse(BaseModel):

@@ -52,7 +52,8 @@ export function usePortfolioMetrics() {
           totalPnL += pnlValue
 
           // Ticker distribution
-          tickerPnL[estimate.ticker_id] = (tickerPnL[estimate.ticker_id] || 0) + pnlValue
+          const symbolStr = estimate.ticker?.symbol || estimate.ticker_id
+          tickerPnL[symbolStr] = (tickerPnL[symbolStr] || 0) + pnlValue
 
           // Cumulative PnL
           currentCumulativePnL += pnlValue

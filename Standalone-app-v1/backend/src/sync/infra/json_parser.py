@@ -95,6 +95,7 @@ class LegacyJsonParser:
                     status=status,
                     ai_model=item.get("aiName") or item.get("aiModel"),
                     ai_confidence=Decimal(str(item.get("aiConfidence", 0))) if item.get("aiConfidence") else None,
+                    realized_pnl=Decimal(str(item.get("profitLoss", 0))) if getattr(item, "get", lambda k: None)("profitLoss") is not None else None,
                     realized_pnl_percent=Decimal(str(item.get("profitLossPercent", 0))) if item.get("profitLossPercent") else None,
                     exit_price=Decimal(str(item.get("endPrice", 0))) if item.get("endPrice") else None,
                     close_date=None, # Extract if present

@@ -123,7 +123,7 @@ class EstimateRepository:
 
             # Soft delete filter
             if not filters.include_deleted:
-                conditions.append(Estimate.is_deleted is False)
+                conditions.append(Estimate.is_deleted.is_(False))
 
             if filters.ticker_id:
                 conditions.append(Estimate.ticker_id == filters.ticker_id)

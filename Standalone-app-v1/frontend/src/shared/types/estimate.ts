@@ -26,6 +26,9 @@ export interface Estimate {
   updated_at: string
   closed_at: string | null
   is_deleted: boolean
+  ticker?: {
+    symbol: string
+  }
 }
 
 export interface PageInfo {

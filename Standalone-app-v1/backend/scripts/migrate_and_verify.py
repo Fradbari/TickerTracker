@@ -30,6 +30,10 @@ from src.shared.infra.database import AsyncSessionLocal
 from src.sync.infra.csv_parser import LegacyCsvParser
 from src.sync.infra.json_parser import LegacyJsonParser
 from src.sync.infra.legacy_models import LegacyEstimateRow, LegacyHistoryRow
+from src.market_data.services.market_data_service import MarketDataService
+from src.market_data.services.yahoo_provider import YahooMarketDataProvider
+from src.market_data.repositories.market_data_repository import MarketDataRepository
+from sqlalchemy import select
 
 # Configure logging
 logging.basicConfig(
@@ -78,15 +82,16 @@ async def verify_google_drive(drive_client: GoogleDriveClient, folder_id: str) -
                 logger.info(f"  ⏭️  Escluso {file.name} dalla migrazione")
                 continue
             # Backup files: JSON or CSV (not history)
-            if file.name.endswith('.json') or (file.name.endswith('.csv') and 'History_' not in file.name):
+            if file.name.endswith('.json') or (file.name.endswith('.csv') and 'history' not in file.name.lower()):
                 backups.append(file)
                 size_kb = (file.size or 0) // 1024
                 mod_time = file.modified_time.strftime('%Y-%m-%d %H:%M') if file.modified_time else 'N/A'
                 logger.info(f"  📄 {file.name} ({size_kb} KB, modificato {mod_time})")
             # History files
-            elif file.name.startswith('History_') and file.name.endswith('.csv'):
+            elif 'history' in file.name.lower() and file.name.endswith('.csv'):
                 histories.append(file)
-                ticker = file.name.replace('History_', '').replace('.csv', '')
+                # Pattern can be History_ORCL.csv or ORCL_History.csv
+                ticker = file.name.lower().replace('history', '').replace('_', '').replace('.csv', '').upper()
                 size_kb = (file.size or 0) // 1024
                 logger.info(f"  📈 {file.name} - Ticker: {ticker} ({size_kb} KB)")
 
@@ -290,9 +295,9 @@ async def import_estimate_row(
                 logger.warning(f"  ⚠️  Unknown direction '{row.direction}' for {row.ticker}, defaulting to LONG")
                 direction = Direction.LONG
 
-            # Calculate realized_pnl from percent if available
-            realized_pnl = None
-            if row.realized_pnl_percent and corrected_start_price:
+            # Calculate realized_pnl from percent if available and not set
+            realized_pnl = row.realized_pnl
+            if realized_pnl is None and row.realized_pnl_percent and corrected_start_price:
                 realized_pnl = corrected_start_price * (row.realized_pnl_percent / Decimal("100"))
 
             # Recalculate target/stop prices if they were 0
@@ -437,8 +442,8 @@ async def download_and_import(
         logger.info(f"\n📈 History Files ({len(histories)}) - Importing FIRST for price fallback:")
         for history_file in histories:
             try:
-                # Extract ticker from filename
-                ticker_symbol = history_file.name.replace('History_', '').replace('.csv', '')
+                # Extract ticker from filename broadly
+                ticker_symbol = history_file.name.lower().replace('history', '').replace('_', '').replace('.csv', '').upper()
 
                 # Download and parse
                 content = await drive_client.download_file(history_file.id)
@@ -597,6 +602,42 @@ async def main(dry_run: bool = False):
                 if not dry_run:
                     await session.commit()
                     logger.info("\n✅ Transazione committata")
+                    
+                    # -----------------------------------------------------
+                    # FETCH MISSING HISTORICAL DATA FROM YAHOO FINANCE
+                    # -----------------------------------------------------
+                    logger.info("\n" + "=" * 60)
+                    logger.info("FASE 2.5: SYNC STORICO CANDELE DA YAHOO")
+                    logger.info("=" * 60 + "\n")
+                    
+                    from datetime import date
+                    from src.market_data.services.yahoo_provider import YahooMarketDataProvider
+                    from src.market_data.repositories.market_data_repository import MarketDataRepository
+                    from src.market_data.services.market_data_service import MarketDataService
+                    
+                    provider = YahooMarketDataProvider()
+                    repository = MarketDataRepository()
+                    md_service = MarketDataService(provider, repository, AsyncSessionLocal)
+                    
+                    async with AsyncSessionLocal() as md_session:
+                        result = await md_session.execute(select(Ticker))
+                        all_tickers = result.scalars().all()
+                        
+                        start_d = date(2020, 1, 1)
+                        end_d = date.today()
+                        
+                        for t in all_tickers:
+                            logger.info(f"Scarico storico da {start_d} a {end_d} per il ticker: {t.symbol} ...")
+                            try:
+                                count = await md_service.sync_historical_data(
+                                    ticker_id=t.id,
+                                    start_date=start_d,
+                                    end_date=end_d,
+                                    interval="1d"
+                                )
+                                logger.info(f"  ✅ {count} candele salvate per {t.symbol}")
+                            except Exception as e:
+                                logger.error(f"  ❌ Errore scaricamento {t.symbol}: {e}")
                 else:
                     await session.rollback()
                     logger.info("\n🔍 DRY RUN: Nessuna modifica al database")

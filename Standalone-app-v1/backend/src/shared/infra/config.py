@@ -263,3 +263,6 @@ def get_settings() -> Settings:
         True
     """
     return Settings()
+
+# Provide a global instance for convenience
+settings = get_settings()

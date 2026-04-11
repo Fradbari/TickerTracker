@@ -91,13 +91,10 @@ services:
     container_name: tickertracker-frontend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3000:80"
     environment:
       # Vite proxy target: routes /api/* to the backend service inside Docker
       VITE_API_TARGET: http://backend:8000
-    volumes:
-      # Hot-reload: sync source code
-      - ./frontend/src:/app/src
     depends_on:
       - backend
     networks:

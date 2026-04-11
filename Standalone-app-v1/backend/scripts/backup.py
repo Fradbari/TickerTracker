@@ -12,7 +12,9 @@ from cryptography.fernet import Fernet
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
-from src.infra.drive.auth import get_google_credentials
+import json
+from google.oauth2 import service_account
+
 from src.shared.infra.config import settings
 
 # Configure logging for the script
@@ -34,6 +36,17 @@ async def send_alert(message: str) -> None:
             logger.info("Alert sent successfully")
     except Exception as e:
         logger.error(f"Failed to send alert: {e}")
+
+def get_google_credentials():
+    """Get authenticated Google credentials from settings."""
+    service_account_json = settings.GOOGLE_SERVICE_ACCOUNT_JSON.get_secret_value()
+    if not service_account_json or service_account_json.strip() == "":
+        raise ValueError("Google Service Account JSON is empty or not configured.")
+    service_account_info = json.loads(service_account_json)
+    return service_account.Credentials.from_service_account_info(
+        service_account_info,
+        scopes=['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive']
+    )
 
 def get_drive_service():
     """Get authenticated Google Drive service."""

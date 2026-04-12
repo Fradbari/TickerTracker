@@ -164,13 +164,13 @@ class EstimateRepository:
                 cursor_id = UUID(cursor_data["id"])
                 cursor_created = datetime.fromisoformat(cursor_data["created_at"])
 
-                # Cursor pagination: WHERE (created_at, id) > (cursor_created, cursor_id)
+                # Cursor pagination: WHERE (created_at, id) < (cursor_created, cursor_id)
                 query = query.where(
                     or_(
-                        Estimate.created_at > cursor_created,
+                        Estimate.created_at < cursor_created,
                         and_(
                             Estimate.created_at == cursor_created,
-                            Estimate.id > cursor_id
+                            Estimate.id < cursor_id
                         )
                     )
                 )

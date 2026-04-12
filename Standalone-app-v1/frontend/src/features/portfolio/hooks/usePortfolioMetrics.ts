@@ -27,8 +27,8 @@ export function usePortfolioMetrics() {
     let totalPnL = 0;
     
     const active = estimates.filter((e: any) => e.status === 'OPEN').length;
-    const wins = estimates.filter((e: any) => e.status === 'CLOSED_WIN').length;
-    const losses = estimates.filter((e: any) => e.status === 'CLOSED_LOSS').length;
+    const wins = estimates.filter((e: any) => e.realized_pnl_percent && new Decimal(e.realized_pnl_percent).toNumber() > 0).length;
+    const losses = estimates.filter((e: any) => e.realized_pnl_percent && new Decimal(e.realized_pnl_percent).toNumber() < 0).length;
 
     let highestPercent: any = null;
     let lowestPercent: any = null;

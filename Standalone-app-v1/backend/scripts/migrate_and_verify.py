@@ -324,6 +324,7 @@ async def import_estimate_row(
                 ai_confidence=row.ai_confidence,
                 exit_price=row.exit_price,
                 realized_pnl=realized_pnl,
+                realized_pnl_percent=row.realized_pnl_percent,
                 created_at=datetime.combine(row.start_date, datetime.min.time()),
                 closed_at=datetime.combine(row.close_date, datetime.min.time()) if row.close_date else None,
             )

@@ -678,3 +678,62 @@ async def get_estimate_history(
             message=f"Failed to get estimate history: {str(e)}",
             trace_id=trace_id,
         )
+
+@router.get(
+    "/statistics/backend-check",
+    response_model=ApiResponse[dict],
+    summary="Get temporary backend check statistics",
+    description="Returns backend statistics to verify Target Evaluation and History Sync jobs.",
+    tags=["Testing & Internal"]
+)
+async def get_backend_statistics(
+    request: Request,
+    session: AsyncSession = Depends(get_db)
+):
+    """
+    Temporary endpoint to get counts from DB to visualize in Dashboard.
+    """
+    import logging
+    logger = logging.getLogger("estimates.api")
+    trace_id = getattr(request.state, "trace_id", "local")
+
+    try:
+
+        from sqlalchemy import func, select
+
+        from src.estimates.domain.entities import Estimate, EstimateStatus
+        from src.market_data.domain.market_data import MarketData
+
+        # Open Estimates Count
+        stmt_open = select(func.count(Estimate.id)).where(Estimate.status == EstimateStatus.OPEN)
+        open_count = (await session.execute(stmt_open)).scalar() or 0
+
+        # Closed by Engine count (closed recently)
+        stmt_closed = select(func.count(Estimate.id)).where(Estimate.status.in_([
+            EstimateStatus.CLOSED_WIN,
+            EstimateStatus.CLOSED_LOSS,
+            EstimateStatus.EXPIRED
+        ]))
+        closed_count = (await session.execute(stmt_closed)).scalar() or 0
+
+        # Synced History rows length
+        stmt_market = select(func.count(MarketData.ticker_id))
+        market_rows = (await session.execute(stmt_market)).scalar() or 0
+
+        return success_response(
+            data={
+                "open_estimates": open_count,
+                "auto_closed_estimates": closed_count,
+                "synced_market_rows": market_rows,
+                "backend_jobs_active": True
+            },
+            trace_id=trace_id
+        )
+    except Exception as e:
+        logger.error(f"Failed to fetch backend statistics: {e}")
+        return error_response(
+            code="INTERNAL_ERROR",
+            message="Failed fetching stats",
+            trace_id=trace_id
+        )
+

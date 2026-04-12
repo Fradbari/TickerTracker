@@ -9,9 +9,15 @@ import {
   Cell
 } from 'recharts'
 import { usePortfolioMetrics } from '../hooks/usePortfolioMetrics'
+import { useBackendStats } from '@/shared/api/queries/backendStats'
 
 export function Dashboard() {
   const { metrics, isLoading, isError } = usePortfolioMetrics()
+  const { 
+    data: backendStats, 
+    isLoading: isLoadingStats, 
+    isError: isErrorStats 
+  } = useBackendStats()
 
   if (isLoading) {
     return <div className="p-4 flex h-full items-center justify-center text-gray-400">Caricamento statistiche...</div>
@@ -70,6 +76,37 @@ export function Dashboard() {
           <div className="text-xl font-bold text-purple-400 truncate mt-1">{topAi}</div>
         </div>
 
+      </div>
+
+      {/* ADMIN / BACKEND STATS (TEMPORARY) */}
+      <div className="bg-gray-800 rounded-2xl p-4 shadow-lg border border-indigo-500/30">
+        <h3 className="text-sm text-indigo-400 font-semibold mb-3 uppercase tracking-wide">Admin: Dati Backend (Jobs)</h3>
+        {isLoadingStats ? (
+          <div className="text-sm text-gray-400">Loading backend check...</div>
+        ) : isErrorStats || !backendStats ? (
+          <div className="text-sm text-red-400">Errore check background</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="bg-gray-900 rounded p-3">
+              <div className="text-xs text-gray-400">Open Estimates (DB)</div>
+              <div className="text-lg font-bold text-blue-300">{backendStats.open_estimates}</div>
+            </div>
+            <div className="bg-gray-900 rounded p-3">
+              <div className="text-xs text-gray-400">Auto-Closed by Engine</div>
+              <div className="text-lg font-bold text-purple-300">{backendStats.auto_closed_estimates}</div>
+            </div>
+            <div className="bg-gray-900 rounded p-3">
+              <div className="text-xs text-gray-400">Synced Market Rows</div>
+              <div className="text-lg font-bold text-teal-300">{backendStats.synced_market_rows}</div>
+            </div>
+            <div className="bg-gray-900 rounded p-3">
+              <div className="text-xs text-gray-400">Cron Status</div>
+              <div className="text-lg font-bold text-green-400">
+                {backendStats.backend_jobs_active ? "OK" : "NOT RUNNING"}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6">

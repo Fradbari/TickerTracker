@@ -134,6 +134,7 @@ export function Dashboard() {
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="pnl"
+                  nameKey="ticker"
                 >
                   {tickerDistribution.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

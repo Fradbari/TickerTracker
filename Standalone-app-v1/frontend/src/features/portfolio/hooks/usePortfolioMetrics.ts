@@ -1,17 +1,29 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import Decimal from 'decimal.js'
-import { useEstimates } from '@/shared/api/queries/estimates'
+import { useInfiniteEstimates } from '@/shared/api/queries/estimates'
 import type { Estimate } from '@/shared/types'
 
 export function usePortfolioMetrics() {
-  // Use useEstimates with a 5 minute refetch interval
-  const { data, isLoading, isError, error } = useEstimates(
-    { limit: 100 },
-    { refetchInterval: 5 * 60 * 1000 }
-  ) as { data: { items: Estimate[] } | undefined, isLoading: boolean, isError: boolean, error: unknown }
+  // Use infinite query to fetch all pages of estimates, handling any amount of data systematically
+  const { 
+    data, 
+    isLoading, 
+    isError, 
+    error,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage
+  } = useInfiniteEstimates({}, 100);
+
+  // Automatically fetch ALL pages sequentially until no more data is available
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const metrics = useMemo(() => {
-    const estimates = data?.items || []
+    const estimates = data?.pages.flatMap(page => page.items) || []
     
     let totalInvested = 0
     let totalPnL = 0

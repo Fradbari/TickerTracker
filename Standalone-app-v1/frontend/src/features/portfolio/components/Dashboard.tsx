@@ -72,7 +72,7 @@ export function Dashboard() {
 
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         
         {/* BarChart per performance AI */}
         <div className="bg-gray-800 rounded-2xl p-6 shadow-lg text-white">
@@ -84,9 +84,11 @@ export function Dashboard() {
                 <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip 
                   cursor={{fill: '#374151'}} 
-                  contentStyle={{backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff'}} 
+                  contentStyle={{backgroundColor: '#1F2937', border: '1px solid #4B5563', borderRadius: '8px'}} 
+                  itemStyle={{ color: '#F3F4F6' }}
+                  labelStyle={{ color: '#F3F4F6', fontWeight: 'bold', marginBottom: '0.5rem' }}
                 />
-                <Bar dataKey="pnl" radius={[4, 4, 4, 4]}>
+                <Bar dataKey="pnl" name="€" radius={[4, 4, 4, 4]}>
                   {aiChartData.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.pnl >= 0 ? '#10B981' : '#EF4444'} />
                   ))}
@@ -94,26 +96,6 @@ export function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
-
-        <div className="grid grid-rows-2 gap-6">
-            {/* Top Operazione */}
-            <div className="bg-gray-800 rounded-2xl p-6 shadow-lg flex flex-col justify-center">
-            <h3 className="text-sm text-gray-400 uppercase tracking-wide mb-2">Operazione Top</h3>
-            <div className="text-3xl font-bold text-green-400 bg-gray-900/50 p-4 rounded-xl border border-green-900/30 flex items-center justify-between">
-                <span>{highestPercentDisplay.split(' ')[0]}</span>
-                <span>{highestPercentDisplay.split(' ')[1] || ''}</span>
-            </div>
-            </div>
-
-            {/* Worst Operazione */}
-            <div className="bg-gray-800 rounded-2xl p-6 shadow-lg flex flex-col justify-center">
-            <h3 className="text-sm text-gray-400 uppercase tracking-wide mb-2">Operazione Peggiore</h3>
-            <div className="text-3xl font-bold text-red-400 bg-gray-900/50 p-4 rounded-xl border border-red-900/30 flex items-center justify-between">
-                <span>{lowestPercentDisplay.split(' ')[0]}</span>
-                <span>{lowestPercentDisplay.split(' ')[1] || ''}</span>
-            </div>
-            </div>
         </div>
 
       </div>

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Wallet, BrainCircuit, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Wallet, BrainCircuit, Settings } from "lucide-react";
 import { ThemeToggle } from "../../shared/components/ThemeToggle";
 
 const NAV_ITEMS = [
@@ -14,7 +14,7 @@ export function Sidebar() {
     <aside className="w-64 bg-[var(--card)] border-r border-[var(--border)] hidden md:flex flex-col h-screen fixed inset-y-0 left-0 z-50">
       <div className="p-6 flex items-center justify-between">
         <h1 className="text-xl font-bold text-[var(--foreground)] truncate">
-          TickerTracker 2.5
+          Ticker Tracker
         </h1>
         <ThemeToggle />
       </div>
@@ -37,13 +37,6 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
-
-      <div className="p-4 border-t border-[var(--border)]">
-        <button className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400 transition-colors">
-          <LogOut size={20} />
-          Logout
-        </button>
-      </div>
     </aside>
   );
 }

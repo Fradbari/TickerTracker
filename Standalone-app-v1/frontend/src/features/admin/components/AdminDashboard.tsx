@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { useBackendStats } from '@/shared/api/queries/backendStats'
 import { KpiCard } from '@/shared/components/KpiCard'
 import { Database, Settings, RefreshCw, Power } from 'lucide-react'
@@ -28,24 +28,28 @@ export function AdminDashboard() {
               value={backendStats?.open_estimates ?? 0}
               icon={<Database />}
               isLoading={isLoading}
+              description="Mostra il numero di stime attualmente monitorate dal sistema ed attive nel db in tempo reale."
             />
             <KpiCard
               title="Auto-Closed Engine"
               value={backendStats?.auto_closed_estimates ?? 0}
               icon={<RefreshCw />}
               isLoading={isLoading}
+              description="Indica quante stime sono state chiuse o controllate automaticamente dall'elaboratore dei prezzi (motore di resolving)."
             />
             <KpiCard
               title="Market Sync"
               value={backendStats?.synced_market_rows ?? 0}
               icon={<Database />}
               isLoading={isLoading}
+              description="Quantità di dati di mercato grezzi scaricati e inseriti nello storage di sistema."
             />
             <KpiCard
               title="Cron System"
               value={backendStats?.backend_jobs_active ? "ACTIVE" : "HALTED"}
               icon={<Power />}
               isLoading={isLoading}
+              description="Status del cron job in esecuzione. ACTIVE = C'è sincronizzazione e automazione oraria, in tempo reale."
             />
           </div>
         )}

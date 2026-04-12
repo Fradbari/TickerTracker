@@ -18,6 +18,6 @@ export function useBackendStats() {
   return useQuery({
     queryKey: ['backend-stats'],
     queryFn: fetchBackendStats,
-    refetchInterval: 60000, // Refetch every 1 minute to stay up to date
+    refetchInterval: 5000, // Refetch every 5 seconds per sincronizzazione real-time
   })
 }

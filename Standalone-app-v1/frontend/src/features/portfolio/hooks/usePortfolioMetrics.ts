@@ -4,7 +4,6 @@ import { useInfiniteEstimates } from '@/shared/api/queries/estimates'
 import type { Estimate } from '@/shared/types'
 
 export function usePortfolioMetrics() {
-  // Use infinite query to fetch all pages of estimates, handling any amount of data systematically
   const { 
     data, 
     isLoading, 
@@ -15,7 +14,6 @@ export function usePortfolioMetrics() {
     isFetchingNextPage
   } = useInfiniteEstimates({}, 100);
 
-  // Automatically fetch ALL pages sequentially until no more data is available
   useEffect(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -23,83 +21,73 @@ export function usePortfolioMetrics() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const metrics = useMemo(() => {
-    const estimates = data?.pages.flatMap(page => page.items) || []
+    const estimates = data?.pages.flatMap(page => page.items) || [];
     
-    let totalInvested = 0
-    let totalPnL = 0
-    let activeEstimatesCount = 0
-    const countsByStatus: Record<string, number> = {
-      OPEN: 0,
-      CLOSED_WIN: 0,
-      CLOSED_LOSS: 0,
-      CLOSED_NEUTRAL: 0,
-    }
+    let totalInvested = estimates.length * 100; // Simulated  per trade
+    let totalPnL = 0;
+    
+    const active = estimates.filter((e: any) => e.status === 'OPEN').length;
+    const wins = estimates.filter((e: any) => e.status === 'CLOSED_WIN').length;
+    const losses = estimates.filter((e: any) => e.status === 'CLOSED_LOSS').length;
 
-    const tickerPnL: Record<string, number> = {}
-    const cumulativePnLData: { date: string; pnl: number }[] = []
+    let highestPercent: { symbol: string, percent: number } | null = null;
+    let lowestPercent: { symbol: string, percent: number } | null = null;
 
-    // Sort estimates by date ascending for cumulative calculation
-    const sortedEstimates = [...estimates].sort((a, b) => 
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    )
+    const aiStats: Record<string, { pnl: number, count: number }> = {};
 
-    let currentCumulativePnL = 0
+    estimates.forEach((estimate: any) => {
+      // AI Stats
+      const ai = estimate.ai_model || 'Unknown';
+      if (!aiStats[ai]) aiStats[ai] = { pnl: 0, count: 0 };
+      aiStats[ai].count += 1;
 
-    sortedEstimates.forEach((estimate) => {
-      // Status counts
-      countsByStatus[estimate.status] = (countsByStatus[estimate.status] || 0) + 1
-
-      if (estimate.status === 'OPEN') {
-        activeEstimatesCount++
-        try {
-          const start = new Decimal(estimate.start_price || '0')
-          totalInvested += start.toNumber()
-        } catch { /* ignore */ }
-      }
-
-      // Realized PnL processing
       if (estimate.realized_pnl) {
         try {
-          const pnlValue = new Decimal(estimate.realized_pnl).toNumber()
-          totalPnL += pnlValue
-
-          // Ticker distribution
-          const symbolStr = estimate.ticker?.symbol || estimate.ticker_id
-          tickerPnL[symbolStr] = (tickerPnL[symbolStr] || 0) + pnlValue
-
-          // Cumulative PnL
-          currentCumulativePnL += pnlValue
-          cumulativePnLData.push({
-            date: new Date(estimate.closed_at || estimate.updated_at).toLocaleDateString(),
-            pnl: currentCumulativePnL
-          })
+          const pnlValue = new Decimal(estimate.realized_pnl).toNumber();
+          totalPnL += pnlValue;
+          aiStats[ai].pnl += pnlValue;
         } catch { /* ignore */ }
       }
-    })
 
-    // Prepare pie chart data
-    const tickerDistribution = Object.entries(tickerPnL)
-      .map(([ticker, pnl]) => ({ ticker, pnl }))
-      .filter(item => item.pnl > 0) // Typically pie charts show positive distributions or absolute values
-      // Wait, let's keep all and perhaps chart absolute, or just profits? The prompt says "raggruppa per ticker_id la somma di realized_pnl". Usually we map the positive ones, or map total absolute contribution. Let's just pass `pnl` and handle it in the component.
+      if (estimate.realized_pnl_percent) {
+        try {
+          const pnlPercentValue = new Decimal(estimate.realized_pnl_percent).toNumber();
+          if (estimate.status !== 'OPEN') {
+            if (!highestPercent || pnlPercentValue > highestPercent.percent) {
+              highestPercent = { symbol: estimate.ticker?.symbol || estimate.ticker_id, percent: pnlPercentValue };
+            }
+            if (!lowestPercent || pnlPercentValue < lowestPercent.percent) {
+              lowestPercent = { symbol: estimate.ticker?.symbol || estimate.ticker_id, percent: pnlPercentValue };
+            }
+          }
+        } catch { /* ignore */ }
+      }
+    });
+
+    const highestPercentDisplay = highestPercent ? `${highestPercent.symbol} ${(highestPercent.percent > 0 ? '+' : '')}${highestPercent.percent.toFixed(2)}%` : 'N/D';
+    const lowestPercentDisplay = lowestPercent ? `${lowestPercent.symbol} ${(lowestPercent.percent > 0 ? '+' : '')}${lowestPercent.percent.toFixed(2)}%` : 'N/D';
+
+    const roi = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
     
-    // Performance table (top/worst)
-    const performances = Object.entries(tickerPnL)
-      .map(([ticker, pnl]) => ({ ticker, pnl }))
-      .sort((a, b) => b.pnl - a.pnl)
-
-    const topPerformers = performances.slice(0, 5)
-    const worstPerformers = performances.slice(-5).reverse()
+    // Format charting data
+    const aiChartData = Object.keys(aiStats).map(key => ({
+      name: key,
+      pnl: parseFloat(aiStats[key].pnl.toFixed(2))
+    })).sort((a,b) => b.pnl - a.pnl);
+    
+    const topAi = aiChartData.length > 0 ? aiChartData[0].name : 'N/D';
 
     return {
-      totalInvested,
+      total: estimates.length,
+      active,
+      wins,
+      losses,
       totalPnL,
-      activeEstimatesCount,
-      countsByStatus,
-      cumulativePnLData,
-      tickerDistribution,
-      topPerformers,
-      worstPerformers
+      roi,
+      highestPercentDisplay,
+      lowestPercentDisplay,
+      topAi,
+      aiChartData
     }
   }, [data])
 

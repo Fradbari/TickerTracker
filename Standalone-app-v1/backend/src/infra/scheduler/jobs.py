@@ -12,6 +12,7 @@ Jobs include:
 """
 
 import logging
+from datetime import UTC
 
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -123,8 +124,47 @@ async def daily_history_sync():
 
     Runs daily at 23:00 UTC after market close.
     """
-    logger.debug("daily_history_sync job executed (placeholder)")
-    # TODO: Implement daily history sync logic
+    if _session_factory is None:
+        logger.error("Scheduler jobs not configured - skipping daily_history_sync")
+        return
+
+    logger.debug("daily_history_sync job executed")
+    try:
+        from datetime import datetime, timedelta
+
+        from sqlalchemy import select
+
+        from src.estimates.domain.entities import Estimate, EstimateStatus
+        from src.market_data.repositories.market_data_repository import MarketDataRepository
+        from src.market_data.services.market_data_service import MarketDataService
+        from src.market_data.services.yahoo_provider import YahooProvider
+
+        async with _session_factory() as session:
+            # Find distinct tickers from OPEN estimates
+            stmt = select(Estimate.ticker_id).filter(Estimate.status == EstimateStatus.OPEN).distinct()
+            result = await session.execute(stmt)
+            active_ticker_ids = result.scalars().all()
+
+            if not active_ticker_ids:
+                logger.info("No active estimates found for history sync.")
+                return
+
+            provider = YahooProvider()
+            repo = MarketDataRepository(_session_factory)
+            service = MarketDataService(provider, repo, _session_factory)
+
+            end_date = datetime.now(UTC).date()
+            start_date = end_date - timedelta(days=60)  # Sync last 60 days
+
+            for t_id in active_ticker_ids:
+                try:
+                    count = await service.sync_historical_data(t_id, start_date, end_date, interval="1d")
+                    logger.info(f"Synced {count} days of OHLCV data for ticker {t_id}")
+                except Exception as sync_err:
+                    logger.error(f"Error syncing history for ticker {t_id}: {sync_err}")
+
+    except Exception as e:
+        logger.exception(f"Error in daily_history_sync job: {e}")
 
 
 async def refresh_materialized_views():
@@ -140,11 +180,78 @@ async def refresh_materialized_views():
 async def check_targets():
     """
     Check if any estimates have hit target or stop prices.
-
+    Uses conservative OHLCV checking (LONG only) via TargetEvaluationService.
     Runs every minute to ensure timely notifications.
     """
-    logger.debug("check_targets job executed (placeholder)")
-    # TODO: Implement target/stop checking logic
+    if _session_factory is None:
+        logger.error("Scheduler jobs not configured - skipping check_targets")
+        return
+
+    logger.debug("check_targets job executed")
+    try:
+        from datetime import datetime
+
+        from sqlalchemy import select
+
+        from src.estimates.domain.entities import Estimate, EstimateStatus
+        from src.estimates.domain.services.target_checker import TargetEvaluationService
+        from src.estimates.repositories.estimate_repository import EstimateRepository
+        from src.market_data.repositories.market_data_repository import MarketDataRepository
+
+        async with _session_factory() as session:
+            stmt = select(Estimate).filter(Estimate.status == EstimateStatus.OPEN)
+            result = await session.execute(stmt)
+            open_estimates = result.scalars().all()
+
+            if not open_estimates:
+                return
+
+            market_repo = MarketDataRepository(_session_factory)
+            estimate_repo = EstimateRepository(_session_factory)
+
+            for est in open_estimates:
+                # get history from insertion to today
+                today = datetime.now(UTC).date()
+                history_data = await market_repo.get_history(
+                    est.ticker_id,
+                    est.created_at.date(),
+                    today
+                )
+
+                if not history_data:
+                    continue
+
+                # Map MarketData to what TargetEvaluationService expects
+                ohlcv_dicts = [
+                    {
+                        "date": m.date,
+                        "open": m.open,
+                        "high": m.high,
+                        "low": m.low,
+                        "close": m.close,
+                        "volume": m.volume
+                    } for m in history_data
+                ]
+
+                # Evaluate targets with conservative logic (e.g. 60 days duration)
+                eval_result = TargetEvaluationService.evaluate_estimate(est, ohlcv_dicts, duration_days=60)
+
+                if eval_result.hit:
+                    # Update status
+                    if eval_result.reason == "take_profit":
+                        est.status = EstimateStatus.CLOSED_WIN
+                    elif eval_result.reason == "stop_loss":
+                        est.status = EstimateStatus.CLOSED_LOSS
+                    else:
+                        est.status = EstimateStatus.EXPIRED
+
+                    est.closed_at = eval_result.exit_date
+                    await session.merge(est) # Using session directly so we don't have to trigger complex logic if estimate_repo does not persist automatically.
+                    await session.commit()
+                    logger.info(f"Closed estimate {est.id} for ticker {est.ticker_id} with status {est.status}")
+
+    except Exception as e:
+        logger.exception(f"Error in check_targets job: {e}")
 
 
 async def daily_quality_check():

@@ -88,6 +88,7 @@ class EstimateResponse(BaseModel):
     stop_loss_percent: Decimal
     exit_price: Decimal | None = None
     realized_pnl: Decimal | None = None
+    realized_pnl_percent: Decimal | None = None
     ai_model: str | None = None
     ai_confidence: Decimal | None = None
     ai_reasoning: str | None = None

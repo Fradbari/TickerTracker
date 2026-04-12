@@ -214,6 +214,12 @@ class Estimate(Base):
         doc="Realized profit/loss (set when closed)"
     )
 
+    realized_pnl_percent = Column(
+        DECIMAL(10, 4),
+        nullable=True,
+        doc="Realized profit/loss percentage (set when closed)"
+    )
+
     # Relationship to Ticker
     ticker = relationship(
         "Ticker",

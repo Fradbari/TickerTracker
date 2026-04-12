@@ -23,7 +23,7 @@ export function usePortfolioMetrics() {
   const metrics = useMemo(() => {
     const estimates = data?.pages.flatMap(page => page.items) || [];
     
-    let totalInvested = estimates.length * 100; // Simulated  per trade
+    const totalInvested = estimates.length * 100; // Simulated  per trade
     let totalPnL = 0;
     
     const active = estimates.filter((e: any) => e.status === 'OPEN').length;

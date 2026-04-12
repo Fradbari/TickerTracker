@@ -1,16 +1,17 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { FixedSizeList as List } from 'react-window';
 import { useTranslation } from 'react-i18next';
 import { useInfiniteEstimates } from '../api/queries';
-import { EstimateCard } from './EstimateCard';
 import { EstimateListParams, EstimateStatus, Estimate } from '../types';
 import Decimal from 'decimal.js';
+import { FixedSizeList as List } from 'react-window';
+import { EstimateCard } from './EstimateCard';
 
 export function EstimateList() {
   const { t } = useTranslation('common');
 
   // Filters state
   const [filters, setFilters] = useState<EstimateListParams>({});
+
   
   // Sort state
   type SortField = 'date' | 'pnl' | 'ticker';
@@ -100,6 +101,7 @@ export function EstimateList() {
       </div>
     );
   }, [sortedItems]);
+
 
   return (
     <div className="flex flex-col h-full gap-4" aria-label={t('listSection', 'Lista Stime')}>
@@ -258,7 +260,7 @@ export function EstimateList() {
                 <button
                   onClick={() => fetchNextPage()}
                   disabled={isFetchingNextPage}
-                  className="px-6 py-2 bg-white border border-gray-300 hover:bg-gray-50 rounded shadow-sm text-gray-700 font-medium text-sm disabled:opacity-50"
+                  className="px-6 py-2 bg-[var(--accent)] hover:opacity-90 rounded shadow-sm text-white font-medium text-sm disabled:opacity-50"
                 >
                   {isFetchingNextPage ? 'Caricamento in corso...' : 'Carica altri risultati'}
                 </button>

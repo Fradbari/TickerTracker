@@ -58,11 +58,16 @@ export function KpiCard({ title, value, icon, trend, isLoading, description }: K
         {icon && <div className="text-[var(--accent)] flex-shrink-0">{icon}</div>}
       </div>
       
-      <div className="flex flex-wrap items-baseline gap-2">
-        <span className="text-2xl sm:text-3xl font-bold max-w-full break-words">{value}</span>
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 w-full overflow-hidden">
+        <span 
+          title={typeof value === 'string' || typeof value === 'number' ? String(value) : undefined}
+          className="text-2xl sm:text-3xl font-bold truncate max-w-full"
+        >
+          {value}
+        </span>
         {trend && (
           <span
-            className={`text-sm font-medium whitespace-nowrap ${
+            className={`text-sm font-medium whitespace-nowrap shrink-0 ${
               trend.isPositive ? "text-[var(--success)]" : "text-[var(--danger)]"
             }`}
           >

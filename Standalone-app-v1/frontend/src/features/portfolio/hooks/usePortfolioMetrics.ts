@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react'
+﻿import { useMemo, useEffect } from 'react'
 import Decimal from 'decimal.js'
 import { useInfiniteEstimates } from '@/shared/api/queries/estimates'
 import type { Estimate } from '@/shared/types'
@@ -23,7 +23,7 @@ export function usePortfolioMetrics() {
   const metrics = useMemo(() => {
     const estimates = data?.pages.flatMap(page => page.items) || [];
     
-    const totalInvested = estimates.length * 100; // Simulated  per trade
+    const totalInvested = estimates.length * 100; // Simulated € per trade
     let totalPnL = 0;
     
     const active = estimates.filter((e: any) => e.status === 'OPEN').length;
@@ -34,18 +34,39 @@ export function usePortfolioMetrics() {
     let lowestPercent: any = null;
 
     const aiStats: Record<string, { pnl: number, count: number }> = {};
+    const aiDetailedStats: Record<string, { 
+      total: number; 
+      active: number; 
+      wins: number; 
+      losses: number; 
+      totalPnL: number; 
+      winRate: number; 
+      rawEstimates: any[];
+    }> = {};
 
     estimates.forEach((estimate: any) => {
-      // AI Stats
       const ai = estimate.ai_model || 'Unknown';
       if (!aiStats[ai]) aiStats[ai] = { pnl: 0, count: 0 };
+      if (!aiDetailedStats[ai]) aiDetailedStats[ai] = { total: 0, active: 0, wins: 0, losses: 0, totalPnL: 0, winRate: 0, rawEstimates: [] };
+      
       aiStats[ai].count += 1;
+      aiDetailedStats[ai].total += 1;
+      aiDetailedStats[ai].rawEstimates.push(estimate);
+
+      if (estimate.status === 'OPEN') {
+        aiDetailedStats[ai].active += 1;
+      } else if (estimate.realized_pnl_percent && new Decimal(estimate.realized_pnl_percent).toNumber() > 0) {
+        aiDetailedStats[ai].wins += 1;
+      } else if (estimate.realized_pnl_percent && new Decimal(estimate.realized_pnl_percent).toNumber() < 0) {
+        aiDetailedStats[ai].losses += 1;
+      }
 
       if (estimate.realized_pnl) {
         try {
           const pnlValue = new Decimal(estimate.realized_pnl).toNumber();
           totalPnL += pnlValue;
           aiStats[ai].pnl += pnlValue;
+          aiDetailedStats[ai].totalPnL += pnlValue;
         } catch { /* ignore */ }
       }
 
@@ -62,6 +83,12 @@ export function usePortfolioMetrics() {
           }
         } catch { /* ignore */ }
       }
+    });
+
+    Object.keys(aiDetailedStats).forEach(key => {
+      const stats = aiDetailedStats[key];
+      const finished = stats.wins + stats.losses;
+      stats.winRate = finished > 0 ? (stats.wins / finished) * 100 : 0;
     });
 
     const highestPercentDisplay = highestPercent ? `${highestPercent.symbol} ${(highestPercent.percent > 0 ? '+' : '')}${highestPercent.percent.toFixed(2)}%` : 'N/D';
@@ -87,7 +114,8 @@ export function usePortfolioMetrics() {
       highestPercentDisplay,
       lowestPercentDisplay,
       topAi,
-      aiChartData
+      aiChartData,
+      aiDetailedStats
     }
   }, [data])
 

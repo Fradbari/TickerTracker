@@ -34,12 +34,13 @@ export function AiPerformanceChart({ data, isLoading }: AiPerformanceChartProps)
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
             <XAxis dataKey="name" stroke="var(--foreground)" fontSize={12} tickLine={false} axisLine={false} />
             <Tooltip 
+              formatter={(value: any) => [`${value ?? 0}€`, 'P&L']}
               cursor={{ fill: 'var(--border)', opacity: 0.4 }} 
               contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px' }} 
               itemStyle={{ color: 'var(--foreground)' }}
               labelStyle={{ color: 'var(--foreground)', fontWeight: 'bold', marginBottom: '0.5rem' }}
             />
-            <Bar dataKey="pnl" name="€" radius={[4, 4, 4, 4]}>
+            <Bar dataKey="pnl" name="P&L" radius={[4, 4, 4, 4]}>
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.pnl >= 0 ? 'var(--success)' : 'var(--danger)'} />
               ))}

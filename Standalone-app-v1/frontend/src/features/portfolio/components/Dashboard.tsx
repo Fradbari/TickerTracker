@@ -1,7 +1,9 @@
-﻿import React from 'react'
+﻿import React, { useState } from 'react'
 import { usePortfolioMetrics } from '../hooks/usePortfolioMetrics'
 import { KpiCard } from '@/shared/components/KpiCard'
 import { AiPerformanceChart } from './AiPerformanceChart'
+import { AiStatCard } from './AiStatCard'
+import { AiDetailsModal } from './AiDetailsModal'
 import { 
   Activity, 
   TrendingUp, 
@@ -13,9 +15,10 @@ import {
 
 export function Dashboard() {
   const { metrics, isLoading, isError } = usePortfolioMetrics()
+  const [selectedAi, setSelectedAi] = useState<string | null>(null)
 
   if (isError) {
-    return <div className="..." >Errore durante il caricamento</div>
+    return <div className="p-4 rounded-md bg-red-50 text-red-500">Errore durante il caricamento</div>
   }
 
   const skSkeletons = Array.from({ length: 6 }).map((_, i) => (
@@ -48,25 +51,25 @@ export function Dashboard() {
               value={`${metrics.roi > 0 ? '+' : ''}${metrics.roi.toFixed(1)}%`}
               trend={{ isPositive: metrics.roi >= 0, value: 'Media' }}
               icon={<Target />}
-              description="Rendimento globale percentuale rispetto al capitale nominale o investito (Return on Investment)."
+              description="Rendimento globale percentuale rispetto al capitale investito."
             />
             <KpiCard
               title="In Profitto"
               value={metrics.wins}
               icon={<ThumbsUp className="text-[var(--success)]" />}
-              description="Indica il numero totale di operazioni concluse positivamente (es: Target price raggiunto)."
+              description="Indica il numero totale di operazioni concluse positivamente."
             />
             <KpiCard
               title="In Perdita"
               value={metrics.losses}
               icon={<ThumbsDown className="text-[var(--danger)]" />}
-              description="Indica il numero totale di operazioni chiuse negativamente (es: Stop loss e tempo scaduto)."
+              description="Indica il numero totale di operazioni chiuse negativamente."
             />
             <KpiCard
               title="Top AI"
               value={metrics.topAi}
               icon={<Award className="text-purple-500" />}
-              description="L'agente o modello AI che al momento detiene il tasso di successo più alto tra le stime."
+              description="L'agente o modello AI che al momento detiene il tasso di successo più alto."
             />
           </>
         )}
@@ -78,6 +81,32 @@ export function Dashboard() {
           isLoading={isLoading} 
         />
       </div>
+
+      {metrics && metrics.aiDetailedStats && (
+        <div className="space-y-4">
+          <h3 className="text-xl font-bold text-[var(--foreground)] tracking-tight">Prestazioni Dettagliate Modelli AI</h3>
+          <p className="text-sm text-slate-500 mb-4">Clicca su un modello per visualizzare statistiche avanzate, grafici P&L e Scatter sull'efficienza predittiva.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {Object.entries(metrics.aiDetailedStats).map(([aiName, stats]) => (
+              <AiStatCard 
+                key={aiName}
+                aiName={aiName}
+                stats={stats}
+                onClick={setSelectedAi}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {selectedAi && metrics && metrics.aiDetailedStats && (
+        <AiDetailsModal
+          isOpen={!!selectedAi}
+          onClose={() => setSelectedAi(null)}
+          aiName={selectedAi}
+          stats={metrics.aiDetailedStats[selectedAi]}
+        />
+      )}
     </div>
   )
 }

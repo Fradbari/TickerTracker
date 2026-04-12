@@ -30,8 +30,8 @@ export function usePortfolioMetrics() {
     const wins = estimates.filter((e: any) => e.status === 'CLOSED_WIN').length;
     const losses = estimates.filter((e: any) => e.status === 'CLOSED_LOSS').length;
 
-    let highestPercent: { symbol: string, percent: number } | null = null;
-    let lowestPercent: { symbol: string, percent: number } | null = null;
+    let highestPercent: any = null;
+    let lowestPercent: any = null;
 
     const aiStats: Record<string, { pnl: number, count: number }> = {};
 

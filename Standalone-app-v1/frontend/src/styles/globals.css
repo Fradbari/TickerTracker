@@ -1,6 +1,49 @@
 /* Tailwind CSS v4 — imports base, components and utilities */
 @import "tailwindcss";
 
+@theme {
+  --color-brand-50: oklch(97% 0.01 250);
+  --color-brand-100: oklch(93% 0.03 250);
+  --color-brand-300: oklch(82% 0.08 250);
+  --color-brand-500: oklch(62% 0.15 250);
+  --color-brand-700: oklch(45% 0.12 250);
+  --color-brand-900: oklch(30% 0.08 250);
+
+  --color-success-400: oklch(75% 0.15 150);
+  --color-success-500: oklch(65% 0.18 150);
+  --color-danger-400: oklch(70% 0.18 25);
+  --color-danger-500: oklch(60% 0.20 25);
+
+  --color-surface-light: oklch(98% 0.01 250);
+  --color-surface-dark: oklch(25% 0.04 250);
+  --color-bg-light: oklch(95% 0.01 250);
+  --color-bg-dark: oklch(20% 0.04 250);
+}
+
+@layer base {
+  :root {
+    --background: var(--color-bg-light);
+    --foreground: var(--color-brand-900);
+    --card: var(--color-surface-light);
+    --card-foreground: var(--color-brand-900);
+    --border: var(--color-brand-100);
+    --accent: var(--color-brand-500);
+    --success: var(--color-success-500);
+    --danger: var(--color-danger-500);
+  }
+
+  .dark {
+    --background: var(--color-bg-dark);
+    --foreground: var(--color-brand-50);
+    --card: var(--color-surface-dark);
+    --card-foreground: var(--color-brand-50);
+    --border: var(--color-brand-700);
+    --accent: var(--color-brand-400);
+    --success: var(--color-success-400);
+    --danger: var(--color-danger-400);
+  }
+}
+
 /* Global resets and base styles */
 *,
 *::before,
@@ -15,8 +58,8 @@ html {
 body {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, sans-serif;
-  background-color: #0f172a; /* slate-900 */
-  color: #f1f5f9;            /* slate-100 */
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 /* Scrollbar styling */

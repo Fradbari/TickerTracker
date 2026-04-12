@@ -16,7 +16,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createEstimate, closeEstimate, deleteEstimate } from './index'
+import { createEstimate, createEstimateAsync, closeEstimate, deleteEstimate } from './index'
 import { estimateKeys } from './queries'
 import type { CreateEstimatePayload, CloseEstimatePayload } from '../types'
 
@@ -39,6 +39,16 @@ export function useCreateEstimate() {
   return useMutation({
     mutationFn: (payload: CreateEstimatePayload) => createEstimate(payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: estimateKeys.all }),
+  })
+}
+
+/**
+ * Asynchronously create a new estimate.
+ * Returns a task_id which the frontend uses to track status.
+ */
+export function useCreateEstimateAsync() {
+  return useMutation({
+    mutationFn: (payload: CreateEstimatePayload) => createEstimateAsync(payload),
   })
 }
 

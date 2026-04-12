@@ -9,7 +9,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { getEstimate, getEstimateHistory } from './index'
+import { getEstimate, getEstimateHistory, getEstimateTaskStatus } from './index'
 
 export { estimateKeys, useEstimates, useInfiniteEstimates } from '@/shared/api/queries/estimates'
 import { estimateKeys } from '@/shared/api/queries/estimates'
@@ -72,6 +72,25 @@ export function useEstimateHistory(id: string) {
     queryKey: estimateKeys.history(id),
     queryFn: () => getEstimateHistory(id),
     enabled: Boolean(id),
+  })
+}
+
+/**
+ * Fetch the task status of an asynchronous estimate creation.
+ * We poll every 2 seconds if the task is still Processing or Pending.
+ */
+export function useEstimateTaskStatus(taskId: string) {
+  return useQuery({
+    queryKey: ['estimates', 'task', taskId],
+    queryFn: () => getEstimateTaskStatus(taskId),
+    enabled: Boolean(taskId),
+    refetchInterval: (query) => {
+      const status = query.state.data?.status
+      if (status === 'Completed' || status === 'Failed') {
+        return false // stop polling
+      }
+      return 2000 // poll every 2s
+    },
   })
 }
 

@@ -44,6 +44,22 @@ export interface EstimateDeletedResponse {
   message: string
 }
 
+/** Matches backend TaskStatusResponse. */
+export interface TaskStatusResponse {
+  task_id: string
+  status: 'Pending' | 'Processing' | 'Completed' | 'Failed'
+  created_at: string
+  updated_at: string
+  error?: string | null
+  estimate?: Estimate | null
+}
+
+/** Matches backend EstimateCreatedResponse but adapted for async 202 */
+export interface AsyncCreateEstimateResponse {
+  message: string
+  task_id: string
+}
+
 // ---------------------------------------------------------------------------
 // Command types (write models)
 // ---------------------------------------------------------------------------

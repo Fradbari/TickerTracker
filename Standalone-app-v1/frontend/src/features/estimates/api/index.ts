@@ -16,6 +16,8 @@ import type {
   EstimateCreatedResponse,
   EstimateUpdatedResponse,
   EstimateDeletedResponse,
+  TaskStatusResponse,
+  AsyncCreateEstimateResponse,
 } from '../types'
 import type { ApiResponse } from '@/shared/types'
 
@@ -43,6 +45,23 @@ export async function createEstimate(
   const { data } = await apiClient.post<ApiResponse<EstimateCreatedResponse>>(
     BASE,
     payload,
+  )
+  return unwrapResponse(data)
+}
+
+export async function createEstimateAsync(
+  payload: CreateEstimatePayload,
+): Promise<TaskStatusResponse> {
+  const { data } = await apiClient.post<ApiResponse<TaskStatusResponse>>(
+    `${BASE}/async`,
+    payload,
+  )
+  return unwrapResponse(data)
+}
+
+export async function getEstimateTaskStatus(taskId: string): Promise<TaskStatusResponse> {
+  const { data } = await apiClient.get<ApiResponse<TaskStatusResponse>>(
+    `${BASE}/tasks/${taskId}`
   )
   return unwrapResponse(data)
 }

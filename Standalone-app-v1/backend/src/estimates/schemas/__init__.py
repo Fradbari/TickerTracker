@@ -1,4 +1,4 @@
-"""Schemas for the estimates bounded context."""
+﻿"""Schemas for the estimates bounded context."""
 
 from src.estimates.schemas.commands import (
     CloseEstimateCommand,

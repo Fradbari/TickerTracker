@@ -33,7 +33,9 @@ import { z } from 'zod'
 import Decimal from 'decimal.js'
 import { useTranslation } from 'react-i18next'
 
-import { useCreateEstimate } from '../api/mutations'
+import { useCreateEstimateAsync } from '../api/mutations'
+import { useInsertionTracker } from '../hooks/useInsertionTracker'
+import { InsertionTrackerBox } from './InsertionTrackerBox'
 import type { EstimateDirection } from '../types'
 import { formatMoney, fromDecimalAmount } from '@/shared/finance'
 import { useNotify } from '@/shared/ui'
@@ -225,7 +227,8 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
     },
   })
 
-  const { mutate, isPending } = useCreateEstimate()
+  const { addTask } = useInsertionTracker()
+  const { mutate, isPending } = useCreateEstimateAsync()
 
   // ── Watch all fields for real-time preview ─────────────────────────────
   const [watchedTicker, watchedDirection, watchedEntryPrice, watchedProfit, watchedStop] =
@@ -258,10 +261,26 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
       },
       {
         onSuccess: response => {
-          onSuccess?.(response.estimate.id)
+          // Aggiungi la task al tracker
+          addTask({
+            taskId: response.task_id,
+            ticker: data.ticker,
+            direction: data.direction,
+            status: 'Pending',
+            createdAt: new Date().toISOString()
+          })
+          
+          notify.success(`Stima per ${data.ticker} in elaborazione asincrona.`)
+          
+          // Resettiamo il form subito (ma manteniamo la direzione)
+          setValue('ticker', '')
+          setValue('entry_price', '')
+          setValue('target_profit_percent', '')
+          setValue('stop_loss_percent', '')
+          setValue('notes', '')
         },
         onError: (error: Error) => {
-          // useCreateEstimate uses raw useMutation (not useApiMutation),
+          // useCreateEstimateAsync uses raw useMutation (not useApiMutation),
           // so we handle the toast here manually.
           const msg = isApiError(error)
             ? error.message
@@ -534,7 +553,7 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
           {isLoading ? 'Invio in corso…' : t('createEstimate', 'Crea stima')}
         </button>
       </div>
-    </form>
+      <InsertionTrackerBox />    </form>
   )
 }
 

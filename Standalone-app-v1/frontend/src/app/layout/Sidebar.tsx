@@ -1,9 +1,10 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Wallet, BrainCircuit, Settings } from "lucide-react";
+import { LayoutDashboard, Wallet, BrainCircuit, Settings, PlusSquare } from "lucide-react";
 import { ThemeToggle } from "../../shared/components/ThemeToggle";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Nuova Stima", href: "/insert", icon: PlusSquare },
   { label: "Portfolio", href: "/portfolio", icon: Wallet },
   { label: "AI Analysis", href: "/analysis", icon: BrainCircuit },
   { label: "Admin", href: "/admin", icon: Settings },

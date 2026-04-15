@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react'
-import { v4 as uuidv4 } from 'uuid'
 
 export type QueueStatus = 'PENDING' | 'SUCCESS' | 'ERROR'
 
@@ -38,7 +37,7 @@ export const AsyncQueueProvider: React.FC<{ children: ReactNode }> = ({ children
   const addItem = useCallback((item: Omit<QueueItem, 'id' | 'timestamp' | 'status' | 'progress'>) => {
     const newItem: QueueItem = {
       ...item,
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       timestamp: Date.now(),
       status: 'PENDING',
       progress: 10

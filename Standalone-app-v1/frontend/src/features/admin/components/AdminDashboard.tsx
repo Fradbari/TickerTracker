@@ -3,6 +3,7 @@ import { useBackendStats } from '@/shared/api/queries/backendStats'
 import { KpiCard } from '@/shared/components/KpiCard'
 import { Database, Settings, RefreshCw, Power } from 'lucide-react'
 import { AdminSettings } from './AdminSettings'
+import { SystemStatusCards } from './SystemStatusCards'
 
 export function AdminDashboard() {
   const { data: backendStats, isLoading, isError } = useBackendStats()
@@ -55,6 +56,8 @@ export function AdminDashboard() {
           </div>
         )}
       </div>
+      
+      <SystemStatusCards />
 
       <AdminSettings />
     </div>

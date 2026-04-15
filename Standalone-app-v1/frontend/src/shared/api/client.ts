@@ -81,6 +81,18 @@ apiClient.interceptors.response.use(
       trace_id: responseData?.trace_id ?? undefined,
     }
 
+    // Log the error to backend if it's not a log request itself
+    if (error.config && !error.config.url?.includes('/api/logs/frontend')) {
+      import('./logger').then(({ logToBackend }) => {
+        logToBackend({
+          level: 'error',
+          message: `API HTTP Error ${apiError.status}: ${apiError.message}`,
+          trace_id: apiError.trace_id || error.config?.headers?.['X-Correlation-ID'],
+          meta: { url: error.config?.url, method: error.config?.method, code: apiError.code }
+        })
+      }).catch(console.error)
+    }
+
     return Promise.reject(apiError)
   },
 )

@@ -89,13 +89,30 @@ def configure_logging(log_level: str = "INFO") -> None:
 
     log_level_int: int = getattr(logging, log_level.upper(), logging.INFO)
 
-    # Route stdlib loggers (uvicorn, sqlalchemy, …) through structlog so they
+    # Route stdlib loggers (uvicorn, sqlalchemy, ...) through structlog so they
     # also emit JSON with the same processor chain.
-    logging.basicConfig(
-        format="%(message)s",
-        stream=sys.stdout,
-        level=log_level_int,
+    import os
+    from logging.handlers import RotatingFileHandler
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level_int)
+
+    # Clear existing handlers to ensure we control the logging output
+    root_logger.handlers.clear()
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(logging.Formatter("%(message)s"))
+    root_logger.addHandler(stdout_handler)
+
+    os.makedirs("/app/logs", exist_ok=True)
+    file_handler = RotatingFileHandler(
+        "/app/logs/app.log",
+        maxBytes=10 * 1024 * 1024,
+        backupCount=5,
+        encoding="utf-8"
     )
+    file_handler.setFormatter(logging.Formatter("%(message)s"))
+    root_logger.addHandler(file_handler)
 
     structlog.configure(
         processors=[

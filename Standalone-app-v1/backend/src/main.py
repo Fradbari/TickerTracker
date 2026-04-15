@@ -65,6 +65,10 @@ app.include_router(estimates_router)
 app.include_router(market_data_routes.router)
 app.include_router(metrics_router)
 app.include_router(admin_routes.router)
+
+from src.shared.api.logs import router as logs_router
+app.include_router(logs_router)
+
 if settings.ENVIRONMENT in ['local', 'test']:
     from src.shared.api import test_routes
     app.include_router(test_routes.router)  # ✅ [3.6] GET /metrics — Prometheus scrape endpoint

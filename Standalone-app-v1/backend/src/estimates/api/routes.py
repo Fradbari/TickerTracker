@@ -152,6 +152,7 @@ async def create_estimate_async(
 @limiter.limit("60/minute", exempt_when=is_whitelisted)
 async def list_estimates(
     request: Request,
+    response: Response,
     # Pagination
     limit: int = Query(20, ge=1, le=100, description="Number of items per page"),
     cursor: str | None = Query(None, description="Cursor for next page"),
@@ -182,7 +183,7 @@ async def list_estimates(
     
     response_data = EstimateListResponse(
         items=[EstimateResponse.model_validate(e) for e in result.items],
-        total=result.total,
+        total=result.page_info.total_count or 0,
         page_info=result.page_info.model_dump(),
     )
     

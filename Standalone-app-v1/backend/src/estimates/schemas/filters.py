@@ -22,7 +22,6 @@ class EstimateFilters(BaseModel):
         ticker_id: Filter by specific ticker
         user_id: Filter by user who created the estimate
         status: Filter by estimate status (OPEN, CLOSED_WIN, CLOSED_LOSS, CLOSED_NEUTRAL)
-        direction: Filter by trade direction (LONG, SHORT)
         created_after: Filter estimates created after this date
         created_before: Filter estimates created before this date
         closed_after: Filter estimates closed after this date
@@ -35,7 +34,6 @@ class EstimateFilters(BaseModel):
     ticker_id: UUID | None = Field(default=None, description="Filter by ticker ID")
     user_id: UUID | None = Field(default=None, description="Filter by user ID")
     status: str | None = Field(default=None, description="Filter by status")
-    direction: str | None = Field(default=None, description="Filter by direction (LONG/SHORT)")
 
     created_after: datetime | None = Field(default=None, description="Created after date")
     created_before: datetime | None = Field(default=None, description="Created before date")
@@ -61,7 +59,6 @@ class EstimateFilters(BaseModel):
             "example": {
                 "ticker_id": "123e4567-e89b-12d3-a456-426614174000",
                 "status": "OPEN",
-                "direction": "LONG",
                 "created_after": "2026-01-01T00:00:00Z",
                 "min_confidence": 0.7,
                 "include_deleted": False
@@ -74,7 +71,6 @@ class EstimateFilters(BaseModel):
             self.ticker_id is not None,
             self.user_id is not None,
             self.status is not None,
-            self.direction is not None,
             self.created_after is not None,
             self.created_before is not None,
             self.closed_after is not None,

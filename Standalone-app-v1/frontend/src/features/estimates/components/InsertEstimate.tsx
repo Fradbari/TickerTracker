@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+﻿import React, { useState, useEffect, useRef } from 'react'
 import { useAsyncQueue } from '@/app/providers/AsyncQueueProvider'
 import { useEstimateDefaults } from '@/features/admin/components/AdminSettings'
 import apiClient from '@/shared/api/client'
@@ -15,12 +15,11 @@ export const InsertEstimate: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
 
-  const [direction, setDirection] = useState<'LONG'|'SHORT'>('LONG')
   const [targetProfit, setTargetProfit] = useState(defaults.targetProfitPercent)
   const [stopLoss, setStopLoss] = useState(defaults.stopLossPercent)
   const [aiModel, setAiModel] = useState(defaults.aiModel)
-  const [aiVersion, setAiVersion] = useState('')
-  const [aiConfidence, setAiConfidence] = useState<number | ''>('')
+  const [aiVersion, setAiVersion] = useState(defaults.aiVersion)
+  const [aiConfidence, setAiConfidence] = useState<string>(defaults.aiConfidence || 'MEDIUM')
   
   const [amount, setAmount] = useState(defaults.baseAmount)
   const [durationDays, setDurationDays] = useState(defaults.baseDurationDays)
@@ -29,8 +28,8 @@ export const InsertEstimate: React.FC = () => {
     setTargetProfit(defaults.targetProfitPercent)
     setStopLoss(defaults.stopLossPercent)
     setAiModel(defaults.aiModel)
-    setAmount(defaults.baseAmount)
-    setDurationDays(defaults.baseDurationDays)
+    setAiVersion(defaults.aiVersion)
+    setAiConfidence(defaults.aiConfidence)
   }, [defaults])
 
   useEffect(() => {
@@ -47,7 +46,7 @@ export const InsertEstimate: React.FC = () => {
       setIsSearching(true)
       try {
         const res = await apiClient.get(`/api/market-data/search?query=${tickerQuery}`)
-        setSearchResults(res.data.data || [])
+        setSearchResults(res.data.data?.results || [])
         setShowDropdown(true)
       } catch (err) {
         console.error('Error fetching tickers', err)
@@ -76,7 +75,7 @@ export const InsertEstimate: React.FC = () => {
 
     const queueId = addItem({
       ticker: t,
-      direction,
+      
       message: 'Cerco ticker...',
     })
 
@@ -92,7 +91,7 @@ export const InsertEstimate: React.FC = () => {
       if (!tickerUuid) {
         updateItem(queueId, { message: 'Ricerca UUID ticker...', progress: 50 })
         const searchRes = await apiClient.get(`/api/market-data/search?query=${t}`)
-        const tickersObj = searchRes.data.data
+        const tickersObj = searchRes.data.data?.results
         
         if (!tickersObj || tickersObj.length === 0) {
           throw new Error('Ticker non trovato nel database o non supportato.')
@@ -103,12 +102,11 @@ export const InsertEstimate: React.FC = () => {
       updateItem(queueId, { message: 'Creazione stima in corso...', progress: 75 })
       const res = await apiClient.post('/api/estimates', {
         ticker_id: tickerUuid,
-        direction: direction,
         target_profit_percent: targetProfit,
         stop_loss_percent: stopLoss,
         ai_model: aiModel,
         ai_version: aiVersion || undefined,
-        ai_confidence: aiConfidence !== '' ? aiConfidence : undefined,
+        ai_confidence: aiConfidence === 'LOW' ? 30 : aiConfidence === 'MEDIUM' ? 60 : aiConfidence === 'HIGH' ? 90 : undefined,
         amount: amount,
         duration_days: durationDays
       })
@@ -180,18 +178,7 @@ export const InsertEstimate: React.FC = () => {
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Direzione</label>
-            <select 
-              value={direction} 
-              onChange={e => setDirection(e.target.value as any)}
-              className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-            >
-              <option value="LONG">LONG (Rialzista)</option>
-              <option value="SHORT">SHORT (Ribassista)</option>
-            </select>
-          </div>
-
+          {/* Model Model block */}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">AI Model</label>
             <select 
@@ -224,15 +211,16 @@ export const InsertEstimate: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">AI Confidence (%)</label>
-            <input 
-              type="number" 
-              placeholder="0-100"
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">AI Confidence</label>
+            <select
               value={aiConfidence}
-              onChange={e => setAiConfidence(e.target.value === '' ? '' : Number(e.target.value))}
+              onChange={e => setAiConfidence(e.target.value)}
               className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-              min="0" max="100"
-            />
+            >
+              <option value="LOW">LOW</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="HIGH">HIGH</option>
+            </select>
           </div>
 
           <div>
@@ -301,9 +289,6 @@ export const InsertEstimate: React.FC = () => {
                 <div className="flex flex-col">
                   <span className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                     {item.ticker} 
-                    <span className={`text-[10px] px-2 py-0.5 rounded ${item.direction === 'LONG' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {item.direction}
-                    </span>
                   </span>
                   <span className="text-xs text-slate-500">{new Date(item.timestamp).toLocaleTimeString()}</span>
                 </div>
@@ -348,7 +333,7 @@ export const InsertEstimate: React.FC = () => {
                     className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition ml-2"
                     title="Rimuovi dalla coda"
                   >
-                    ×
+                    Ã—
                   </button>
                 </div>
               </div>
@@ -359,3 +344,4 @@ export const InsertEstimate: React.FC = () => {
     </div>
   )
 }
+

@@ -61,11 +61,26 @@ export const SystemLogViewer: React.FC<{ children: React.ReactNode }> = ({ child
                 className="bg-gray-700 text-sm text-white px-3 py-1 rounded w-64 border border-gray-600 focus:outline-none"
               />
               <button 
+                onClick={() => {
+                  const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `system-logs-${new Date().toISOString().replace(/:/g, '-')}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="text-gray-300 hover:text-white px-2"
+                title="Download JSON"
+              >
+                📥
+              </button>
+              <button 
                 onClick={() => { setTraceIdFilter(''); refetch(); }}
                 className="text-gray-300 hover:text-white px-2"
                 title="Refresh"
               >
-                ??
+                🔄
               </button>
               <button 
                 onClick={() => setIsOpen(false)}
@@ -92,7 +107,7 @@ export const SystemLogViewer: React.FC<{ children: React.ReactNode }> = ({ child
                     {log.timestamp && <span>{new Date(log.timestamp).toLocaleString()}</span>}
                     <span className="bg-gray-700 px-1 rounded">{log.source || 'backend'}</span>
                     {(log.trace_id || log.correlation_id) && (
-                      <span title="Trace / Correlation ID">?? {(log.trace_id || log.correlation_id).substring(0, 8)}...</span>
+                      <span title="Trace / Correlation ID">🏷️ {(log.trace_id || log.correlation_id).substring(0, 8)}...</span>
                     )}
                   </div>
                   <div className="whitespace-pre-wrap">{log.event || log.message}</div>

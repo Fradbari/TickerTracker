@@ -134,9 +134,6 @@ class EstimateRepository:
             if filters.status:
                 conditions.append(Estimate.status == filters.status)
 
-            if filters.direction:
-                conditions.append(Estimate.direction == filters.direction)
-
             if filters.created_after:
                 conditions.append(Estimate.created_at >= filters.created_after)
 

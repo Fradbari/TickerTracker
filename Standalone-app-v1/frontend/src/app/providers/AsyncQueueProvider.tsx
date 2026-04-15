@@ -5,7 +5,6 @@ export type QueueStatus = 'PENDING' | 'SUCCESS' | 'ERROR'
 export interface QueueItem {
   id: string
   ticker: string
-  direction: 'LONG' | 'SHORT'
   status: QueueStatus
   message?: string
   progress?: number // 0 to 100

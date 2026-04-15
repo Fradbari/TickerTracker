@@ -58,7 +58,6 @@ class Estimate(Base):
         target_profit_percent: Target profit percentage
         stop_loss_percent: Stop loss percentage
         status: Current status of the estimate
-        direction: Trading direction (LONG/SHORT)
         ai_model: AI model used for the estimate
         ai_confidence: AI confidence score (0-100)
         ai_reasoning: AI reasoning/explanation
@@ -129,19 +128,13 @@ class Estimate(Base):
         doc="Stop loss percentage"
     )
 
-    # Status and direction
+    # Status
     status = Column(
         SQLEnum(EstimateStatus, name="estimate_status"),
         nullable=False,
         default=EstimateStatus.OPEN,
         index=True,
         doc="Current status of the estimate"
-    )
-
-    direction = Column(
-        SQLEnum(Direction, name="direction"),
-        nullable=False,
-        doc="Trading direction: LONG or SHORT"
     )
 
     # AI-related fields

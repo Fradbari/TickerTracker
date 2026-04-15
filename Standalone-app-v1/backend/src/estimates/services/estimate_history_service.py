@@ -108,7 +108,6 @@ class EstimateHistoryService:
             at_timestamp=at_time,
             ticker_id=state["ticker_id"],
             user_id=state.get("user_id"),
-            direction=state["direction"],
             status=state["status"],
             start_price=Decimal(str(state["start_price"])),
             target_price=Decimal(str(state["target_price"])),
@@ -284,7 +283,6 @@ class EstimateHistoryService:
                 state["start_price"] = data["start_price"]
                 state["target_price"] = data["target_price"]
                 state["stop_loss_price"] = data["stop_loss_price"]
-                state["direction"] = data["direction"]
                 state["target_profit_percent"] = data["target_profit_percent"]
                 state["stop_loss_percent"] = data["stop_loss_percent"]
                 state["status"] = "OPEN"
@@ -356,7 +354,7 @@ class EstimateHistoryService:
         if event.event_type == EstimateEventType.CREATED:
             data = event.event_data
             description = (
-                f"Estimate created: {data['direction']} at ${data['start_price']:.2f}, "
+                f"Estimate created at ${data['start_price']:.2f}, "
                 f"target ${data['target_price']:.2f} (+{data['target_profit_percent']}%), "
                 f"stop ${data['stop_loss_price']:.2f} (-{data['stop_loss_percent']}%)"
             )

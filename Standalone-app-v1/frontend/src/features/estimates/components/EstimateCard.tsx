@@ -16,9 +16,10 @@ interface EstimateCardProps {
   currentPrice?: string; // Optional real-time or latest daily price to show unrealised P&L
   onClose?: (id: string, e: React.MouseEvent) => void;
   onDelete?: (id: string, e: React.MouseEvent) => void;
+  onClick?: (id: string, e: React.MouseEvent) => void;
 }
 
-export function EstimateCard({ estimate, currentPrice, onClose, onDelete }: EstimateCardProps) {
+export function EstimateCard({ estimate, currentPrice, onClose, onDelete, onClick }: EstimateCardProps) {
   const navigate = useNavigate();
 
   const isClosed = estimate.status.startsWith('CLOSED');
@@ -92,7 +93,7 @@ export function EstimateCard({ estimate, currentPrice, onClose, onDelete }: Esti
   return (
     <div 
       className="bg-white border rounded shadow-sm hover:shadow-md transition-shadow p-4 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer gap-4 relative"
-      onClick={() => navigate(`/estimates/${estimate.id}`)}
+      onClick={(e) => onClick ? onClick(estimate.id, e) : navigate(`/estimates/${estimate.id}`)}
       data-testid="estimate-card"
     >
       {/* Left section: Ticker, Direction, Status, Dates */}

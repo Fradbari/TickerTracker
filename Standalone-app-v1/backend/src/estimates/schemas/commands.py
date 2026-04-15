@@ -18,11 +18,11 @@ class CreateEstimateCommand(BaseModel):
 
     Attributes:
         ticker_id: UUID of the ticker to estimate
-        direction: Trading direction ('LONG' or 'SHORT')
         target_profit_percent: Target profit percentage (e.g., 10.0 for 10%)
         stop_loss_percent: Stop loss percentage (e.g., 5.0 for 5%)
         user_id: Optional UUID of the user creating the estimate
         ai_model: Optional AI model identifier
+        ai_version: Optional AI model version
         ai_confidence: Optional AI confidence score (0-100)
         ai_reasoning: Optional AI reasoning text
 
@@ -33,7 +33,6 @@ class CreateEstimateCommand(BaseModel):
     """
 
     ticker_id: UUID = Field(..., description="Ticker ID to create estimate for")
-    direction: str = Field(..., description="Trade direction: LONG or SHORT")
 
     target_profit_percent: Decimal = Field(
         ...,
@@ -71,14 +70,6 @@ class CreateEstimateCommand(BaseModel):
             raise ValueError(f"AI model must be one of: {', '.join(allowed)}")
         return v.lower()
 
-    @field_validator("direction")
-    @classmethod
-    def validate_direction(cls, v: str) -> str:
-        """Validate direction is either LONG or SHORT."""
-        if v.upper() not in ("LONG", "SHORT"):
-            raise ValueError("Direction must be 'LONG' or 'SHORT'")
-        return v.upper()
-
     @field_validator("ai_reasoning")
     @classmethod
     def validate_ai_reasoning(cls, v: str | None) -> str | None:
@@ -91,7 +82,6 @@ class CreateEstimateCommand(BaseModel):
         json_schema_extra = {
             "example": {
                 "ticker_id": "7884ff09-bb49-403c-8bc2-3d9bbfdb810b",
-                "direction": "LONG",
                 "target_profit_percent": 15.0,
                 "stop_loss_percent": 5.0,
                 "ai_model": "gpt-4",

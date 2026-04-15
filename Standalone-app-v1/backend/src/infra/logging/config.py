@@ -124,7 +124,7 @@ def configure_logging(log_level: str = "INFO") -> None:
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
-            structlog.processors.JSONRenderer(),
+            structlog.processors.JSONRenderer(serializer=lambda *args, **kwargs: __import__('json').dumps(*args, ensure_ascii=False, **kwargs)),
         ],
         wrapper_class=structlog.stdlib.BoundLogger,
         logger_factory=structlog.stdlib.LoggerFactory(),

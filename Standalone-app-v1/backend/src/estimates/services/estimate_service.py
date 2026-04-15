@@ -13,7 +13,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.estimates.domain.entities import Direction, Estimate, EstimateStatus
+from src.estimates.domain.entities import Estimate, EstimateStatus
 from src.estimates.domain.events import EstimateEvent, EstimateEventType
 from src.estimates.domain.pnl import calculate_pnl
 from src.estimates.repositories.estimate_repository import EstimateRepository
@@ -82,7 +82,7 @@ class EstimateService:
         6. Save both estimate and event atomically
 
         Args:
-            command: CreateEstimateCommand with ticker_id, direction, and percentages
+            command: CreateEstimateCommand with ticker_id and percentages
 
         Returns:
             Created Estimate entity with calculated prices
@@ -103,7 +103,6 @@ class EstimateService:
         # Calculate target and stop loss prices
         target_price, stop_loss_price = self._calculate_prices(
             start_price=current_price,
-            direction=command.direction,
             target_percent=command.target_profit_percent,
             stop_percent=command.stop_loss_percent,
         )
@@ -113,7 +112,6 @@ class EstimateService:
             start_price=current_price,
             target_price=target_price,
             stop_loss_price=stop_loss_price,
-            direction=command.direction,
         )
 
         # Create estimate entity
@@ -127,7 +125,6 @@ class EstimateService:
             target_profit_percent=command.target_profit_percent,
             stop_loss_percent=command.stop_loss_percent,
             status=EstimateStatus.OPEN,
-            direction=Direction[command.direction],
             ai_model=command.ai_model,
             ai_version=command.ai_version,
             ai_confidence=command.ai_confidence,
@@ -144,7 +141,6 @@ class EstimateService:
                 "start_price": float(current_price),
                 "target_price": float(target_price),
                 "stop_loss_price": float(stop_loss_price),
-                "direction": command.direction,
                 "target_profit_percent": float(command.target_profit_percent),
                 "stop_loss_percent": float(command.stop_loss_percent),
             },
@@ -207,7 +203,6 @@ class EstimateService:
             # Recalculate prices
             new_target_price, new_stop_price = self._calculate_prices(
                 start_price=estimate.start_price,
-                direction=estimate.direction.value,
                 target_percent=new_target_percent,
                 stop_percent=new_stop_percent,
             )
@@ -277,7 +272,7 @@ class EstimateService:
 
         Business logic:
         1. Validate estimate exists and is OPEN
-        2. Calculate realized PnL based on direction
+        2. Calculate realized PnL
         3. Determine close status (WIN/LOSS/MANUAL)
         4. Update estimate with exit data
         5. Publish CLOSED event
@@ -314,7 +309,6 @@ class EstimateService:
         pnl = calculate_pnl(
             start_price=estimate.start_price,
             exit_price=command.exit_price,
-            direction=estimate.direction.value,
         )
 
         # Determine status based on PnL
@@ -370,7 +364,7 @@ class EstimateService:
         Business logic:
         1. Get estimate and validate is OPEN
         2. Get current price if not provided
-        3. Check if target hit or stop hit based on direction
+        3. Check if target hit or stop hit
         4. If hit, close estimate automatically with appropriate event
         5. Return closed estimate or None if no action taken
 
@@ -398,16 +392,9 @@ class EstimateService:
         if current_price is None:
             current_price = await self._get_current_price(estimate.ticker_id)
 
-        # Check target/stop based on direction
-        target_hit = False
-        stop_hit = False
-
-        if estimate.direction == Direction.LONG:
-            target_hit = current_price >= estimate.target_price
-            stop_hit = current_price <= estimate.stop_loss_price
-        else:  # SHORT
-            target_hit = current_price <= estimate.target_price
-            stop_hit = current_price >= estimate.stop_loss_price
+        # Check target/stop
+        target_hit = current_price >= estimate.target_price
+        stop_hit = current_price <= estimate.stop_loss_price
 
         # No action if neither hit
         if not target_hit and not stop_hit:
@@ -427,7 +414,6 @@ class EstimateService:
         pnl = calculate_pnl(
             start_price=estimate.start_price,
             exit_price=current_price,
-            direction=estimate.direction.value,
         )
 
         # Update estimate
@@ -510,7 +496,6 @@ class EstimateService:
     def _calculate_prices(
         self,
         start_price: Decimal,
-        direction: str,
         target_percent: Decimal,
         stop_percent: Decimal,
     ) -> tuple[Decimal, Decimal]:
@@ -521,19 +506,11 @@ class EstimateService:
             target = start_price * (1 + target_percent / 100)
             stop = start_price * (1 - stop_percent / 100)
 
-        For SHORT:
-            target = start_price * (1 - target_percent / 100)
-            stop = start_price * (1 + stop_percent / 100)
-
         Returns:
             Tuple of (target_price, stop_loss_price)
         """
-        if direction == "LONG":
-            target_price = start_price * (1 + target_percent / 100)
-            stop_loss_price = start_price * (1 - stop_percent / 100)
-        else:  # SHORT
-            target_price = start_price * (1 - target_percent / 100)
-            stop_loss_price = start_price * (1 + stop_percent / 100)
+        target_price = start_price * (1 + target_percent / 100)
+        stop_loss_price = start_price * (1 - stop_percent / 100)
 
         # Round to 4 decimal places
         target_price = target_price.quantize(Decimal("0.0001"))
@@ -546,39 +523,24 @@ class EstimateService:
         start_price: Decimal,
         target_price: Decimal,
         stop_loss_price: Decimal,
-        direction: str,
     ) -> None:
         """
         Validate that calculated prices are logical.
 
         For LONG: stop < start < target
-        For SHORT: target < start < stop
 
         Raises:
             InvalidPriceError: If prices are illogical
         """
-        if direction == "LONG":
-            if not (stop_loss_price < start_price < target_price):
-                raise InvalidPriceError(
-                    "For LONG: stop_loss < start_price < target_price",
-                    {
-                        "start_price": float(start_price),
-                        "target_price": float(target_price),
-                        "stop_loss_price": float(stop_loss_price),
-                        "direction": direction,
-                    }
-                )
-        else:  # SHORT
-            if not (target_price < start_price < stop_loss_price):
-                raise InvalidPriceError(
-                    "For SHORT: target_price < start_price < stop_loss",
-                    {
-                        "start_price": float(start_price),
-                        "target_price": float(target_price),
-                        "stop_loss_price": float(stop_loss_price),
-                        "direction": direction,
-                    }
-                )
+        if not (stop_loss_price < start_price < target_price):
+            raise InvalidPriceError(
+                "For LONG: stop_loss < start_price < target_price",
+                {
+                    "start_price": float(start_price),
+                    "target_price": float(target_price),
+                    "stop_loss_price": float(stop_loss_price),
+                }
+            )
 
     async def get_estimates(self, filters: EstimateFilters, pagination: Pagination) -> PaginatedResult[Estimate]:
         return await self._estimate_repo.get_all(filters, pagination)

@@ -17,6 +17,8 @@ from src.estimates.domain.entities import Direction, Estimate, EstimateStatus
 from src.estimates.domain.events import EstimateEvent, EstimateEventType
 from src.estimates.domain.pnl import calculate_pnl
 from src.estimates.repositories.estimate_repository import EstimateRepository
+from src.estimates.schemas.filters import EstimateFilters
+from src.shared.schemas.pagination import PaginatedResult, Pagination
 from src.estimates.schemas.commands import (
     CloseEstimateCommand,
     CreateEstimateCommand,
@@ -576,4 +578,7 @@ class EstimateService:
                         "direction": direction,
                     }
                 )
+
+    async def get_estimates(self, filters: EstimateFilters, pagination: Pagination) -> PaginatedResult[Estimate]:
+        return await self._estimate_repo.get_all(filters, pagination)
 

@@ -38,7 +38,7 @@ from src.estimates.services.exceptions import (
 )
 from src.infra.security.rate_limit import is_whitelisted, limiter
 from src.market_data.repositories.market_data_repository import MarketDataRepository
-from src.shared.infra.database import get_db
+from src.shared.infra.database import AsyncSessionLocal, get_db
 from src.shared.schemas.api_response import ApiResponse, error_response, success_response
 from src.shared.schemas.pagination import Pagination
 
@@ -53,30 +53,28 @@ router = APIRouter(
 # Dependencies
 # ============================================================================
 
-def get_estimate_repository(session: AsyncSession = Depends(get_db)) -> EstimateRepository:
-    return EstimateRepository(session)
+def get_estimate_repository() -> EstimateRepository:
+    return EstimateRepository(AsyncSessionLocal)
 
 
-def get_market_data_repository(session: AsyncSession = Depends(get_db)) -> MarketDataRepository:
-    return MarketDataRepository(session)
+def get_market_data_repository() -> MarketDataRepository:
+    return MarketDataRepository(AsyncSessionLocal)
 
 
-def get_estimate_event_repository(session: AsyncSession = Depends(get_db)) -> EstimateEventRepository:
-    return EstimateEventRepository(session)
+def get_estimate_event_repository() -> EstimateEventRepository:
+    return EstimateEventRepository(AsyncSessionLocal)
 
 
 def get_estimate_service(
     estimate_repo: EstimateRepository = Depends(get_estimate_repository),
     market_data_repo: MarketDataRepository = Depends(get_market_data_repository),
-    event_repo: EstimateEventRepository = Depends(get_estimate_event_repository),
-    session: AsyncSession = Depends(get_db)
 ) -> EstimateService:
     # EstimateService requires a session_factory callable to manage transactions
+    # Note: Event repository logic was refactored, so it's not needed here anymore
     return EstimateService(
         estimate_repo=estimate_repo,
         market_data_repo=market_data_repo,
-        event_repo=event_repo,
-        session_factory=lambda: get_db()
+        session_factory=AsyncSessionLocal
     )
 
 
@@ -409,3 +407,37 @@ async def get_estimate_history(
         
     except EstimateNotFoundError as e:
         return error_response(message=str(e), status_code=404, error_code="ESTIMATE_NOT_FOUND")
+
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.estimates.domain.entities import Estimate, EstimateStatus
+from src.market_data.domain.market_data import MarketData
+
+@router.get('/statistics/backend-check')
+async def backend_check(
+    session: AsyncSession = Depends(get_db)
+) -> dict:
+    open_q = select(func.count(Estimate.id)).where(Estimate.status == EstimateStatus.OPEN)
+    open_res = await session.execute(open_q)
+    open_estimates = open_res.scalar() or 0
+
+    closed_q = select(func.count(Estimate.id)).where(
+        Estimate.status.in_([EstimateStatus.CLOSED_WIN, EstimateStatus.CLOSED_LOSS])
+    )
+    closed_res = await session.execute(closed_q)
+    auto_closed_estimates = closed_res.scalar() or 0
+
+    synced_q = select(func.count(MarketData.ticker_id))
+    synced_res = await session.execute(synced_q)
+    synced_market_rows = synced_res.scalar() or 0
+
+    return success_response(
+        data={
+            'open_estimates': open_estimates,
+            'auto_closed_estimates': auto_closed_estimates,
+            'synced_market_rows': synced_market_rows,
+            'backend_jobs_active': True
+        },
+        message='Backend stats retrieved successfully'
+    )
+

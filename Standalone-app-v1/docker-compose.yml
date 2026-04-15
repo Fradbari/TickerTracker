@@ -76,6 +76,12 @@ services:
       - ./backend/src:/app/src
       - ./backend/alembic:/app/alembic
       - ./backend/alembic.ini:/app/alembic.ini
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -96,7 +102,8 @@ services:
       # Vite proxy target: routes /api/* to the backend service inside Docker
       VITE_API_TARGET: http://backend:8000
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - ticker-network
 
@@ -113,4 +120,4 @@ volumes:
 networks:
   ticker-network:
     driver: bridge
-    name: ticker-network
+    name: ticker-network-${COMPOSE_PROJECT_NAME:-default}

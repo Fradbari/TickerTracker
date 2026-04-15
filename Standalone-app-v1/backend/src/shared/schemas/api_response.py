@@ -63,7 +63,9 @@ class ApiResponse(BaseModel, Generic[T]):
         return cls(success=True, data=data, error=None, trace_id=trace_id)
 
 
-def success_response(data: Any, trace_id: str) -> ApiResponse[Any]:
+from fastapi.responses import JSONResponse
+
+def success_response(data: Any = None, trace_id: str = "", message: str = "", status_code: int = 200, **kwargs) -> Any:
     """
     Creates a standardized successful API response.
 
@@ -77,12 +79,21 @@ def success_response(data: Any, trace_id: str) -> ApiResponse[Any]:
     Returns:
         ApiResponse: A success response instance.
     """
-    return ApiResponse(success=True, data=data, error=None, trace_id=trace_id)
+    resp = ApiResponse(success=True, data=data, error=None, trace_id=trace_id)
+    if status_code != 200:
+        return JSONResponse(content=resp.model_dump(), status_code=status_code)
+    return resp.model_dump()
 
 
 def error_response(
-    code: str, message: str, details: dict[str, Any] | None = None, trace_id: str = ""
-) -> ApiResponse[None]:
+    message: str,
+    code: str = "ERROR",
+    error_code: str = "",
+    details: dict[str, Any] | None = None,
+    trace_id: str = "",
+    status_code: int = 400,
+    **kwargs
+) -> JSONResponse:
     """
     Creates a standardized error API response.
 
@@ -96,11 +107,13 @@ def error_response(
         trace_id: Unique identifier for the request.
 
     Returns:
-        ApiResponse: An error response instance.
+        JSONResponse: An error response instance with HTTP status.
     """
-    return ApiResponse(
+    err_code = error_code or code
+    resp = ApiResponse(
         success=False,
         data=None,
-        error=ApiError(code=code, message=message, details=details),
+        error=ApiError(code=err_code, message=message, details=details),
         trace_id=trace_id,
     )
+    return JSONResponse(content=resp.model_dump(), status_code=status_code)

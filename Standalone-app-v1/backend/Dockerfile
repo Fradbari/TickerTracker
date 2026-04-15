@@ -25,5 +25,5 @@ COPY . .
 
 EXPOSE 8000
 
-# Run Alembic migrations then start the FastAPI server without hot-reload (optimized for prod)
-CMD ["sh", "-c", "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"]
+# Wait for DB + run migrations with error handling + start server
+CMD ["sh", "-c", "while ! pg_isready -h db -p 5432 -U ${POSTGRES_USER:-tickertracker}; do sleep 1; done && alembic upgrade head || exit 1 && exec uvicorn src.main:app --host 0.0.0.0 --port 8000"]

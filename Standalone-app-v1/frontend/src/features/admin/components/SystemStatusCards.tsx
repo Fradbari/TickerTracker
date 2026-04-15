@@ -2,6 +2,7 @@ import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import apiClient from '@/shared/api/client'
 import { Activity, Clock, Globe } from 'lucide-react'
+import { useEstimateDefaults } from './AdminSettings'
 
 interface HealthComponent {
   name: string
@@ -19,15 +20,16 @@ interface HealthResponse {
 }
 
 const fetchHealth = async (): Promise<HealthResponse> => {
-  const res = await apiClient.get('/health')
+  const res = await apiClient.get('/api/health')
   return res.data
 }
 
 export const SystemStatusCards: React.FC = () => {
+  const defaults = useEstimateDefaults()
   const { data: health, isLoading, isError } = useQuery({
     queryKey: ['system-health'],
     queryFn: fetchHealth,
-    refetchInterval: 30000, // Poll every 30 seconds
+    refetchInterval: (defaults.refreshInterval || 30) * 1000,
   })
 
   if (isLoading) {

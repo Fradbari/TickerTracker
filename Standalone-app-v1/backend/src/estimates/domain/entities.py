@@ -151,6 +151,12 @@ class Estimate(Base):
         doc="AI model identifier used for the estimate"
     )
 
+    ai_version = Column(
+        String(50),
+        nullable=True,
+        doc="AI model version used for the estimate"
+    )
+
     ai_confidence = Column(
         DECIMAL(5, 2),
         nullable=True,

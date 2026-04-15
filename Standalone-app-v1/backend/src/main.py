@@ -61,6 +61,7 @@ app.add_middleware(CorrelationIDMiddleware)
 
 # Register routers
 app.include_router(health_routes.router)
+app.include_router(health_routes.router, prefix="/api")  # Bypass nginx intercept
 app.include_router(estimates_router)
 app.include_router(market_data_routes.router)
 app.include_router(metrics_router)

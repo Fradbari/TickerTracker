@@ -1,6 +1,6 @@
 """
 Domain service for evaluating target hits (Take Profit, Stop Loss) and timeouts
-for trading estimates. Only supports LONG direction and uses a conservative approach
+for trading estimates. Supports LONG and SHORT directions and uses a conservative approach
 when extreme volatility hits both target and stop-loss within the same candlestick.
 """
 
@@ -22,7 +22,6 @@ class TargetEvaluationResult:
 class TargetEvaluationService:
     """
     Evaluates if an estimate has hit its target, stop loss, or timeout.
-    Specifically designed for the LONG approach and historical downtime recovery.
     """
 
     @staticmethod
@@ -42,11 +41,6 @@ class TargetEvaluationService:
         if estimate.status != EstimateStatus.OPEN:
             return TargetEvaluationResult(hit=False)
 
-        # Assure we only evaluate LONG direction logic mathematically
-        if estimate.direction != Direction.LONG:
-            # We ignore short for now as requested.
-            return TargetEvaluationResult(hit=False)
-
         start_date = estimate.created_at
 
         # Timeout Check - calculated by strict calendar days from creation
@@ -55,10 +49,8 @@ class TargetEvaluationService:
 
         if days_passed >= duration_days:
             # Close by Timeout
-            # We must use the last available close price if OHLCV data is provided
             exit_price = estimate.start_price
             if ohlcv_data:
-                # Take the very last available close price
                 exit_price = Decimal(str(ohlcv_data[-1].get("close", exit_price)))
 
             return TargetEvaluationResult(
@@ -68,38 +60,34 @@ class TargetEvaluationService:
                 exit_date=current_time
             )
 
-        # Start processing candlesticks looking forward from start_date
-        # Ensure chronological order (oldest first)
         sorted_data = sorted(ohlcv_data, key=lambda x: x["date"])
 
         for candle in sorted_data:
-            # Exclude the exact insertion day to strictly match legacy logic
-            # where currentPrice handled the first day and dayHigh/Low were skipped.
-            # Compare dates (YYYY-MM-DD)
             if candle["date"].date() <= start_date.date():
                 continue
 
             low_price = Decimal(str(candle.get("low", estimate.start_price)))
             high_price = Decimal(str(candle.get("high", estimate.start_price)))
 
-            # Prevent division by zero
             if estimate.start_price <= 0:
                 continue
 
-            # Mathematics for LONG position:
             low_change = ((low_price - estimate.start_price) / estimate.start_price) * 100
             high_change = ((high_price - estimate.start_price) / estimate.start_price) * 100
 
-            hit_stop = low_change <= -abs(estimate.stop_loss_percent)
-            hit_target = high_change >= abs(estimate.target_profit_percent)
+            if estimate.direction == Direction.LONG:
+                hit_stop = low_change <= -abs(estimate.stop_loss_percent)
+                hit_target = high_change >= abs(estimate.target_profit_percent)
+            else:
+                # SHORT
+                hit_stop = high_change >= abs(estimate.stop_loss_percent)
+                hit_target = low_change <= -abs(estimate.target_profit_percent)
 
             candle_datetime = candle["date"]
             if not candle_datetime.tzinfo:
-                # Naive to aware UTC assumption
                 candle_datetime = candle_datetime.replace(tzinfo=UTC)
 
-            # CONSERVATIVE APPROACH:
-            # If BOTH are hit in the same candlestick, STOP LOSS wins.
+            # CONSERVATIVE APPROACH
             if hit_stop and hit_target:
                 return TargetEvaluationResult(
                     hit=True,

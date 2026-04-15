@@ -8,6 +8,7 @@ import asyncio
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
+import httpx
 import yfinance as yf
 
 from src.market_data.domain.providers import (
@@ -215,11 +216,7 @@ class YahooMarketDataProvider(MarketDataProvider):
 
     async def search_symbol(self, query: str) -> list[dict]:
         """
-        Search for symbols using Yahoo Finance.
-
-        Note: yfinance doesn't have a built-in search API,
-        so this is a basic implementation. Consider using
-        a dedicated search provider for production.
+        Search for symbols using Yahoo Finance native API.
 
         Args:
             query: Search query
@@ -227,24 +224,26 @@ class YahooMarketDataProvider(MarketDataProvider):
         Returns:
             List of matching symbols
         """
-        # Basic implementation: try to get info for the query itself
-        # A production implementation would use a proper search API
         try:
-            ticker = await asyncio.to_thread(yf.Ticker, query)
-            info = await asyncio.to_thread(lambda: ticker.info)
+            url = f"https://query2.finance.yahoo.com/v1/finance/search?q={query}&quotesCount=10&newsCount=0"
+            headers = {"User-Agent": "Mozilla/5.0"}
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, headers=headers, timeout=self._timeout)
+                response.raise_for_status()
+                data = response.json()
+            
+            results = []
+            for item in data.get("quotes", []):
+                if item.get("quoteType") in ("EQUITY", "ETF", "MUTUALFUND", "INDEX", "CRYPTOCURRENCY", "CURRENCY"):
+                    results.append({
+                        "symbol": item.get("symbol", ""),
+                        "name": item.get("longname", item.get("shortname", "")),
+                        "exchange": item.get("exchDisp", item.get("exchange", ""))
+                    })
+            return results
 
-            if info and "symbol" in info:
-                return [
-                    {
-                        "symbol": info.get("symbol", query).upper(),
-                        "name": info.get("longName") or info.get("shortName", ""),
-                        "exchange": info.get("exchange", ""),
-                    }
-                ]
-
-            return []
-
-        except Exception:
+        except Exception as e:
             return []
 
     @property

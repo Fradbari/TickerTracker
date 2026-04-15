@@ -363,7 +363,7 @@ class HealthService:
         if db_comp is not None and db_comp.status == "UNHEALTHY":
             system_status: Literal["HEALTHY", "DEGRADED", "UNHEALTHY"] = "UNHEALTHY"
         elif any(
-            c.status in ("UNHEALTHY", "DEGRADED")
+            c.status == "UNHEALTHY"
             for c in components
             if c.name != "database"
         ):

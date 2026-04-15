@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useAsyncQueue } from '@/app/providers/AsyncQueueProvider'
 import { useEstimateDefaults } from '@/features/admin/components/AdminSettings'
 import apiClient from '@/shared/api/client'
@@ -6,54 +6,99 @@ import toast from 'react-hot-toast'
 
 export const InsertEstimate: React.FC = () => {
   const defaults = useEstimateDefaults()
-  const { queue, addItem, updateItem } = useAsyncQueue()
+  const { queue, addItem, updateItem, removeItem } = useAsyncQueue()
 
-  const [ticker, setTicker] = useState('')
+  const [tickerQuery, setTickerQuery] = useState('')
+  const [selectedTickerId, setSelectedTickerId] = useState<string | null>(null)
+  
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false)
+
   const [direction, setDirection] = useState<'LONG'|'SHORT'>('LONG')
   const [targetProfit, setTargetProfit] = useState(defaults.targetProfitPercent)
   const [stopLoss, setStopLoss] = useState(defaults.stopLossPercent)
   const [aiModel, setAiModel] = useState(defaults.aiModel)
+  const [aiVersion, setAiVersion] = useState('')
+  const [aiConfidence, setAiConfidence] = useState<number | ''>('')
+  
+  const [amount, setAmount] = useState(defaults.baseAmount)
+  const [durationDays, setDurationDays] = useState(defaults.baseDurationDays)
+
+  useEffect(() => {
+    setTargetProfit(defaults.targetProfitPercent)
+    setStopLoss(defaults.stopLossPercent)
+    setAiModel(defaults.aiModel)
+    setAmount(defaults.baseAmount)
+    setDurationDays(defaults.baseDurationDays)
+  }, [defaults])
+
+  useEffect(() => {
+    if (tickerQuery.length < 2) {
+      setSearchResults([])
+      setShowDropdown(false)
+      return
+    }
+    
+    // If the user already selected something, don't trigger search
+    if (selectedTickerId) return
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsSearching(true)
+      try {
+        const res = await apiClient.get(`/api/market-data/search?query=${tickerQuery}`)
+        setSearchResults(res.data.data || [])
+        setShowDropdown(true)
+      } catch (err) {
+        console.error('Error fetching tickers', err)
+      } finally {
+        setIsSearching(false)
+      }
+    }, 400)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [tickerQuery, selectedTickerId])
+
+  const handleSelectTicker = (t: any) => {
+    setTickerQuery(t.symbol)
+    setSelectedTickerId(t.id || t.uuid || t.symbol) // Use id if available, else fallback
+    setShowDropdown(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!ticker.trim()) {
+    if (!tickerQuery.trim()) {
       toast.error('Inserisci un ticker valido')
       return
     }
 
-    const t = ticker.toUpperCase()
+    const t = tickerQuery.toUpperCase()
 
-    // 1) Add to global Async Queue
     const queueId = addItem({
       ticker: t,
       direction,
       message: 'Cerco ticker...',
     })
 
-    // Reset simple form bits immediately for user convenience
-    setTicker('')
+    setTickerQuery('')
+    setSelectedTickerId(null)
     toast.success(`Avviato inserimento per ${t}`)
 
     try {
-      // Step A: Search / validate Ticker (simulate or actual lookup, here we assume direct input or basic check)
       updateItem(queueId, { message: 'Inizializzazione stima...', progress: 30 })
-
-      // Step B: Submit to creation API
-      // Since `create_estimate` API requires `ticker_id` (a UUID), we might need to get the UUID first.
-      // But let's assume we can hit a unified endpoint or let the backend resolve Ticker -> UUID.
-      // If backend only accepts UUID, we'll try to find it via /api/market-data/search or rely on the frontend fetching.
-      // For this sample, we just POST directly assuming the backend will resolve or the API signature matches.
       
-      // Look up Ticker to UUID
-      updateItem(queueId, { message: 'Ricerca UUID ticker...', progress: 50 })
-      const searchRes = await apiClient.get(`/api/market-data/search?query=${t}`)
-      const tickersObj = searchRes.data.data
+      let tickerUuid = selectedTickerId
       
-      if (!tickersObj || tickersObj.length === 0) {
-        throw new Error('Ticker non trovato nel database o non supportato.')
+      if (!tickerUuid) {
+        updateItem(queueId, { message: 'Ricerca UUID ticker...', progress: 50 })
+        const searchRes = await apiClient.get(`/api/market-data/search?query=${t}`)
+        const tickersObj = searchRes.data.data
+        
+        if (!tickersObj || tickersObj.length === 0) {
+          throw new Error('Ticker non trovato nel database o non supportato.')
+        }
+        tickerUuid = tickersObj[0].id || tickersObj[0].uuid
       }
-      
-      const tickerUuid = tickersObj[0].id
 
       updateItem(queueId, { message: 'Creazione stima in corso...', progress: 75 })
       const res = await apiClient.post('/api/estimates', {
@@ -62,14 +107,17 @@ export const InsertEstimate: React.FC = () => {
         target_profit_percent: targetProfit,
         stop_loss_percent: stopLoss,
         ai_model: aiModel,
+        ai_version: aiVersion || undefined,
+        ai_confidence: aiConfidence !== '' ? aiConfidence : undefined,
+        amount: amount,
+        duration_days: durationDays
       })
 
-      // Success
       updateItem(queueId, { 
         status: 'SUCCESS', 
         message: `Stima creata!`, 
         progress: 100,
-        estimateId: res.data.data.id
+        estimateId: res.data.data?.id
       })
       toast.success(`${t} inserita con successo!`)
 
@@ -88,19 +136,48 @@ export const InsertEstimate: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Nuova Stima</h2>
       
-      {/* Form Inserimento */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 overflow-visible">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="col-span-full md:col-span-1 lg:col-span-1">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ticker</label>
+          
+          {/* Ticker Autocomplete */}
+          <div className="col-span-full md:col-span-1 lg:col-span-1 relative">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ticker / Azienda</label>
             <input 
               type="text" 
-              placeholder="es. AAPL" 
-              value={ticker}
-              onChange={e => setTicker(e.target.value)}
+              placeholder="es. AAPL o Apple..." 
+              value={tickerQuery}
+              onChange={e => {
+                setTickerQuery(e.target.value)
+                setSelectedTickerId(null)
+                if(!showDropdown) setShowDropdown(true)
+              }}
               className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white uppercase"
               required 
             />
+            {isSearching && (
+              <div className="absolute right-3 top-[34px] text-slate-400">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              </div>
+            )}
+            {showDropdown && searchResults.length > 0 && (
+              <ul className="absolute z-50 w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded mt-1 max-h-48 overflow-y-auto shadow-lg">
+                {searchResults.map((t, idx) => (
+                  <li 
+                    key={idx} 
+                    onClick={() => handleSelectTicker(t)}
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-600 cursor-pointer border-b last:border-0 border-slate-100 dark:border-slate-600"
+                  >
+                    <div className="font-bold text-slate-800 dark:text-white uppercase">{t.symbol}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{t.short_name || t.long_name || ''}</div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {showDropdown && tickerQuery.length >= 2 && searchResults.length === 0 && !isSearching && !selectedTickerId && (
+              <div className="absolute z-50 w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded mt-1 p-3 text-sm text-slate-500 shadow-lg">
+                Nessun risultato trovato in Yahoo Finance.
+              </div>
+            )}
           </div>
 
           <div>
@@ -122,10 +199,60 @@ export const InsertEstimate: React.FC = () => {
               onChange={e => setAiModel(e.target.value)}
               className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
             >
-              <option value="gpt-4o">GPT-4o</option>
-              <option value="gpt-4">GPT-4</option>
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              <option value="gpt">GPT</option>
+              <option value="gemini">Gemini</option>
+              <option value="claude">Claude</option>
+              <option value="ia studio">IA Studio</option>
+              <option value="kimi">Kimi</option>
+              <option value="perplexity">Perplexity</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="copilot">Copilot</option>
+              <option value="grok">Grok</option>
+              <option value="qwen">Qwen</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">AI Version</label>
+            <input 
+              type="text" 
+              placeholder="es. 4-turbo" 
+              value={aiVersion}
+              onChange={e => setAiVersion(e.target.value)}
+              className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">AI Confidence (%)</label>
+            <input 
+              type="number" 
+              placeholder="0-100"
+              value={aiConfidence}
+              onChange={e => setAiConfidence(e.target.value === '' ? '' : Number(e.target.value))}
+              className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+              min="0" max="100"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Importo Base (&euro;)</label>
+            <input 
+              type="number" 
+              value={amount}
+              onChange={e => setAmount(Number(e.target.value))}
+              className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Durata Base (Giorni)</label>
+            <input 
+              type="number" 
+              value={durationDays}
+              onChange={e => setDurationDays(Number(e.target.value))}
+              className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+            />
           </div>
 
           <div>
@@ -190,10 +317,39 @@ export const InsertEstimate: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex items-center">
+                <div className="flex items-center gap-3">
                   {item.status === 'PENDING' && <span className="text-blue-500 animate-pulse text-sm font-semibold">IN CORSO</span>}
-                  {item.status === 'SUCCESS' && <span className="text-green-500 font-bold">COMPLETATO</span>}
+                  {item.status === 'SUCCESS' && (
+                    <div className="flex items-center gap-3">
+                      <span className="text-green-500 font-bold">COMPLETATO</span>
+                      {item.estimateId && (
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => {
+                              // Simulate quick delete using the API (You can wire this to useMutation proper later)
+                              if(window.confirm('Eliminare questa stima appena creata?')) {
+                                apiClient.delete(`/api/estimates/${item.estimateId}`)
+                                  .then(() => toast.success('Stima eliminata correttamente.'))
+                                  .catch(err => toast.error('Errore durante eliminazione stima.'))
+                              }
+                            }}
+                            className="p-1 px-3 text-xs bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/30 dark:hover:bg-red-800/50 dark:text-red-400 rounded transition"
+                          >
+                            Elimina
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {item.status === 'ERROR' && <span className="text-red-500 font-bold">ERRORE</span>}
+                  
+                  <button 
+                    onClick={() => removeItem(item.id)} 
+                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition ml-2"
+                    title="Rimuovi dalla coda"
+                  >
+                    ×
+                  </button>
                 </div>
               </div>
             ))}

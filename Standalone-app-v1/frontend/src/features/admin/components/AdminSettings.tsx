@@ -4,12 +4,18 @@ export interface EstimateDefaults {
   targetProfitPercent: number
   stopLossPercent: number
   aiModel: string
+  baseAmount: number
+  baseDurationDays: number
+  refreshInterval: number
 }
 
 const DEFAULT_SETTINGS: EstimateDefaults = {
   targetProfitPercent: 10,
   stopLossPercent: 10,
-  aiModel: 'gpt-4o'
+  aiModel: 'gpt-4o',
+  baseAmount: 1000,
+  baseDurationDays: 30,
+  refreshInterval: 30
 }
 
 export const useEstimateDefaults = () => {
@@ -88,10 +94,53 @@ export const AdminSettings: React.FC = () => {
             value={settings.aiModel}
             onChange={(e) => setSettings({ ...settings, aiModel: e.target.value })}
           >
-            <option value="gpt-4o">GPT-4o (Raccomandato)</option>
-            <option value="gpt-4">GPT-4</option>
-            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+            <option value="gpt">GPT</option>
+            <option value="gemini">Gemini</option>
+            <option value="claude">Claude</option>
+            <option value="ia studio">IA Studio</option>
+            <option value="kimi">Kimi</option>
+            <option value="perplexity">Perplexity</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="copilot">Copilot</option>
+            <option value="grok">Grok</option>
+            <option value="qwen">Qwen</option>
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            Importo Base (&euro;)
+          </label>
+          <input
+            type="number"
+            className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+            value={settings.baseAmount}
+            onChange={(e) => setSettings({ ...settings, baseAmount: Number(e.target.value) })}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            Durata Base (Giorni)
+          </label>
+          <input
+            type="number"
+            className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+            value={settings.baseDurationDays}
+            onChange={(e) => setSettings({ ...settings, baseDurationDays: Number(e.target.value) })}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            Tempo di Refresh Widget di Stato (Secondi)
+          </label>
+          <input
+            type="number"
+            className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+            value={settings.refreshInterval}
+            onChange={(e) => setSettings({ ...settings, refreshInterval: Number(e.target.value) })}
+          />
         </div>
 
         <button

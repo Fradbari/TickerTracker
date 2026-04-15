@@ -129,6 +129,7 @@ class EstimateService:
             status=EstimateStatus.OPEN,
             direction=Direction[command.direction],
             ai_model=command.ai_model,
+            ai_version=command.ai_version,
             ai_confidence=command.ai_confidence,
             ai_reasoning=command.ai_reasoning,
         )

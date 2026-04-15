@@ -90,6 +90,7 @@ class EstimateResponse(BaseModel):
     realized_pnl: Decimal | None = None
     realized_pnl_percent: Decimal | None = None
     ai_model: str | None = None
+    ai_version: str | None = None
     ai_confidence: Decimal | None = None
     ai_reasoning: str | None = None
     created_at: datetime

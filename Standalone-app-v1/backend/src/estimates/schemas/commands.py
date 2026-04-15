@@ -51,6 +51,7 @@ class CreateEstimateCommand(BaseModel):
 
     user_id: UUID | None = Field(default=None, description="User creating the estimate")
     ai_model: str | None = Field(default=None, max_length=100, description="AI model used")
+    ai_version: str | None = Field(default=None, max_length=50, description="AI model version")
     ai_confidence: Decimal | None = Field(
         default=None,
         ge=0,
@@ -58,6 +59,17 @@ class CreateEstimateCommand(BaseModel):
         description="AI confidence score (0-100)"
     )
     ai_reasoning: str | None = Field(default=None, description="AI reasoning text")
+
+    @field_validator("ai_model")
+    @classmethod
+    def validate_ai_model(cls, v: str | None) -> str | None:
+        """Validate AI model is against whitelist."""
+        if v is None:
+            return v
+        allowed = {"gemini", "ia studio", "gpt", "claude", "kimi", "perplexity", "deepseek", "copilot", "grok", "qwen"}
+        if v.lower() not in allowed:
+            raise ValueError(f"AI model must be one of: {', '.join(allowed)}")
+        return v.lower()
 
     @field_validator("direction")
     @classmethod

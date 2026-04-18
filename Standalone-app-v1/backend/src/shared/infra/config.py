@@ -129,6 +129,12 @@ class Settings(BaseSettings):
         description="Multiplier for exponential backoff (delay = previous * multiplier)",
     )
 
+    # ========== Background Loop Configuration ==========
+    PRICE_UPDATE_INTERVAL_MINUTES: int = Field(
+        default=15,
+        description="Interval in minutes for the background price update loop",
+    )
+
     GEMINI_API_KEY: SecretStr = Field(
         default=SecretStr(""),
         description="Google Gemini API key for AI features (required in production)",

@@ -20,7 +20,7 @@ export interface Estimate {
   exit_price: string | null
   realized_pnl: string | null
   ai_model: string | null
-  ai_confidence: string | null
+  ai_confidence: number | null
   ai_reasoning: string | null
   created_at: string
   updated_at: string

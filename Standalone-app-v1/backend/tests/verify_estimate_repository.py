@@ -70,7 +70,7 @@ async def test_repository():
         target_profit_percent=Decimal("20.00"),
         stop_loss_percent=Decimal("5.00"),
         status="OPEN",
-        direction="LONG",
+"LONG",
         ai_model="gemini-pro",
         ai_confidence=Decimal("0.85"),
         ai_reasoning="Strong bullish trend",
@@ -78,7 +78,7 @@ async def test_repository():
 
     created = await repo.create(estimate)
     print(f"✅ Estimate created: {created.id}")
-    print(f"   Status: {created.status}, Direction: {created.direction}")
+    print(f"   Status: {created.status}")
     print(f"   Target: ${created.target_price}, Stop Loss: ${created.stop_loss_price}\n")
 
     # Test 3: Get by ID
@@ -103,7 +103,7 @@ async def test_repository():
             target_profit_percent=Decimal("20.00"),
             stop_loss_percent=Decimal("5.00"),
             status="OPEN" if i % 2 == 0 else "CLOSED_WIN",
-            direction="LONG" if i % 2 == 0 else "SHORT",
+"LONG" if i % 2 == 0 else "SHORT",
             ai_model="gemini-pro",
             ai_confidence=Decimal(f"0.{70 + i}0"),
             ai_reasoning=f"Test estimate {i}",

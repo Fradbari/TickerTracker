@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import apiClient from '@/shared/api/client'
 import { EstimateCard } from '@/features/estimates/components/EstimateCard'
 import { Filter, Search, SortAsc, SortDesc, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 // Basic layout for the advanced portfolio page
 export const PortfolioAdvanced: React.FC = () => {
@@ -10,6 +11,7 @@ export const PortfolioAdvanced: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('ALL')
   const [sortField, setSortField] = useState('created_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const navigate = useNavigate()
   const [selectedEstimate, setSelectedEstimate] = useState<any | null>(null)
 
   // Example dataloader
@@ -30,6 +32,8 @@ export const PortfolioAdvanced: React.FC = () => {
     (est.ticker?.symbol || '').toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const handleEdit = (id: string, e: React.MouseEvent) => { e.stopPropagation(); navigate(`/insert?edit=${id}`); }
+  const handleDelete = async (id: string, e: React.MouseEvent) => { e.stopPropagation(); if (confirm('Vuoi davvero eliminare questa stima?')) { try { await apiClient.delete(`/api/estimates/${id}`); window.location.reload(); } catch (err) { alert('Errore durante l\'eliminazione'); } } }
   const handleCardClick = (id: string) => {
     const est = estimates.find((e: any) => e.id === id)
     if (est) setSelectedEstimate(est)
@@ -99,7 +103,7 @@ export const PortfolioAdvanced: React.FC = () => {
           <div className="col-span-full text-slate-500 py-10 text-center">Nessuna stima trovata con i filtri attuali.</div>
         ) : (
           filtered.map((est: any) => (
-            <EstimateCard key={est.id} estimate={est} onClick={handleCardClick} />
+            <EstimateCard key={est.id} estimate={est} onClick={handleCardClick} onDelete={handleDelete} onEdit={handleEdit} />
           ))
         )}
       </div>
@@ -173,3 +177,6 @@ export const PortfolioAdvanced: React.FC = () => {
     </div>
   )
 }
+
+
+

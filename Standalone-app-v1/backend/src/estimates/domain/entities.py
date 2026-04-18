@@ -1,4 +1,4 @@
-"""
+﻿"""
 Estimates domain entities - Estimate model.
 
 This module defines the SQLAlchemy model for trading estimates/predictions.
@@ -36,12 +36,6 @@ class EstimateStatus(str, enum.Enum):
     CLOSED_LOSS = "CLOSED_LOSS"
     CLOSED_MANUAL = "CLOSED_MANUAL"
     EXPIRED = "EXPIRED"
-
-
-class Direction(str, enum.Enum):
-    """Trading direction for the estimate."""
-    LONG = "LONG"
-    SHORT = "SHORT"
 
 
 class Estimate(Base):
@@ -264,5 +258,6 @@ class Estimate(Base):
         """String representation for debugging."""
         return (
             f"<Estimate(id={self.id}, ticker_id={self.ticker_id}, "
-            f"status={self.status.value}, direction={self.direction.value})>"
+            f"status={self.status.value}, )>"
         )
+

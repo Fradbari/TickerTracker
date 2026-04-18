@@ -5,7 +5,7 @@ export interface EstimateDefaults {
   stopLossPercent: number
   aiModel: string
   aiVersion: string
-  aiConfidence: string
+  aiConfidence: number
   baseAmount: number
   baseDurationDays: number
   refreshInterval: number
@@ -16,7 +16,7 @@ const DEFAULT_SETTINGS: EstimateDefaults = {
   stopLossPercent: 10,
   aiModel: 'gpt-4o',
   aiVersion: 'gpt-4o-mini',
-  aiConfidence: 'MEDIUM',
+  aiConfidence: 60,
   baseAmount: 1000,
   baseDurationDays: 30,
   refreshInterval: 30
@@ -125,17 +125,16 @@ export const AdminSettings: React.FC = () => {
 
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Default AI Confidence
+            Default AI Confidence (1-100)
           </label>
-          <select
+          <input
+            type="number"
+            min="1"
+            max="100"
             className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
             value={settings.aiConfidence}
-            onChange={(e) => setSettings({ ...settings, aiConfidence: e.target.value })}
-          >
-            <option value="LOW">LOW</option>
-            <option value="MEDIUM">MEDIUM</option>
-            <option value="HIGH">HIGH</option>
-          </select>
+            onChange={(e) => setSettings({ ...settings, aiConfidence: Number(e.target.value) })}
+          />
         </div>
 
         <div>

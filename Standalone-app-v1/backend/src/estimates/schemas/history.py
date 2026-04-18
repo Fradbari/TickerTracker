@@ -28,7 +28,6 @@ class EstimateSnapshot(BaseModel):
         estimate_id: Unique identifier of the estimate
         at_timestamp: The point in time this snapshot represents
         ticker_id: Reference to the ticker
-        direction: Trade direction (LONG or SHORT)
         status: Current status at the snapshot time
         start_price: Entry price
         target_price: Target profit price
@@ -51,7 +50,6 @@ class EstimateSnapshot(BaseModel):
                 "estimate_id": "123e4567-e89b-12d3-a456-426614174000",
                 "at_timestamp": "2024-01-15T14:30:00Z",
                 "ticker_id": "987fbc97-4bed-5078-9f07-9141ba07c9f3",
-                "direction": "LONG",
                 "status": "OPEN",
                 "start_price": "100.00",
                 "target_price": "115.00",
@@ -79,7 +77,6 @@ class EstimateSnapshot(BaseModel):
     user_id: UUID | None = Field(None, description="User who created the estimate")
 
     # Trade parameters
-    direction: str = Field(..., description="Trade direction (LONG or SHORT)")
     status: str = Field(..., description="Status at this point in time")
 
     # Prices (using Decimal for financial precision)

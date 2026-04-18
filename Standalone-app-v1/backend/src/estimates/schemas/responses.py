@@ -31,8 +31,7 @@ class EstimateResponse(BaseModel):
         id: Unique identifier
         ticker_id: Reference to ticker
         user_id: Reference to user (nullable)
-        direction: Trade direction (LONG/SHORT)
-        status: Current status
+ (LONG        status: Current status
         start_price: Entry price
         target_price: Target profit price
         stop_loss_price: Stop loss price
@@ -56,7 +55,6 @@ class EstimateResponse(BaseModel):
                 "id": "123e4567-e89b-12d3-a456-426614174000",
                 "ticker_id": "987fbc97-4bed-5078-9f07-9141ba07c9f3",
                 "user_id": "456e7890-e12c-34d5-b678-526614174001",
-                "direction": "LONG",
                 "status": "OPEN",
                 "start_price": "100.00",
                 "target_price": "115.00",
@@ -79,7 +77,6 @@ class EstimateResponse(BaseModel):
     id: UUID
     ticker_id: UUID
     user_id: UUID | None = None
-    direction: str
     status: str
     start_price: Decimal
     target_price: Decimal
@@ -119,7 +116,6 @@ class EstimateListResponse(BaseModel):
                     {
                         "id": "123e4567-e89b-12d3-a456-426614174000",
                         "ticker_id": "987fbc97-4bed-5078-9f07-9141ba07c9f3",
-                        "direction": "LONG",
                         "status": "OPEN",
                         "start_price": "100.00",
                         "target_price": "115.00",

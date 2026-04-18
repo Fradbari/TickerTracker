@@ -89,7 +89,7 @@ async def test_create_estimate(service: EstimateService, ticker_id) -> str:
     try:
         command = CreateEstimateCommand(
             ticker_id=ticker_id,
-            direction="LONG",
+"LONG",
             target_profit_percent=Decimal("15.0"),
             stop_loss_percent=Decimal("5.0"),
             ai_model="test-model",
@@ -240,7 +240,7 @@ async def test_check_targets_no_hit(service: EstimateService, ticker_id):
         # Create new estimate
         command = CreateEstimateCommand(
             ticker_id=ticker_id,
-            direction="LONG",
+"LONG",
             target_profit_percent=Decimal("50.0"),  # Way above current price
             stop_loss_percent=Decimal("50.0"),  # Way below current price
         )
@@ -271,7 +271,7 @@ async def test_check_targets_target_hit(service: EstimateService, ticker_id, mar
         # Create new estimate
         command = CreateEstimateCommand(
             ticker_id=ticker_id,
-            direction="LONG",
+"LONG",
             target_profit_percent=Decimal("2.0"),  # Very close target
             stop_loss_percent=Decimal("50.0"),
         )
@@ -342,7 +342,7 @@ async def test_validation_errors(service: EstimateService):
         # Test with non-existent ticker
         command = CreateEstimateCommand(
             ticker_id=uuid4(),  # Random UUID that doesn't exist
-            direction="LONG",
+"LONG",
             target_profit_percent=Decimal("10.0"),
             stop_loss_percent=Decimal("5.0"),
         )
@@ -370,7 +370,7 @@ async def test_short_estimate(service: EstimateService, ticker_id):
     try:
         command = CreateEstimateCommand(
             ticker_id=ticker_id,
-            direction="SHORT",
+"SHORT",
             target_profit_percent=Decimal("10.0"),
             stop_loss_percent=Decimal("5.0"),
         )
@@ -403,7 +403,7 @@ async def test_pnl_calculation(service: EstimateService, ticker_id):
         # Test LONG profit
         long_cmd = CreateEstimateCommand(
             ticker_id=ticker_id,
-            direction="LONG",
+"LONG",
             target_profit_percent=Decimal("10.0"),
             stop_loss_percent=Decimal("5.0"),
         )
@@ -423,7 +423,7 @@ async def test_pnl_calculation(service: EstimateService, ticker_id):
         # Test SHORT profit
         short_cmd = CreateEstimateCommand(
             ticker_id=ticker_id,
-            direction="SHORT",
+"SHORT",
             target_profit_percent=Decimal("10.0"),
             stop_loss_percent=Decimal("5.0"),
         )

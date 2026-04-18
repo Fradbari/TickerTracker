@@ -19,7 +19,7 @@ export const InsertEstimate: React.FC = () => {
   const [stopLoss, setStopLoss] = useState(defaults.stopLossPercent)
   const [aiModel, setAiModel] = useState(defaults.aiModel)
   const [aiVersion, setAiVersion] = useState(defaults.aiVersion)
-  const [aiConfidence, setAiConfidence] = useState<string>(defaults.aiConfidence || 'MEDIUM')
+  const [aiConfidence, setAiConfidence] = useState<number | ''>(defaults.aiConfidence || 60)
   
   const [amount, setAmount] = useState(defaults.baseAmount)
   const [durationDays, setDurationDays] = useState(defaults.baseDurationDays)
@@ -45,7 +45,7 @@ export const InsertEstimate: React.FC = () => {
     const delayDebounceFn = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const res = await apiClient.get(`/api/market-data/search?query=${tickerQuery}`)
+        const res = await apiClient.get(`/api/market-data/search?q=${tickerQuery}`)
         setSearchResults(res.data.data?.results || [])
         setShowDropdown(true)
       } catch (err) {
@@ -90,7 +90,7 @@ export const InsertEstimate: React.FC = () => {
       
       if (!tickerUuid) {
         updateItem(queueId, { message: 'Ricerca UUID ticker...', progress: 50 })
-        const searchRes = await apiClient.get(`/api/market-data/search?query=${t}`)
+        const searchRes = await apiClient.get(`/api/market-data/search?q=${t}`)
         const tickersObj = searchRes.data.data?.results
         
         if (!tickersObj || tickersObj.length === 0) {
@@ -106,7 +106,7 @@ export const InsertEstimate: React.FC = () => {
         stop_loss_percent: stopLoss,
         ai_model: aiModel,
         ai_version: aiVersion || undefined,
-        ai_confidence: aiConfidence === 'LOW' ? 30 : aiConfidence === 'MEDIUM' ? 60 : aiConfidence === 'HIGH' ? 90 : undefined,
+        ai_confidence: aiConfidence ? Number(aiConfidence) : undefined,
         amount: amount,
         duration_days: durationDays
       })
@@ -211,16 +211,15 @@ export const InsertEstimate: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">AI Confidence</label>
-            <select
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">AI Confidence (1-100)</label>
+            <input
+              type="number"
+              min="1"
+              max="100"
               value={aiConfidence}
-              onChange={e => setAiConfidence(e.target.value)}
+              onChange={e => setAiConfidence(e.target.value === '' ? '' : Number(e.target.value))}
               className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-            >
-              <option value="LOW">LOW</option>
-              <option value="MEDIUM">MEDIUM</option>
-              <option value="HIGH">HIGH</option>
-            </select>
+            />
           </div>
 
           <div>

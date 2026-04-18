@@ -16,10 +16,11 @@ interface EstimateCardProps {
   currentPrice?: string; // Optional real-time or latest daily price to show unrealised P&L
   onClose?: (id: string, e: React.MouseEvent) => void;
   onDelete?: (id: string, e: React.MouseEvent) => void;
+  onEdit?: (id: string, e: React.MouseEvent) => void;
   onClick?: (id: string, e: React.MouseEvent) => void;
 }
 
-export function EstimateCard({ estimate, currentPrice, onClose, onDelete, onClick }: EstimateCardProps) {
+export function EstimateCard({ estimate, currentPrice, onClose, onDelete, onEdit, onClick }: EstimateCardProps) {
   const navigate = useNavigate();
 
   const isClosed = estimate.status.startsWith('CLOSED');
@@ -62,10 +63,10 @@ export function EstimateCard({ estimate, currentPrice, onClose, onDelete, onClic
     const pnlResult = calculatePnL(entry, curr, qty);
     
     // adjust for short
-    const pnlAbsolute = estimate.direction === 'SHORT'
+    const pnlAbsolute = false
       ? pnlResult.absolute.times(-1)
       : pnlResult.absolute;
-    const pnlPercentage = estimate.direction === 'SHORT'
+    const pnlPercentage = false
       ? pnlResult.percentage.times(-1)
       : pnlResult.percentage;
     
@@ -100,9 +101,7 @@ export function EstimateCard({ estimate, currentPrice, onClose, onDelete, onClic
       <div className="flex flex-col gap-2 flex-grow">
         <div className="flex items-center gap-3">
           <h3 className="text-lg font-bold text-gray-900">{estimate.ticker_id}</h3>
-          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${directionBadgeColor}`}>
-            {estimate.direction}
-          </span>
+          
           <span className={`px-2 py-0.5 rounded text-xs font-semibold ${statusBadgeColor}`}>
             {estimate.status.replace('_', ' ')}
           </span>
@@ -170,6 +169,14 @@ export function EstimateCard({ estimate, currentPrice, onClose, onDelete, onClic
               Chiudi
             </button>
           )}
+          {onEdit && (
+            <button
+              onClick={(e) => onEdit(estimate.id, e)}
+              className="text-sm px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded transition-colors"
+            >
+              Modifica
+            </button>
+          )}
           {onDelete && (
             <button
               onClick={(e) => onDelete(estimate.id, e)}
@@ -183,3 +190,4 @@ export function EstimateCard({ estimate, currentPrice, onClose, onDelete, onClic
     </div>
   );
 }
+

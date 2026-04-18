@@ -7,7 +7,7 @@ when extreme volatility hits both target and stop-loss within the same candlesti
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from src.estimates.domain.entities import Direction, Estimate, EstimateStatus
+from src.estimates.domain.entities import Estimate, EstimateStatus
 
 
 class TargetEvaluationResult:
@@ -75,13 +75,8 @@ class TargetEvaluationService:
             low_change = ((low_price - estimate.start_price) / estimate.start_price) * 100
             high_change = ((high_price - estimate.start_price) / estimate.start_price) * 100
 
-            if estimate.direction == Direction.LONG:
-                hit_stop = low_change <= -abs(estimate.stop_loss_percent)
-                hit_target = high_change >= abs(estimate.target_profit_percent)
-            else:
-                # SHORT
-                hit_stop = high_change >= abs(estimate.stop_loss_percent)
-                hit_target = low_change <= -abs(estimate.target_profit_percent)
+            hit_stop = low_change <= -abs(estimate.stop_loss_percent)
+            hit_target = high_change >= abs(estimate.target_profit_percent)
 
             candle_datetime = candle["date"]
             if not candle_datetime.tzinfo:

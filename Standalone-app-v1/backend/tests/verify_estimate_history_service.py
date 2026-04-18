@@ -83,7 +83,7 @@ async def create_estimate_with_history(service: EstimateService, ticker_id):
     # 1. Create
     cmd_create = CreateEstimateCommand(
         ticker_id=ticker_id,
-        direction="LONG",
+"LONG",
         target_profit_percent=Decimal("10.0"),
         stop_loss_percent=Decimal("5.0"),
         ai_model="gpt-4",

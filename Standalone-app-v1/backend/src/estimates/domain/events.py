@@ -52,7 +52,7 @@ class EstimateEvent(Base):
         timestamp: When the event occurred (with timezone)
 
     Event Data Examples:
-        CREATED: {"initial_price": 100.00, "direction": "LONG"}
+        CREATED: {"initial_price": 100.00, "initial_price": 100.00}
         UPDATED: {"changed_fields": ["ai_confidence"], "old_values": {...}}
         PRICE_UPDATED: {"old_target": 110.00, "new_target": 115.00}
         TARGET_HIT: {"exit_price": 110.50, "profit": 10.50}

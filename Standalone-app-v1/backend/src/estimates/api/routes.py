@@ -159,7 +159,6 @@ async def list_estimates(
     # Filters
     ticker_id: UUID | None = Query(None, description="Filter by ticker UUID"),
     status: str | None = Query(None, description="Filter by status (OPEN, CLOSED_WIN, etc.)"),
-    direction: str | None = Query(None, description="Filter by direction (LONG, SHORT)"),
     ai_model: str | None = Query(None, description="Filter by AI model"),
     has_ai_analysis: bool | None = Query(None, description="Filter estimates with AI reasoning"),
     is_active: bool | None = Query(None, description="Filter currently active (OPEN) estimates"),
@@ -170,7 +169,6 @@ async def list_estimates(
     filters = EstimateFilters(
         ticker_id=ticker_id,
         status=status,
-        direction=direction,
         ai_model=ai_model,
         has_ai_analysis=has_ai_analysis,
         is_active=is_active,

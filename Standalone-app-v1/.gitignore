@@ -60,3 +60,5 @@ logs/
 type_check_output*.txt
 vite.config.ts.timestamp-*.mjs
 tsc-output-*.txt 
+test-results/
+playwright-report/

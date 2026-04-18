@@ -9,7 +9,7 @@ from httpx import AsyncClient
 from sqlalchemy.exc import TimeoutError as SATimeoutError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.estimates.domain.entities import Direction, Estimate, EstimateStatus
+from src.estimates.domain.entities import Estimate, EstimateStatus
 from src.estimates.repositories.estimate_repository import EstimateRepository
 from src.infra.drive.client import GoogleDriveClient
 from src.main import app

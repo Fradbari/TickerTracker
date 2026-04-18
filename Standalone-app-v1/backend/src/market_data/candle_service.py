@@ -155,12 +155,14 @@ async def backfill_candles_on_startup() -> None:
                             
                             if est_in_db.target_price and c_data["high"] >= est_in_db.target_price:
                                 closed_state = EstimateStatus.CLOSED_WIN
+                                trigger_val = est_in_db.target_price
                             elif est_in_db.stop_loss_price and c_data["low"] <= est_in_db.stop_loss_price:
                                 closed_state = EstimateStatus.CLOSED_LOSS
+                                trigger_val = est_in_db.stop_loss_price
                                 
                             if closed_state:
                                 est_in_db.status = closed_state
-                                est_in_db.exit_price = c_data["close"]  # Approssimazione di base sul close per target gap
+                                est_in_db.exit_price = trigger_val
                                 est_in_db.closed_at = c_time
                                 est_in_db.realized_pnl = float(est_in_db.exit_price) - float(est_in_db.start_price)
                                 

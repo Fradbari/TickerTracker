@@ -26,7 +26,7 @@ from src.shared.infra.security_middleware import setup_security_middleware
 import asyncio
 from contextlib import asynccontextmanager
 from src.shared import background_tasks
-from src.estimates.services import candle_service
+from src.market_data import candle_service
 from src.shared.infra.database import AsyncSessionLocal
 
 # Get application settings

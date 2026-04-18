@@ -23,6 +23,11 @@ from src.market_data.api import routes as market_data_routes
 from src.shared.api import health_routes
 from src.shared.infra.config import get_settings
 from src.shared.infra.security_middleware import setup_security_middleware
+import asyncio
+from contextlib import asynccontextmanager
+from src.market_data.services import background_tasks
+from src.estimates.services import candle_service
+from src.shared.infra.database import AsyncSessionLocal
 
 # Get application settings
 settings = get_settings()
@@ -30,6 +35,17 @@ settings = get_settings()
 # Configure structured JSON logging BEFORE creating the app so that all
 # subsequent log calls (including FastAPI startup) are formatted correctly.
 configure_logging(log_level=settings.LOG_LEVEL)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # TASK 4 (Prima): Esegui il backfill delle candele all'avvio garantendo il dato
+    # Implementazione reale nel file di Task 4.
+    await candle_service.backfill_candles_on_startup()
+    
+    # TASK 3B (Dopo): Looping parallelo asincrono
+    loop_task = asyncio.create_task(background_tasks.start_price_loop({"db_session": AsyncSessionLocal}))
+    yield
+    loop_task.cancel()
 
 # Create FastAPI application
 app = FastAPI(
@@ -39,6 +55,7 @@ app = FastAPI(
     debug=settings.DEBUG,
     contact={"name": "TickerTracker", "email": "fra.dilecce@gmail.com"},
     license_info={"name": "MIT"},
+    lifespan=lifespan,
     openapi_tags=[
         {"name": "estimates", "description": "Gestione stime analisti"},
         {"name": "market-data", "description": "Dati di mercato Yahoo Finance"},

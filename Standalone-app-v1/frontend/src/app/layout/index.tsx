@@ -11,6 +11,8 @@
 import { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
 import { Menu } from 'lucide-react'
+import { Toaster } from 'react-hot-toast'
+import { AppStatusBar } from '@/shared/components/AppStatusBar'
 
 interface RootLayoutProps {
   children: ReactNode
@@ -18,7 +20,7 @@ interface RootLayoutProps {
 
 export function RootLayout({ children }: RootLayoutProps) {
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] transition-colors duration-200">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] transition-colors duration-200 pb-8">
       <Sidebar />
 
       {/* Mobile Header */}
@@ -35,6 +37,21 @@ export function RootLayout({ children }: RootLayoutProps) {
           {children}
         </div>
       </main>
+
+      <Toaster 
+        position="bottom-right"
+        toastOptions={{
+          className: 'toast-custom',
+          duration: 4000,
+          success: {
+            iconTheme: { primary: '#10b981', secondary: '#fff' }
+          },
+          error: {
+            iconTheme: { primary: '#ef4444', secondary: '#fff' }
+          }
+        }}
+      />
+      <AppStatusBar />
     </div>
   )
 }

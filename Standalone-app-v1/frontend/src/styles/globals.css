@@ -73,3 +73,14 @@ body {
   background: #475569;
   border-radius: 3px;
 }
+
+/* TickerTracker v3.0 Specific Overrides */
+.toast-custom {
+  background-color: var(--card) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.app-status-bar {
+  z-index: 1000;
+}

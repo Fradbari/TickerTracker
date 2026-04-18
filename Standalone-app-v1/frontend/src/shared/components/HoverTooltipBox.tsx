@@ -9,7 +9,7 @@ interface HoverTooltipBoxProps {
   delay?: number;
 }
 
-export function HoverTooltipBox({ children, description, className = '', tooltipClassName = '', delay = 3000 }: HoverTooltipBoxProps) {
+export function HoverTooltipBox({ children, description, className = '', tooltipClassName = '', delay = 400 }: HoverTooltipBoxProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -79,13 +79,13 @@ export function HoverTooltipBox({ children, description, className = '', tooltip
       {showTooltip && description && typeof document !== 'undefined' && createPortal(
         <div 
           style={getPositionStyles()}
-          className={`w-[320px] max-w-[90vw] p-4 bg-slate-800 text-white text-xs rounded-xl shadow-2xl text-left pointer-events-none animate-in fade-in zoom-in duration-200`}
+          className={`w-[320px] max-w-[90vw] p-3 bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] text-xs rounded-lg shadow-xl text-left pointer-events-none animate-in fade-in zoom-in duration-200`}
         >
           <div className="leading-relaxed whitespace-pre-wrap">{description}</div>
           <div className={`absolute left-1/2 -translate-x-1/2 border-8 border-transparent ${
             tooltipClassName.includes('-bottom') || tooltipClassName.includes('top-full')
-              ? 'bottom-full border-b-slate-800' 
-              : 'top-full border-t-slate-800'
+              ? 'bottom-full border-b-[var(--background)]' 
+              : 'top-full border-t-[var(--background)]'
           }`} />
         </div>,
         document.body

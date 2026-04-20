@@ -130,6 +130,10 @@ class Settings(BaseSettings):
     )
 
     # ========== Background Loop Configuration ==========
+    PRICE_LOOP_INTERVAL_SECONDS: int = Field(
+        default=60,
+        description="Interval in seconds for the background price update loop",
+    )
     PRICE_UPDATE_INTERVAL_MINUTES: int = Field(
         default=15,
         description="Interval in minutes for the background price update loop",

@@ -85,7 +85,9 @@ app.include_router(metrics_router)
 app.include_router(admin_routes.router)
 
 from src.shared.api.logs import router as logs_router
+from src.shared.router import router as shared_tasks_router
 app.include_router(logs_router)
+app.include_router(shared_tasks_router)
 
 if settings.ENVIRONMENT in ['local', 'test']:
     from src.shared.api import test_routes

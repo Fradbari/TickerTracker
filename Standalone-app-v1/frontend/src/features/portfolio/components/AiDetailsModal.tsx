@@ -5,6 +5,7 @@ import {
   ScatterChart, Scatter, ZAxis
 } from 'recharts'
 import { HoverTooltipBox } from '@/shared/components/HoverTooltipBox'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface AiDetailsModalProps {
   isOpen: boolean;
@@ -73,7 +74,7 @@ export function AiDetailsModal({ isOpen, onClose, aiName, stats }: AiDetailsModa
         <div className="bg-[var(--card)] border border-[var(--border)] p-3 rounded-lg shadow-lg text-sm">
           <p className="font-bold text-[var(--foreground)] mb-1">{data.symbol}</p>
           <p className="text-slate-400">Target Atteso (Volatilità): <span className="text-[var(--foreground)] font-semibold">{data.expected.toFixed(2)}%</span></p>
-          <p className="text-slate-400">P&L Realizzato: <span className={`font-semibold ${data.realized >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{data.realized.toFixed(2)}%</span></p>
+          <p className="text-slate-400"><Tooltip content="Risultato economico calcolato sul prezzo di chiusura della posizione."><span>P&L Reale:</span></Tooltip> <span className={`font-semibold ${data.realized >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{data.realized.toFixed(2)}%</span></p>
         </div>
       );
     }

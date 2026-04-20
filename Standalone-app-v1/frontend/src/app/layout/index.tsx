@@ -12,7 +12,7 @@ import { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
 import { Menu } from 'lucide-react'
 import { Toaster } from 'react-hot-toast'
-import { AppStatusBar } from '@/shared/components/AppStatusBar'
+import { AppStatusBar } from '@/components/layout/AppStatusBar'
 
 interface RootLayoutProps {
   children: ReactNode

@@ -27,6 +27,7 @@
  *   //        schema is extended (TASK 4.x)
  */
 import { useMemo } from 'react'
+import { Tooltip } from '@/components/ui/Tooltip'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -362,13 +363,13 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
       <div>
         <label
           htmlFor="entry_price"
-          className="block text-sm font-medium text-slate-300 mb-1.5"
+          className="block text-sm font-medium text-slate-300 mb-1.5 flex items-center"
         >
-          Prezzo attuale{' '}
-          <span className="text-slate-500 font-normal text-xs">
+          <Tooltip content="Prezzo al quale la stima si attiva iniziando a calcolare il P&L. Se vuoto, usa il prezzo di mercato attuale."><span>Trigger Price</span></Tooltip>{' '}
+          <span className="text-slate-500 font-normal text-xs ml-2">
             (solo per il preview — non inviato all'API)
           </span>{' '}
-          <span className="text-red-400">*</span>
+          <span className="text-red-400 ml-1">*</span>
         </label>
         <input
           id="entry_price"
@@ -395,7 +396,8 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
             htmlFor="target_profit_percent"
             className="block text-sm font-medium text-slate-300 mb-1.5"
           >
-            Obiettivo profitto (%) <span className="text-red-400">*</span>
+            <Tooltip content="Percentuale di guadagno attesa rispetto al Trigger Price."><span>Target (+%)</span></Tooltip>{' '}
+            <span className="text-red-400">*</span>
           </label>
           <div className="relative">
             <input
@@ -429,7 +431,8 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
             htmlFor="stop_loss_percent"
             className="block text-sm font-medium text-slate-300 mb-1.5"
           >
-            Stop-loss (%) <span className="text-red-400">*</span>
+            <Tooltip content="Percentuale di perdita massima tollerata prima della chiusura."><span>Stop Loss (-%)</span></Tooltip>{' '}
+            <span className="text-red-400">*</span>
           </label>
           <div className="relative">
             <input

@@ -2,7 +2,7 @@
 import { useBackendStats } from '@/shared/api/queries/backendStats'
 import { KpiCard } from '@/shared/components/KpiCard'
 import { Database, Settings, RefreshCw, Power } from 'lucide-react'
-import { AdminSettings } from './AdminSettings'
+import { AdminSettings, FinnhubSettings } from './AdminSettings'
 import { SystemStatusCards } from './SystemStatusCards'
 
 export function AdminDashboard() {
@@ -60,6 +60,8 @@ export function AdminDashboard() {
       <SystemStatusCards />
 
       <AdminSettings />
+      <FinnhubSettings />
+      <FinnhubSettings />
     </div>
   )
 }

@@ -1,10 +1,15 @@
 from typing import Annotated, Any
-
+import json
+import httpx
+from sqlalchemy import select
+from sqlalchemy.future import select
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel
 
 from src.infra.feature_flags.service import FeatureFlag, FeatureFlagServiceDep
 from src.shared.infra.config import settings
+from src.shared.infra.database import get_db, AsyncSessionLocal
+from src.shared.domain.app_config import AppConfig
 
 router = APIRouter(
     prefix="/api/admin",
@@ -99,3 +104,41 @@ async def update_feature_flag(
     flags = await feature_flag_svc.get_all_flags()
     return {"status": "success", "flag": flags.get(flag_name.value)}
 
+
+class FinnhubKeyRequest(BaseModel):
+    api_key: str
+
+@router.get("/config/finnhub-key", dependencies=[Depends(verify_admin_token)], summary="Ottieni info chiave Finnhub")
+async def get_finnhub_key(db = Depends(get_db)):
+    result = await db.execute(select(AppConfig).where(AppConfig.key == "FINNHUB_API_KEY"))
+    config = result.scalar_one_or_none()
+    if config:
+        try:
+            data = json.loads(config.value)
+            return {"valid": True, "updated_at": config.updated_at, "quota_remaining": data.get("quota_remaining")}
+        except:
+            return {"valid": True, "updated_at": config.updated_at, "quota_remaining": None}
+    return {"valid": False, "updated_at": None, "quota_remaining": None}
+
+@router.post("/config/finnhub-key", dependencies=[Depends(verify_admin_token)], summary="Verifica e Salva chiave API Finnhub")
+async def save_finnhub_key(request: FinnhubKeyRequest, db = Depends(get_db)):
+    url = f"https://finnhub.io/api/v1/search?q=AAPL&token={request.api_key}"
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.get(url)
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Chiave API Finnhub non valida o quota esaurita")
+        
+        quota = response.headers.get("X-Ratelimit-Limit", "Unknown")
+        val = json.dumps({"api_key": request.api_key, "quota_remaining": quota})
+        
+        result = await db.execute(select(AppConfig).where(AppConfig.key == "FINNHUB_API_KEY"))
+        config = result.scalar_one_or_none()
+        
+        if config:
+            config.value = val
+        else:
+            config = AppConfig(key="FINNHUB_API_KEY", value=val)
+            db.add(config)
+            
+        await db.commit()
+        return {"valid": True, "quota_remaining": quota}

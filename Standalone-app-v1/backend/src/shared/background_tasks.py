@@ -79,6 +79,7 @@ async def start_price_loop(context: dict = None):
                                         est_in_inner.status = closed_state
                                         est_in_inner.exit_price = trigger_val
                                         est_in_inner.closed_at = datetime.now(timezone.utc)
+                                        # NOTE: realized_pnl è delta prezzo unitario, non P&L totale
                                         est_in_inner.realized_pnl = float(trigger_val) - float(est_in_inner.start_price)
                                         changes_made = True
                                         closed_count += 1

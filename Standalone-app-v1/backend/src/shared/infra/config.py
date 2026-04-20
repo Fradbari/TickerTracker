@@ -134,10 +134,6 @@ class Settings(BaseSettings):
         default=60,
         description="Interval in seconds for the background price update loop",
     )
-    PRICE_UPDATE_INTERVAL_MINUTES: int = Field(
-        default=15,
-        description="Interval in minutes for the background price update loop",
-    )
 
     GEMINI_API_KEY: SecretStr = Field(
         default=SecretStr(""),

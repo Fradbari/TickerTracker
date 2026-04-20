@@ -2,6 +2,7 @@ import logging
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
+from src.market_data.schemas.search import SymbolValidationResult
 from src.shared.utils.http_utils import is_retryable_http_error
 
 logger = logging.getLogger(__name__)
@@ -46,9 +47,47 @@ async def get_current_price(symbol: str) -> float | None:
             return float(price)
             
         return None
-        
-        
-async def validate_symbol_on_yahoo(symbol: str) -> bool:
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    retry=retry_if_exception_type(Exception),
+    before_sleep=lambda rs: logger.warning(f"Retrying Yahoo validation fetch for {rs.outcome.exception()}"),
+)
+async def validate_symbol_on_yahoo(symbol: str) -> SymbolValidationResult:
     """Valida se un ticker esiste interrogando la v8 e sperando di ottenere un prezzo."""
-    val = await get_current_price(symbol)
-    return val is not None
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+    url = f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?interval=1m&range=1d"
+    
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            response = await client.get(url, headers=headers)
+            if response.status_code == 404:
+                return SymbolValidationResult(valid=False, symbol=symbol)
+            response.raise_for_status()
+        except Exception as e:
+            if is_retryable_http_error(e):
+                raise
+            logger.warning(f"Errore timeout o 5xx Yahoo chart validation per {symbol}: {e}")
+            return SymbolValidationResult(valid=False, symbol=symbol)
+
+        data = response.json()
+        results = data.get("chart", {}).get("result", [])
+        if not results:
+            return SymbolValidationResult(valid=False, symbol=symbol)
+            
+        meta = results[0].get("meta", {})
+        price = meta.get("regularMarketPrice")
+        
+        if price is not None:
+            return SymbolValidationResult(
+                valid=True,
+                current_price=float(price),
+                currency=meta.get("currency"),
+                exchange=meta.get("exchangeName"),
+                symbol=symbol
+            )
+            
+        return SymbolValidationResult(valid=False, symbol=symbol)

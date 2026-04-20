@@ -41,6 +41,7 @@ import type { EstimateDirection } from '../types'
 import { formatMoney, fromDecimalAmount } from '@/shared/finance'
 import { useNotify } from '@/shared/ui'
 import { isApiError } from '@/shared/api'
+import { SymbolSearchInput } from '@/components/form/SymbolSearchInput'
 
 // ---------------------------------------------------------------------------
 // Validation schema — Zod v4
@@ -312,29 +313,14 @@ export function EstimateForm({ onSuccess, onCancel }: EstimateFormProps) {
           Ticker <span className="text-red-400">*</span>
         </label>
         {/* TODO: replace with autocomplete when /api/tickers/search is available (TASK 4.x) */}
-        <input
-          id="ticker"
-          type="text"
-          inputMode="text"
-          autoCapitalize="characters"
-          maxLength={10}
-          placeholder="es. AAPL"
-          aria-invalid={!!errors.ticker}
-          aria-describedby={errors.ticker ? 'ticker-error' : undefined}
-          {...register('ticker', {
-            onChange: e => {
-              // Force uppercase in real-time, before Zod runs
-              e.target.value = e.target.value.toUpperCase()
-              setValue('ticker', e.target.value, { shouldValidate: true })
-            },
-          })}
-          className={inputClass(!!errors.ticker)}
+        <SymbolSearchInput
+          value={watchedTicker}
+          onChange={(val: string, isValid: boolean) => {
+            setValue('ticker', val, { shouldValidate: true })
+          }}
+          error={errors.ticker?.message}
+          disabled={isLoading}
         />
-        {errors.ticker && (
-          <p id="ticker-error" role="alert" className={errorClass}>
-            {errors.ticker.message}
-          </p>
-        )}
       </div>
 
       {/* ── Direction toggle ─────────────────────────────────────────── */}

@@ -1,5 +1,6 @@
 export const theme = {
   colors: {
+    textInverse: '#ffffff',
     bg: '#0d1117',
     surface: '#161b22',
     border: '#21262d',

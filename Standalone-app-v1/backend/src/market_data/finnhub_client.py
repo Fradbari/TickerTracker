@@ -4,6 +4,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 
 from src.shared.infra.config import get_settings
 from src.shared.utils.http_utils import is_retryable_http_error
+from src.market_data.schemas.search import FinnhubSymbolResult
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -77,3 +78,46 @@ async def get_candles(symbol: str, resolution: str, from_ts: int, to_ts: int) ->
                 "volume": data["v"][i],
             })
         return candles
+
+async def symbol_lookup(query: str) -> list[FinnhubSymbolResult]:
+    """Cerca su Finnhub simboli ticker matchanti (autocomplete)."""
+    api_key = settings.FINNHUB_API_KEY.get_secret_value() if settings.FINNHUB_API_KEY else ""
+    if not api_key:
+        logger.warning("FINNHUB_API_KEY non configurata. Ricerca fallback vuota.")
+        return []
+
+    url = f"https://finnhub.io/api/v1/search?q={query}&token={api_key}"
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        try:
+            response = await client.get(url)
+            response.raise_for_status()
+        except Exception as e:
+            logger.error(f"Errore ricerca simbolo su Finnhub per query '{query}': {e}")
+            return []
+
+        data = response.json()
+        count = data.get("count", 0)
+        if count == 0:
+            return []
+
+        results = []
+        valid_types = {"Common Stock", "ETP", "ADR"}
+        exact_query = query.strip().lower()
+
+        for item in data.get("result", []):
+            sym = item.get("symbol", "")
+            itype = item.get("type", "")
+            desc = item.get("description", "")
+            
+            if not sym:
+                continue
+                
+            if itype in valid_types or sym.lower() == exact_query:
+                results.append(FinnhubSymbolResult(
+                    symbol=sym,
+                    description=desc,
+                    type=itype,
+                    mic_code=item.get("mic")
+                ))
+                
+        return results

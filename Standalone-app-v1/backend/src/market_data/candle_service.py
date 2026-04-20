@@ -6,21 +6,14 @@ from sqlalchemy.future import select
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from httpx import TimeoutException, HTTPStatusError
 
 from src.shared.infra.database import AsyncSessionLocal
 from src.estimates.domain.entities import Estimate, EstimateStatus
 from src.market_data.domain.entities import Ticker, Candle
 from src.shared.services.sse_manager import sse_manager
+from src.shared.utils.http_utils import is_retryable_http_error
 
 logger = logging.getLogger(__name__)
-
-def is_retryable_http_error(exc: Exception) -> bool:
-    if isinstance(exc, TimeoutException):
-        return True
-    if isinstance(exc, HTTPStatusError):
-        return exc.response.status_code == 429 or exc.response.status_code >= 500
-    return False
 
 @retry(
     stop=stop_after_attempt(3),

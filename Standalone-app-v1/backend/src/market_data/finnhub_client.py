@@ -1,18 +1,12 @@
 import logging
 import httpx
-from httpx import TimeoutException, HTTPStatusError
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 from src.shared.infra.config import get_settings
+from src.shared.utils.http_utils import is_retryable_http_error
 
 logger = logging.getLogger(__name__)
-
-def is_retryable_http_error(exc: Exception) -> bool:
-    if isinstance(exc, TimeoutException):
-        return True
-    if isinstance(exc, HTTPStatusError):
-        return exc.response.status_code == 429 or exc.response.status_code >= 500
-    return False
+settings = get_settings()
 
 @retry(
     stop=stop_after_attempt(3),
@@ -22,7 +16,6 @@ def is_retryable_http_error(exc: Exception) -> bool:
 )
 async def get_quote(symbol: str) -> dict | None:
     """Fetch real-time quote for a symbol from Finnhub."""
-    settings = get_settings()
     api_key = settings.FINNHUB_API_KEY.get_secret_value() if settings.FINNHUB_API_KEY else ""
     if not api_key:
         logger.error("FINNHUB_API_KEY non configurata.")
@@ -52,7 +45,6 @@ async def get_quote(symbol: str) -> dict | None:
 )
 async def get_candles(symbol: str, resolution: str, from_ts: int, to_ts: int) -> list[dict]:
     """Fetch historical OHLCV candles from Finnhub."""
-    settings = get_settings()
     api_key = settings.FINNHUB_API_KEY.get_secret_value() if settings.FINNHUB_API_KEY else ""
     if not api_key:
         logger.error("FINNHUB_API_KEY non configurata.")

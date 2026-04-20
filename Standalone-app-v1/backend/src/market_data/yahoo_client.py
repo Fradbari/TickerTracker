@@ -1,18 +1,10 @@
 import logging
 import httpx
-from httpx import TimeoutException, HTTPStatusError
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-logger = logging.getLogger(__name__)
+from src.shared.utils.http_utils import is_retryable_http_error
 
-def is_retryable_http_error(exc: Exception) -> bool:
-    if isinstance(exc, TimeoutException):
-        return True
-    if isinstance(exc, HTTPStatusError):
-        status = exc.response.status_code
-        if status == 429 or status >= 500:
-            return True
-    return False
+logger = logging.getLogger(__name__)
 
 @retry(
     stop=stop_after_attempt(3),

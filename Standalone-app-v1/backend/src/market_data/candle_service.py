@@ -18,25 +18,26 @@ logger = logging.getLogger(__name__)
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=1, max=10),
-    retry=retry_if_exception_type(Exception),
+    retry=retry_if_exception_type((httpx.TimeoutException, httpx.HTTPStatusError)),
     before_sleep=lambda rs: logger.warning(f"Retrying Yahoo backfill proxy: {rs.outcome.exception()}"),
 )
 async def _fetch_yahoo_v8_candles(symbol: str, start_time: datetime) -> list[dict]:
-    """Recupera le candele storiche giornaliere tramite Yahoo v8, partendo da start_time fino ad oggi."""
-    period1 = int(start_time.timestamp())
-    period2 = int(datetime.now(timezone.utc).timestamp())
+    """Recupera le candele storiche giornaliere tramite Yahoo v8."""
+    now = datetime.now()
+    days_diff = (now - start_time).days
+    if days_diff < 1:
+        days_diff = 1
+    range_str = f"{days_diff}d"
     
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-    url = f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?period1={period1}&period2={period2}&interval=1d"
+    url = f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?interval=1d&range={range_str}"
     
     async with httpx.AsyncClient(timeout=10.0) as client:
-        try:
-            response = await client.get(url, headers=headers)
+        response = await client.get(url, headers=headers)
+        if response.status_code in (429, 500, 502, 503, 504):
             response.raise_for_status()
-        except Exception as e:
-            if is_retryable_http_error(e):
-                raise
-            logger.error(f"Non-retryable Yahoo error for backfill {symbol}: {e}")
+        elif response.status_code >= 400:
+            logger.error(f"Non-retryable Yahoo error for backfill {symbol}: {response.status_code}")
             return []
 
         data = response.json()
@@ -59,16 +60,17 @@ async def _fetch_yahoo_v8_candles(symbol: str, start_time: datetime) -> list[dic
             v = q.get("volume", [])[i]
             
             if o is not None and c is not None:
-                candles.append({
-                    "timestamp": datetime.fromtimestamp(ts, tz=timezone.utc).replace(tzinfo=None),
-                    "open": float(o),
-                    "high": float(h),
-                    "low": float(l),
-                    "close": float(c),
-                    "volume": int(v) if v is not None else 0
-                })
+                c_time = datetime.fromtimestamp(ts, tz=timezone.utc).replace(tzinfo=None)
+                if c_time >= start_time:
+                    candles.append({
+                        "timestamp": c_time,
+                        "open": float(o),
+                        "high": float(h),
+                        "low": float(l),
+                        "close": float(c),
+                        "volume": int(v) if v is not None else 0
+                    })
         
-        # Ordiniamo cronologicamente dal più vecchio al più recente
         return sorted(candles, key=lambda c: c["timestamp"])
 
 async def backfill_candles_on_startup() -> None:
@@ -121,6 +123,9 @@ async def backfill_candles_on_startup() -> None:
                 if not new_candles_data:
                     continue
                 
+                state_changes = {}
+                candles_added = 0
+                
                 # Salvataggio/upsert delle nuove candele e order execution
                 for c_data in new_candles_data:
                     c_time = c_data["timestamp"]
@@ -139,6 +144,7 @@ async def backfill_candles_on_startup() -> None:
                             volume=c_data["volume"]
                         )
                         session.add(new_candle)
+                        candles_added += 1
                     
                     # Valutazione sequenziale su ciascun estimate in base al high/low della candela
                     for est in estimates:
@@ -159,6 +165,8 @@ async def backfill_candles_on_startup() -> None:
                                 est_in_db.closed_at = c_time
                                 est_in_db.realized_pnl = float(est_in_db.exit_price) - float(est_in_db.start_price)
                                 
+                                state_changes[est.id] = closed_state.value
+                                
                                 logger.info(f"Backfill hit per {est_in_db.id} su {symbol} al timestamp {c_time}. Stato: {closed_state.value}")
                                 
                                 await sse_manager.broadcast({
@@ -172,10 +180,15 @@ async def backfill_candles_on_startup() -> None:
                 
                 # Inviamo l'evidenza del backfill completato per aggiornare la UI
                 for est in estimates:
+                    est_id = est.id
+                    has_changed = est_id in state_changes
+                    final_state = state_changes.get(est_id, est.status.value)
                     await sse_manager.broadcast({
                         "type": "backfill_complete",
-                        "estimate_id": str(est.id),
-                        "symbol": symbol
+                        "estimate_id": str(est_id),
+                        "candles_added": candles_added,
+                        "state_changed": has_changed,
+                        "new_state": final_state
                     })
                     
         except Exception as e:

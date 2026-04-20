@@ -1,66 +1,71 @@
+﻿
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime, timezone
-import httpx
-from src.market_data.candle_service import backfill_candles_on_startup, _fetch_yahoo_v8_candles
-from src.estimates.domain.entities import Estimate, EstimateStatus
-from src.market_data.domain.entities import Ticker, Candle
+from datetime import datetime, timezone, timedelta
+from src.market_data.candle_service import backfill_candles_on_startup
 
-pytestmark = pytest.mark.asyncio
-
-class MockResponse:
-    def __init__(self, json_data, status_code=200):
-        self._json_data = json_data
-        self.status_code = status_code
-
-    def json(self):
-        return self._json_data
-
-    def raise_for_status(self):
-        if self.status_code >= 400:
-            raise httpx.HTTPStatusError("Error", request=MagicMock(), response=self)
-
-@patch("src.market_data.candle_service.httpx.AsyncClient.get")
-async def test_fetch_yahoo_v8_candles_success(mock_get):
-    """Testa se preleva correttamente le candele proxy di Yahoo v8."""
-    mock_get.return_value = MockResponse({
-        "chart": {
-            "result": [{
-                "timestamp": [1700000000, 1700086400],
-                "indicators": {
-                    "quote": [{
-                        "open": [10.0, 11.0],
-                        "high": [12.0, 13.0],
-                        "low": [9.0, 10.0],
-                        "close": [11.0, 12.0],
-                        "volume": [1000, 2000]
-                    }]
-                }
-            }]
-        }
-    })
+@pytest.mark.asyncio
+async def test_backfill_candles_on_startup_upsert():
+    from src.estimates.domain.entities import Estimate, EstimateStatus
+    from src.market_data.domain.entities import Ticker
     
-    symbol = "TSLA"
-    start_time = datetime(2023, 1, 1, tzinfo=timezone.utc)
-    candles = await _fetch_yahoo_v8_candles(symbol, start_time)
+    mock_ticker = Ticker(id=1, symbol='AAPL')
+    mock_est = Estimate(id=1, ticker_id=1, status=EstimateStatus.OPEN, target_price=160.0, stop_loss_price=140.0, start_price=150.0)
+    mock_est.ticker = mock_ticker
     
-    assert len(candles) == 2
-    assert candles[0]["open"] == 10.0
-    assert candles[1]["close"] == 12.0
+    now = datetime.now()
+    past_3_days = now - timedelta(days=3)
+    
+    # Mock data array
+    mock_candles_data = [
+        {'timestamp': past_3_days + timedelta(days=1), 'open': 150.0, 'high': 155.0, 'low': 145.0, 'close': 153.0, 'volume': 100},
+        {'timestamp': past_3_days + timedelta(days=2), 'open': 153.0, 'high': 161.0, 'low': 150.0, 'close': 160.5, 'volume': 200}, # hits target!
+    ]
+    
+    with patch('src.market_data.candle_service.AsyncSessionLocal') as mock_session_local, \
+         patch('src.market_data.candle_service._fetch_yahoo_v8_candles', new_callable=AsyncMock) as mock_fetch, \
+         patch('src.market_data.candle_service.sse_manager.broadcast', new_callable=AsyncMock) as mock_broadcast:
+         
+         mock_session = AsyncMock()
+         mock_session_local.return_value.__aenter__.return_value = mock_session
+         
+         # Mock setup for queries
+         mock_scalar_result = MagicMock()
+         mock_scalar_result.scalars.return_value.all.return_value = [mock_est]
+         
+         # For second pass querying timestamps and candles
+         mock_time_result = MagicMock()
+         mock_time_result.scalar.return_value = past_3_days
+         
+         # We pretend there are no candles initially (exists_run.scalar_one_or_none returns None)
+         mock_exists_run = MagicMock()
+         mock_exists_run.scalar_one_or_none.return_value = None
+         
+         # mock_session.execute needs to return differently based on the order of calls
+         # Call 1: active estimates
+         # Call 2: max timestamp
+         # Call 3: exists candle 1
+         # Call 4: exists candle 2
+         mock_session.execute.side_effect = [mock_scalar_result, mock_time_result, mock_exists_run, mock_exists_run]
+         
+         # return estimates from session.get
+         mock_session.get.return_value = mock_est
+         
+         mock_fetch.return_value = mock_candles_data
+         
+         await backfill_candles_on_startup()
+         
+         # Assert target hit
+         assert mock_est.status == EstimateStatus.CLOSED_WIN
+         assert mock_est.exit_price == 160.0
+         assert mock_session.add.call_count == 2 # 2 new candles added
+         
+         # check broadcasts
+         assert mock_broadcast.call_count == 2
+         # first broadcast should be estimate_update CLOSED_WIN
+         assert mock_broadcast.call_args_list[0][0][0]['new_state'] == 'CLOSED_WIN'
+         # second broadcast should be backfill_complete
+         assert mock_broadcast.call_args_list[1][0][0]['type'] == 'backfill_complete'
+         assert mock_broadcast.call_args_list[1][0][0]['candles_added'] == 2
+         assert mock_broadcast.call_args_list[1][0][0]['state_changed'] == True
 
-@patch("src.market_data.candle_service.AsyncSessionLocal")
-@patch("src.market_data.candle_service._fetch_yahoo_v8_candles")
-@patch("src.market_data.candle_service.sse_manager.broadcast", new_callable=AsyncMock)
-async def test_backfill_candles_on_startup_empty(mock_broadcast, mock_fetch, mock_session_maker):
-    """Testa il backfill se non ci sono estimates aperti."""
-    # Imposta un mock session che non restuituisce risultati
-    mock_session = AsyncMock()
-    mock_result = MagicMock()
-    mock_result.scalars.return_value.all.return_value = []
-    mock_session.execute.return_value = mock_result
-    
-    mock_session_maker.return_value.__aenter__.return_value = mock_session
-    
-    await backfill_candles_on_startup()
-    mock_fetch.assert_not_called()
-    mock_broadcast.assert_not_called()

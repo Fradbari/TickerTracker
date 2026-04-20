@@ -93,3 +93,23 @@ async def test_symbol_search_endpoint_returns_max_8():
         assert len(res.data) == 8
 
 
+
+@pytest.mark.asyncio
+async def test_symbol_search_endpoint_returns_504_on_timeout():
+    from src.market_data.api.routes import advanced_symbol_search
+    import httpx
+    from fastapi import HTTPException
+
+    with patch('src.market_data.api.routes.symbol_lookup', side_effect=httpx.TimeoutException('timeout')), \
+         patch('src.market_data.api.routes.get_redis', side_effect=Exception('No redis')):
+         
+        class DummyResponse:
+            headers = {}
+            
+        with pytest.raises(HTTPException) as exc_info:
+            await advanced_symbol_search(DummyResponse(), 'SYM')
+            
+        assert exc_info.value.status_code == 504
+        assert 'Timeout' in str(exc_info.value.detail)
+
+

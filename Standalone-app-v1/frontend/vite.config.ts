@@ -96,8 +96,8 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: process.env.VITE_API_TARGET ?? 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        changeOrigin: true
+        // Rimosso rewrite perché il backend FastAPI ascolta effettivamente su /api/*
       }
     }
   },

@@ -28,6 +28,9 @@ async def get_quote(symbol: str) -> dict | None:
         try:
             response = await client.get(url)
             response.raise_for_status()
+        except httpx.TimeoutException:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=504, detail="Gateway Timeout from Finnhub")
         except Exception as e:
             if is_retryable_http_error(e):
                 raise
@@ -57,6 +60,9 @@ async def get_candles(symbol: str, resolution: str, from_ts: int, to_ts: int) ->
         try:
             response = await client.get(url)
             response.raise_for_status()
+        except httpx.TimeoutException:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=504, detail="Gateway Timeout from Finnhub")
         except Exception as e:
             if is_retryable_http_error(e):
                 raise
@@ -91,6 +97,9 @@ async def symbol_lookup(query: str) -> list[FinnhubSymbolResult]:
         try:
             response = await client.get(url)
             response.raise_for_status()
+        except httpx.TimeoutException:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=504, detail="Gateway Timeout from Finnhub")
         except Exception as e:
             logger.error(f"Errore ricerca simbolo su Finnhub per query '{query}': {e}")
             return []

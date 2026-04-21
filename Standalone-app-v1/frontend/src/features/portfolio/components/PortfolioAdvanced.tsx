@@ -6,6 +6,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { DataTable, ColumnDef } from '@/shared/components/DataTable'
 import { theme } from '@/styles/theme'
 import { EstimateCard } from '@/features/estimates/components/EstimateCard'
+import { EstimateDetailDrawer } from './EstimateDetailDrawer'
+
 import { format, differenceInDays, parseISO } from 'date-fns'
 
 // Calculate mock pnl for testing layout
@@ -19,6 +21,8 @@ const calculateLocalPnl = (entry: string, current: string, direction: string) =>
 import { DataTable, ColumnDef } from '@/shared/components/DataTable'
 import { theme } from '@/styles/theme'
 import { EstimateCard } from '@/features/estimates/components/EstimateCard'
+import { EstimateDetailDrawer } from './EstimateDetailDrawer'
+
 import { format, differenceInDays, parseISO } from 'date-fns'
 
 // Calculate mock pnl for testing layout
@@ -277,68 +281,12 @@ export const PortfolioAdvanced: React.FC = () => {
          />
       </div>
 
-      {/* Modal */}
-      {selectedEstimate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
-            <div className="sticky top-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center z-10 rounded-t-2xl">
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <span className="text-xl font-black text-slate-900 dark:text-white">{selectedEstimate.ticker?.symbol || selectedEstimate.ticker_id}</span>
-                <span className={px-2 py-0.5 rounded text-xs font-bold }>
-                  {selectedEstimate.direction}
-                </span>
-                <span className="ml-2 text-sm">{renderBadge(selectedEstimate.status, selectedEstimate.error_message)}</span>
-              </h3>
-              <button 
-                onClick={closeModal} 
-                className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
-              >
-                <X className="w-6 h-6 text-slate-500" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              {/* Detail section */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                  <div className="text-xs text-slate-500 mb-1">Prezzo Iniziale</div>
-                    <div className="font-mono font-bold"></div>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                    <div className="text-xs text-slate-500 mb-1">Prezzo Target</div>
-                    <div className="font-mono font-bold text-green-600"></div>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                    <div className="text-xs text-slate-500 mb-1">Stop Loss</div>
-                    <div className="font-mono font-bold text-red-600"></div>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                    <div className="text-xs text-slate-500 mb-1">Corrente</div>
-                    <div className="font-mono font-bold text-slate-600 dark:text-slate-300"></div>
-                  </div>
-              </div>
-
-               {/* AI Info */}
-              <div className="bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
-                <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 mb-3 uppercase tracking-wider">AI Analysis</h4>
-                <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
-                  <div><span className="text-indigo-600/70 dark:text-indigo-400/70">Model:</span> <span className="font-medium text-slate-800 dark:text-slate-200">{selectedEstimate.ai_model || 'N/A'}</span></div>
-                  <div><span className="text-indigo-600/70 dark:text-indigo-400/70">Version:</span> <span className="font-medium text-slate-800 dark:text-slate-200">{selectedEstimate.ai_version || 'N/A'}</span></div>
-                  <div><span className="text-indigo-600/70 dark:text-indigo-400/70">Confidence:</span> <span className="font-medium text-slate-800 dark:text-slate-200">{selectedEstimate.ai_confidence ? ${selectedEstimate.ai_confidence}% : 'N/A'}</span></div>
-                </div>
-                {selectedEstimate.ai_reasoning && (
-                  <div className="mt-4 pt-4 border-t border-indigo-200/50 dark:border-indigo-800/50">
-                    <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest block mb-2">Reasoning</span>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 italic whitespace-pre-wrap leading-relaxed">
-                      "{selectedEstimate.ai_reasoning}"
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Drawer */}
+      <EstimateDetailDrawer 
+        estimate={selectedEstimate} 
+        onClose={closeModal} 
+        renderBadge={renderBadge} 
+      />
     </div>
   )
 }

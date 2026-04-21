@@ -1,4 +1,4 @@
-/// <reference types="vitest" />
+﻿/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -97,7 +97,7 @@ export default defineConfig({
       '/api': {
         target: process.env.VITE_API_TARGET ?? 'http://localhost:8000',
         changeOrigin: true
-        // Rimosso rewrite perché il backend FastAPI ascolta effettivamente su /api/*
+        // Rimosso rewrite perchÃ© il backend FastAPI ascolta effettivamente su /api/*
       }
     }
   },
@@ -122,4 +122,5 @@ export default defineConfig({
     },
   },
 })
+
 

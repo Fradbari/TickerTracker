@@ -33,9 +33,9 @@ export const queryClient = new QueryClient({
           newData.items.forEach((newEst: Estimate) => {
             const oldEst = oldData.items.find((e: Estimate) => e.id === newEst.id);
             // Verifica se lo stato è cambiato rispetto al precedente (simulando un evento SSE "estimate_update")
-            if (oldEst && oldEst.status !== newEst.status && newEst.status === 'CLOSED') {
+            if (oldEst && oldEst.status !== newEst.status && newEst.status.startsWith('CLOSED_')) {
               const targetOrStop = newEst.realized_pnl && Number(newEst.realized_pnl) > 0 ? 'Target' : 'Stop Loss';
-              const price = newEst.close_price ? newEst.close_price : newEst.target_price; // Mocking close price presence
+              const price = newEst.exit_price ? newEst.exit_price : newEst.target_price; // Mocking close price presence
               if (targetOrStop === 'Target') {
                 toast.success(
                   `🎯 ${newEst.ticker} — Target raggiunto a ${price}€ / ${price}$`,

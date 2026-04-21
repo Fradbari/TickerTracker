@@ -1,5 +1,9 @@
+import React, { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-﻿import React, { useState, useEffect } from 'react'
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 export interface EstimateDefaults {
   targetProfitPercent: number
@@ -12,6 +16,10 @@ export interface EstimateDefaults {
   refreshInterval: number
 }
 
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
 const DEFAULT_SETTINGS: EstimateDefaults = {
   targetProfitPercent: 10,
   stopLossPercent: 10,
@@ -20,8 +28,12 @@ const DEFAULT_SETTINGS: EstimateDefaults = {
   aiConfidence: 60,
   baseAmount: 1000,
   baseDurationDays: 30,
-  refreshInterval: 30
+  refreshInterval: 30,
 }
+
+// ---------------------------------------------------------------------------
+// Hook: useEstimateDefaults
+// ---------------------------------------------------------------------------
 
 export const useEstimateDefaults = () => {
   const [defaults, setDefaults] = useState<EstimateDefaults>(DEFAULT_SETTINGS)
@@ -30,9 +42,9 @@ export const useEstimateDefaults = () => {
     const saved = localStorage.getItem('estimate_defaults')
     if (saved) {
       try {
-        setDefaults(JSON.parse(saved))
-      } catch (e) {
-        console.error('Error parsing settings', e)
+        setDefaults(JSON.parse(saved) as EstimateDefaults)
+      } catch {
+        // ignore parse errors silently
       }
     }
   }, [])
@@ -40,122 +52,43 @@ export const useEstimateDefaults = () => {
   return defaults
 }
 
+// ---------------------------------------------------------------------------
+// AdminSettings — impostazioni default stime + intervallo prezzi
+// ---------------------------------------------------------------------------
+
 export const AdminSettings: React.FC = () => {
   const [settings, setSettings] = useState<EstimateDefaults>(DEFAULT_SETTINGS)
   const [saved, setSaved] = useState(false)
-  const [syncProgress, setSyncProgress] = useState(0)
-  const [syncMessage, setSyncMessage] = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const [syncing, setSyncing] = useState(false)
-
-  useEffect(() => {
-    const eventSource = new EventSource('/api/sse/stream')
-    eventSource.addEventListener('sync_progress', (e: any) => {
-      const data = JSON.parse(e.data)
-      setSyncProgress(data.progress_pct)
-      setSyncMessage(data.message)
-      if (data.progress_pct === 100) setSyncing(false)
-    })
-    return () => eventSource.close()
-  }, [])
-  
-  const triggerExport = async () => {
-    setSyncing(true)
-    setSyncProgress(0)
-    setSyncMessage('Starting export...')
-    await fetch('/api/sync/export', { method: 'POST' })
-  }
-
-  const triggerImport = async () => {
-    setShowModal(false)
-    setSyncing(true)
-    setSyncProgress(0)
-    setSyncMessage('Starting import...')
-    await fetch('/api/sync/import', { method: 'POST' })
-  }
-  const [syncProgress, setSyncProgress] = useState(0)
-  const [syncMessage, setSyncMessage] = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const [syncing, setSyncing] = useState(false)
-
-  useEffect(() => {
-    const eventSource = new EventSource('/api/sse/stream')
-    eventSource.addEventListener('sync_progress', (e: any) => {
-      const data = JSON.parse(e.data)
-      setSyncProgress(data.progress_pct)
-      setSyncMessage(data.message)
-      if (data.progress_pct === 100) setSyncing(false)
-    })
-    return () => eventSource.close()
-  }, [])
-  
-  const triggerExport = async () => {
-    setSyncing(true)
-    setSyncProgress(0)
-    setSyncMessage('Starting export...')
-    await fetch('/api/sync/export', { method: 'POST' })
-  }
-
-  const triggerImport = async () => {
-    setShowModal(false)
-    setSyncing(true)
-    setSyncProgress(0)
-    setSyncMessage('Starting import...')
-    await fetch('/api/sync/import', { method: 'POST' })
-  }
-  const [syncProgress, setSyncProgress] = useState(0)
-  const [syncMessage, setSyncMessage] = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const [syncing, setSyncing] = useState(false)
-
-  useEffect(() => {
-    const eventSource = new EventSource('/api/sse/stream')
-    eventSource.addEventListener('sync_progress', (e: any) => {
-      const data = JSON.parse(e.data)
-      setSyncProgress(data.progress_pct)
-      setSyncMessage(data.message)
-      if (data.progress_pct === 100) setSyncing(false)
-    })
-    return () => eventSource.close()
-  }, [])
-  
-  const triggerExport = async () => {
-    setSyncing(true)
-    setSyncProgress(0)
-    setSyncMessage('Starting export...')
-    await fetch('/api/sync/export', { method: 'POST' })
-  }
-
-  const triggerImport = async () => {
-    setShowModal(false)
-    setSyncing(true)
-    setSyncProgress(0)
-    setSyncMessage('Starting import...')
-    await fetch('/api/sync/import', { method: 'POST' })
-  }
 
   useEffect(() => {
     const savedData = localStorage.getItem('estimate_defaults')
     if (savedData) {
       try {
-        setSettings(JSON.parse(savedData))
-      } catch (e) {
+        setSettings(JSON.parse(savedData) as EstimateDefaults)
+      } catch {
         // ignore
       }
     }
   }, [])
 
   const handleSave = () => {
-    localStorage.setItem('estimate_defaults', JSON.stringify(settings))
-    setSaved(true);
-    toast.success('Configurazione salvata');
-    setTimeout(() => setSaved(false), 2000)
+    try {
+      localStorage.setItem('estimate_defaults', JSON.stringify(settings))
+      setSaved(true)
+      toast.success('Configurazione salvata')
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Errore sconosciuto'
+      toast.error(`Salvataggio configurazione fallito: ${msg}.`)
+    }
   }
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-lg shadow mt-8 p-6">
-      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Impostazioni di Default Stime</h2>
-      
+      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+        Impostazioni di Default Stime
+      </h2>
+
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -168,7 +101,7 @@ export const AdminSettings: React.FC = () => {
             onChange={(e) => setSettings({ ...settings, targetProfitPercent: Number(e.target.value) })}
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Stop Loss base (%)
@@ -276,6 +209,141 @@ export const AdminSettings: React.FC = () => {
   )
 }
 
+// ---------------------------------------------------------------------------
+// GDriveSettings — Backup e Ripristino via Google Drive
+// ---------------------------------------------------------------------------
+
+export const GDriveSettings: React.FC = () => {
+  const [syncProgress, setSyncProgress] = useState(0)
+  const [syncMessage, setSyncMessage] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+
+  useEffect(() => {
+    const eventSource = new EventSource('/api/sse/stream')
+    eventSource.addEventListener('sync_progress', (e: MessageEvent) => {
+      // TODO: replace `any` with a typed schema when the SSE payload is finalized
+      const data = JSON.parse(e.data) as { progress_pct: number; message: string }
+      setSyncProgress(data.progress_pct)
+      setSyncMessage(data.message)
+      if (data.progress_pct === 100) {
+        setSyncing(false)
+        toast.success('Backup completato')
+      }
+    })
+    return () => eventSource.close()
+  }, [])
+
+  const triggerExport = async () => {
+    setSyncing(true)
+    setSyncProgress(0)
+    setSyncMessage('Avvio backup...')
+    toast.success('Backup avviato...')
+    try {
+      const res = await fetch('/api/sync/export', { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { detail?: string }
+        throw new Error(data.detail ?? `HTTP ${res.status}`)
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Errore sconosciuto'
+      toast.error(`Backup fallito: ${msg}. Riprova.`)
+      setSyncing(false)
+    }
+  }
+
+  const triggerImport = async () => {
+    setShowModal(false)
+    setSyncing(true)
+    setSyncProgress(0)
+    setSyncMessage('Avvio ripristino...')
+    try {
+      const res = await fetch('/api/sync/import', { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { detail?: string }
+        throw new Error(data.detail ?? `HTTP ${res.status}`)
+      }
+      toast.success('Ripristino completato')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Errore sconosciuto'
+      toast.error(`Ripristino fallito: ${msg}. Riprova.`)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow mt-8 p-6">
+      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+        Sincronizzazione GDrive
+      </h2>
+
+      <div className="space-y-4">
+        <div className="flex gap-3">
+          <button
+            onClick={() => void triggerExport()}
+            disabled={syncing}
+            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-2 px-4 rounded"
+          >
+            {syncing ? 'In corso...' : 'Backup su GDrive'}
+          </button>
+
+          <button
+            onClick={() => setShowModal(true)}
+            disabled={syncing}
+            className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-2 px-4 rounded"
+          >
+            Ripristina da GDrive
+          </button>
+        </div>
+
+        {syncing && (
+          <div className="space-y-1">
+            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+              <div
+                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${syncProgress}%` }}
+              />
+            </div>
+            <p className="text-xs text-slate-500">{syncMessage}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Modale conferma ripristino */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-sm w-full shadow-xl">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
+              Conferma Ripristino
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+              Vuoi sovrascrivere i dati attuali con l&apos;ultimo backup da GDrive? Questa azione è irreversibile.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded border border-slate-300 dark:border-slate-600 text-sm"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={() => void triggerImport()}
+                className="px-4 py-2 rounded bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold"
+              >
+                Conferma Ripristino
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// FinnhubSettings — chiave API Finnhub con validazione
+// ---------------------------------------------------------------------------
 
 export const FinnhubSettings: React.FC = () => {
   const [apiKey, setApiKey] = useState('')
@@ -286,13 +354,11 @@ export const FinnhubSettings: React.FC = () => {
 
   useEffect(() => {
     fetch('/api/admin/config/finnhub-key', {
-      headers: { 'Authorization': Bearer  }
+      headers: { Authorization: 'Bearer ' },
     })
       .then(res => res.json())
-      .then(data => {
-        if (data.exists) {
-           setApiKey('********')
-        }
+      .then((data: { exists?: boolean }) => {
+        if (data.exists) setApiKey('********')
       })
       .catch(() => {})
   }, [])
@@ -306,26 +372,33 @@ export const FinnhubSettings: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': Bearer 
+          Authorization: 'Bearer ',
         },
-        body: JSON.stringify({ api_key: apiKey })
+        body: JSON.stringify({ api_key: apiKey }),
       })
-      const data = await res.json()
+      const data = await res.json() as { valid?: boolean; quota_remaining?: string; detail?: string }
       if (res.ok && data.valid) {
-         setStatus('Valida')
-         setQuota(data.quota_remaining)
+        setStatus('Valida')
+        setQuota(data.quota_remaining ?? null)
+        toast.success('Chiave Finnhub verificata e salvata')
       } else {
-         setStatus('Non valida')
+        const msg = data.detail ?? 'Chiave non valida'
+        setStatus('Non valida')
+        toast.error(`Verifica Finnhub fallita: ${msg}.`)
       }
-    } catch (e) {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Errore di connessione'
       setStatus('Errore connessione')
+      toast.error(`Verifica Finnhub fallita: ${msg}.`)
     }
     setLoading(false)
   }
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-lg shadow mt-8 p-6">
-      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Integrazioni Esterne</h2>
+      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+        Integrazioni Esterne
+      </h2>
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -334,14 +407,14 @@ export const FinnhubSettings: React.FC = () => {
           <div className="flex items-center space-x-2">
             <input
               data-testid="finnhub-api-key"
-              type={visible ? "text" : "password"}
+              type={visible ? 'text' : 'password'}
               className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Inserisci API Key Finnhub"
             />
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setVisible(!visible)}
               className="px-3 py-2 bg-gray-200 dark:bg-slate-600 rounded text-sm"
               data-testid="toggle-visibility"
@@ -353,115 +426,20 @@ export const FinnhubSettings: React.FC = () => {
 
         <button
           data-testid="validate-finnhub"
-          onClick={handleValidate}
+          onClick={() => void handleValidate()}
           disabled={loading || !apiKey}
           className="mt-4 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-2 px-4 rounded"
         >
-          {loading ? 'Verifica in corso...' : 'Valida e Salva'}
+          {loading ? 'Verifica in corso...' : 'Verifica e Salva'}
         </button>
 
         {status && (
-          <div className={mt-2 text-sm }>
+          <div className={`mt-2 text-sm ${status === 'Valida' ? 'text-green-500' : 'text-red-500'}`}>
             Stato: {status}
-            {quota &&  (Quota residua: /60)}
+            {quota && <span className="ml-2 text-slate-400">(Quota residua: {quota}/60)</span>}
           </div>
         )}
       </div>
     </div>
   )
 }
-
-export const FinnhubSettings: React.FC = () => {
-  const [apiKey, setApiKey] = useState('')
-  const [visible, setVisible] = useState(false)
-  const [status, setStatus] = useState<string | null>(null)
-  const [quota, setQuota] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    fetch('/api/admin/config/finnhub-key', {
-      headers: { 'Authorization': Bearer  }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.exists) {
-           setApiKey('********')
-        }
-      })
-      .catch(() => {})
-  }, [])
-
-  const handleValidate = async () => {
-    setLoading(true)
-    setStatus(null)
-    setQuota(null)
-    try {
-      const res = await fetch('/api/admin/config/finnhub-key', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': Bearer 
-        },
-        body: JSON.stringify({ api_key: apiKey })
-      })
-      const data = await res.json()
-      if (res.ok && data.valid) {
-         setStatus('Valida')
-         setQuota(data.quota_remaining)
-      } else {
-         setStatus('Non valida')
-      }
-    } catch (e) {
-      setStatus('Errore connessione')
-    }
-    setLoading(false)
-  }
-
-  return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg shadow mt-8 p-6">
-      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Integrazioni Esterne</h2>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Finnhub API Key
-          </label>
-          <div className="flex items-center space-x-2">
-            <input
-              data-testid="finnhub-api-key"
-              type={visible ? "text" : "password"}
-              className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Inserisci API Key Finnhub"
-            />
-            <button 
-              type="button" 
-              onClick={() => setVisible(!visible)}
-              className="px-3 py-2 bg-gray-200 dark:bg-slate-600 rounded text-sm"
-              data-testid="toggle-visibility"
-            >
-              {visible ? 'Nascondi' : 'Mostra'}
-            </button>
-          </div>
-        </div>
-
-        <button
-          data-testid="validate-finnhub"
-          onClick={handleValidate}
-          disabled={loading || !apiKey}
-          className="mt-4 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-2 px-4 rounded"
-        >
-          {loading ? 'Verifica in corso...' : 'Valida e Salva'}
-        </button>
-
-        {status && (
-          <div className={mt-2 text-sm }>
-            Stato: {status}
-            {quota &&  (Quota residua: /60)}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-

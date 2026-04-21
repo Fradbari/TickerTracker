@@ -19,7 +19,7 @@ export function EstimateDetailDrawer({ estimate, onClose, renderBadge }: Estimat
     queryKey: ['yahoo-quote-summary', symbol],
     queryFn: async () => {
       // Proxy rule /v10 was added to vite config
-      const res = await fetch(\/v10/finance/quoteSummary/\?modules=summaryProfile,financialData,recommendationTrend,calendarEvents,earningsTrend,defaultKeyStatistics\)
+      const res = await fetch(`/v10/finance/quoteSummary/?modules=summaryProfile,financialData,recommendationTrend,calendarEvents,earningsTrend,defaultKeyStatistics`)
       if (!res.ok) throw new Error('Yahoo Finance fetch failed')
       const json = await res.json()
       return json.quoteSummary?.result?.[0] || null
@@ -57,7 +57,7 @@ export function EstimateDetailDrawer({ estimate, onClose, renderBadge }: Estimat
         <div className="sticky top-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center z-10">
           <h3 className="text-lg font-bold flex items-center gap-2">
             <span className="text-2xl font-black text-slate-900 dark:text-white">{symbol}</span>
-            <span className={\px-2 py-0.5 rounded text-xs font-bold \\}>
+            <span className="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 dark:bg-slate-700">
               {estimate.direction}
             </span>
             <span className="ml-2 text-sm">{renderBadge(estimate.status, estimate.error_message)}</span>
@@ -75,19 +75,19 @@ export function EstimateDetailDrawer({ estimate, onClose, renderBadge }: Estimat
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
               <div className="text-xs text-slate-500 mb-1">Prezzo Iniziale</div>
-              <div className="font-mono font-bold">\</div>
+              <div className="font-mono font-bold">$ {estimate.start_price}</div>
             </div>
             <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
               <div className="text-xs text-slate-500 mb-1">Prezzo Target</div>
-              <div className="font-mono font-bold text-green-600">\</div>
+              <div className="font-mono font-bold text-green-600">$ {estimate.target_price}</div>
             </div>
             <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
               <div className="text-xs text-slate-500 mb-1">Stop Loss</div>
-              <div className="font-mono font-bold text-red-600">\</div>
+              <div className="font-mono font-bold text-red-600">$ {estimate.stop_loss_price}</div>
             </div>
             <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
               <div className="text-xs text-slate-500 mb-1">Corrente</div>
-              <div className="font-mono font-bold text-slate-600 dark:text-slate-300">\</div>
+              <div className="font-mono font-bold text-slate-600 dark:text-slate-300">$ {estimate.current_price || estimate.start_price}</div>
             </div>
           </div>
 
@@ -127,10 +127,10 @@ export function EstimateDetailDrawer({ estimate, onClose, renderBadge }: Estimat
                 <div className="grid grid-cols-2 gap-4 text-sm">
                    <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded border border-slate-100 dark:border-slate-800">
                      <div className="text-slate-500 text-xs uppercase mb-1">Dati OHLC</div>
-                     <p>P.Corrente: <span className="font-mono font-bold">\</span></p>
-                     <p>Open: <span className="font-mono">\</span></p>
-                     <p>High: <span className="font-mono">\</span></p>
-                     <p>Low:  <span className="font-mono">\</span></p>
+                     <p>P.Corrente: <span className="font-mono font-bold">$ {yahooData.financialData?.currentPrice?.fmt || '-'}</span></p>
+                     <p>Open: <span className="font-mono">$ {yahooData.financialData?.regularMarketOpen?.fmt || '-'}</span></p>
+                     <p>High: <span className="font-mono">$ {yahooData.financialData?.regularMarketDayHigh?.fmt || '-'}</span></p>
+                     <p>Low:  <span className="font-mono">$ {yahooData.financialData?.regularMarketDayLow?.fmt || '-'}</span></p>
                      <p>Volume: <span className="font-mono">{yahooData.financialData?.volume?.fmt || '-'}</span></p>
                    </div>
                    
@@ -139,7 +139,7 @@ export function EstimateDetailDrawer({ estimate, onClose, renderBadge }: Estimat
                      <p>EPS Trailing: <span className="font-mono">{yahooData.defaultKeyStatistics?.trailingEps?.fmt || '-'}</span></p>
                      <p>EPS Forward: <span className="font-mono">{yahooData.defaultKeyStatistics?.forwardEps?.fmt || '-'}</span></p>
                      <p>PE Forward: <span className="font-mono">{yahooData.defaultKeyStatistics?.forwardPE?.fmt || '-'}</span></p>
-                     <p>Analisti Target: <span className="font-mono font-bold">\</span></p>
+                     <p>Analisti Target: <span className="font-mono font-bold">$ {yahooData.financialData?.targetMeanPrice?.fmt || '-'}</span></p>
                    </div>
                 </div>
 
@@ -179,7 +179,7 @@ export function EstimateDetailDrawer({ estimate, onClose, renderBadge }: Estimat
             <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
               <div><span className="text-indigo-600/70 dark:text-indigo-400/70">Model:</span> <span className="font-medium text-slate-800 dark:text-slate-200">{estimate.ai_model || 'N/A'}</span></div>
               <div><span className="text-indigo-600/70 dark:text-indigo-400/70">Version:</span> <span className="font-medium text-slate-800 dark:text-slate-200">{estimate.ai_version || 'N/A'}</span></div>
-              <div><span className="text-indigo-600/70 dark:text-indigo-400/70">Confidence:</span> <span className="font-medium text-slate-800 dark:text-slate-200">{estimate.ai_confidence ? \\%\ : 'N/A'}</span></div>
+              <div><span className="text-indigo-600/70 dark:text-indigo-400/70">Confidence:</span> <span className="font-medium text-slate-800 dark:text-slate-200">{estimate.ai_confidence ? `${estimate.ai_confidence}%` : 'N/A'}</span></div>
             </div>
             {estimate.ai_reasoning && (
               <div className="mt-4 pt-4 border-t border-indigo-200/50 dark:border-indigo-800/50">

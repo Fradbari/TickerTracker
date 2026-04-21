@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 ﻿import React, { useState, useEffect } from 'react'
 
 export interface EstimateDefaults {
@@ -146,7 +147,8 @@ export const AdminSettings: React.FC = () => {
 
   const handleSave = () => {
     localStorage.setItem('estimate_defaults', JSON.stringify(settings))
-    setSaved(true)
+    setSaved(true);
+    toast.success('Configurazione salvata');
     setTimeout(() => setSaved(false), 2000)
   }
 

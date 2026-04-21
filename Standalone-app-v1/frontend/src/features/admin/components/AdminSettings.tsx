@@ -210,6 +210,85 @@ export const AdminSettings: React.FC = () => {
 }
 
 // ---------------------------------------------------------------------------
+// PriceIntervalSettings — Intervallo aggiornamento prezzi
+// ---------------------------------------------------------------------------
+
+export const PriceIntervalSettings: React.FC = () => {
+  const [intervalMinutes, setIntervalMinutes] = useState<number>(5)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    // Carica il valore corrente dal backend
+    fetch('/api/admin/config')
+      .then(res => res.json())
+      .then((data: { price_update_interval_minutes?: number }) => {
+        if (data.price_update_interval_minutes !== undefined) {
+          setIntervalMinutes(data.price_update_interval_minutes)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ price_update_interval_minutes: intervalMinutes }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { detail?: string }
+        throw new Error(data.detail ?? `HTTP ${res.status}`)
+      }
+      toast.success('Configurazione salvata')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Errore sconosciuto'
+      toast.error(`Salvataggio configurazione fallito: ${msg}.`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow mt-8 p-6">
+      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+        Intervallo Aggiornamento Prezzi
+      </h2>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            PRICE_UPDATE_INTERVAL_MINUTES
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              min="1"
+              max="60"
+              className="w-32 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+              value={intervalMinutes}
+              onChange={(e) => setIntervalMinutes(Number(e.target.value))}
+            />
+            <span className="text-sm text-slate-500">minuti</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-400">
+            Frequenza con cui il backend controlla i prezzi di mercato per le stime attive.
+          </p>
+        </div>
+
+        <button
+          onClick={() => void handleSave()}
+          disabled={saving}
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-2 px-4 rounded"
+        >
+          {saving ? 'Salvataggio...' : 'Salva Intervallo'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // GDriveSettings — Backup e Ripristino via Google Drive
 // ---------------------------------------------------------------------------
 

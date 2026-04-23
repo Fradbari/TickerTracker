@@ -1,12 +1,48 @@
 ﻿import React, { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useAsyncQueue } from '@/app/providers/AsyncQueueProvider'
 import { useEstimateDefaults } from '@/features/admin/components/AdminSettings'
 import apiClient from '@/shared/api/client'
 import toast from 'react-hot-toast'
 
+type FinnhubStatus = {
+  finnhub_key_configured: boolean
+}
+
+type SymbolValidationState = 'idle' | 'valid' | 'invalid' | 'unavailable'
+
+const fetchFinnhubStatus = async (): Promise<FinnhubStatus | null> => {
+  try {
+    const adminToken = localStorage.getItem('admin_token') ?? ''
+    const response = await apiClient.get('/api/admin/config/finnhub-key', {
+      headers: {
+        'x-admin-token': adminToken,
+      },
+    })
+
+    return {
+      finnhub_key_configured: Boolean(response.data?.valid),
+    }
+  } catch {
+    return null
+  }
+}
+
 export const InsertEstimate: React.FC = () => {
   const defaults = useEstimateDefaults()
   const { queue, addItem, updateItem, removeItem } = useAsyncQueue()
+
+  const { data: finnhubStatus } = useQuery({
+    queryKey: ['finnhub-status'],
+    queryFn: fetchFinnhubStatus,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
+  })
+
+  const finnhubKeyConfigured = finnhubStatus?.finnhub_key_configured ?? null
 
   const [tickerQuery, setTickerQuery] = useState('')
   const [selectedTickerId, setSelectedTickerId] = useState<string | null>(null)
@@ -14,6 +50,9 @@ export const InsertEstimate: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
+  const [symbolValidationState, setSymbolValidationState] = useState<SymbolValidationState>('idle')
+  const [symbolValidationMessage, setSymbolValidationMessage] = useState<string>('')
+  const [isValidatingSymbol, setIsValidatingSymbol] = useState(false)
 
   const [targetProfit, setTargetProfit] = useState(defaults.targetProfitPercent)
   const [stopLoss, setStopLoss] = useState(defaults.stopLossPercent)
@@ -62,6 +101,44 @@ export const InsertEstimate: React.FC = () => {
     setTickerQuery(t.symbol)
     setSelectedTickerId(t.id || t.uuid || t.symbol) // Use id if available, else fallback
     setShowDropdown(false)
+  }
+
+  const handleTickerBlurValidation = async () => {
+    const normalizedTicker = tickerQuery.trim().toUpperCase()
+    if (!normalizedTicker) {
+      setSymbolValidationState('idle')
+      setSymbolValidationMessage('')
+      return
+    }
+
+    // Se Finnhub e presente, lasciamo la UX esistente senza fallback manuale extra.
+    if (finnhubKeyConfigured !== false) {
+      setSymbolValidationState('idle')
+      setSymbolValidationMessage('')
+      return
+    }
+
+    setIsValidatingSymbol(true)
+    try {
+      const response = await apiClient.get('/api/market/symbol-validate', {
+        params: { symbol: normalizedTicker },
+      })
+
+      const validationData = response.data?.data
+      if (validationData?.valid) {
+        setSymbolValidationState('valid')
+        setSymbolValidationMessage('Simbolo valido')
+      } else {
+        setSymbolValidationState('invalid')
+        setSymbolValidationMessage('Simbolo non trovato')
+      }
+    } catch {
+      // Fallback silenzioso: nessun blocco submit, solo hint non intrusivo.
+      setSymbolValidationState('unavailable')
+      setSymbolValidationMessage('Verifica simbolo non disponibile al momento')
+    } finally {
+      setIsValidatingSymbol(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -147,7 +224,12 @@ export const InsertEstimate: React.FC = () => {
               onChange={e => {
                 setTickerQuery(e.target.value)
                 setSelectedTickerId(null)
+                setSymbolValidationState('idle')
+                setSymbolValidationMessage('')
                 if(!showDropdown) setShowDropdown(true)
+              }}
+              onBlur={() => {
+                void handleTickerBlurValidation()
               }}
               className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white uppercase"
               required 
@@ -176,7 +258,39 @@ export const InsertEstimate: React.FC = () => {
                 Nessun risultato trovato in Yahoo Finance.
               </div>
             )}
+            {isValidatingSymbol && finnhubKeyConfigured === false && (
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                Verifica simbolo in corso...
+              </p>
+            )}
+            {!isValidatingSymbol && symbolValidationMessage && finnhubKeyConfigured === false && (
+              <p
+                className={`mt-2 text-xs ${
+                  symbolValidationState === 'valid'
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : symbolValidationState === 'invalid'
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                }`}
+              >
+                {symbolValidationMessage}
+              </p>
+            )}
           </div>
+
+          {finnhubKeyConfigured === false && (
+            <div className="col-span-full rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+              <p className="font-medium">
+                Ricerca automatica simboli non disponibile: Finnhub non configurata.
+              </p>
+              <p className="mt-1">
+                Puoi comunque inserire manualmente il ticker (es. AAPL, MSFT, ENI.MI).
+              </p>
+              <Link to="/admin" className="mt-2 inline-flex text-xs font-semibold underline underline-offset-2 hover:no-underline">
+                Vai ad Admin per configurare Finnhub
+              </Link>
+            </div>
+          )}
 
           {/* Model Model block */}
           <div>

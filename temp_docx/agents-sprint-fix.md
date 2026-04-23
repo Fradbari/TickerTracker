@@ -1,7 +1,7 @@
 # AGENTS.md — Sprint Fix UX e Operatività
 
 ## Scopo
-Questo documento definisce un piano operativo **vincolante** da eseguire nella repo `Standalone-app-v1` sul branch `test`.
+Questo documento definisce un piano operativo **vincolante** da eseguire nella sottocartella `Standalone-app-v1/` del repo `TickerTracker`, branch `test`.
 L'obiettivo è correggere quattro aree emerse dopo il build/run Docker riuscito: System Logs incompleti, Admin incompleta, barra inferiore fuorviante, UX carente nella pagina Nuova Stima.
 
 ## Regole di esecuzione
@@ -55,10 +55,6 @@ Leggere questi file prima di scrivere codice:
 14. router market-data / symbol-search / symbol-validate
 15. modelli/settings persistiti lato backend
 
-### Artefatti di contesto
-16. file allegato `Pianifica-senza-fare-modifiche-qui.txt`
-17. file allegato `system-logs-2026-04-22T06-20-15.539Z.json`
-18. screenshot barra inferiore che mostra `GDrive: Non configurato` e `Sync Now`
 
 ### Obiettivo della pre-analisi
 Confermare con precisione:
@@ -97,12 +93,16 @@ Rendere il System Logs un punto unico di osservabilità minima applicativa, inte
 
 ### Implementazione richiesta
 
-#### A1 — Endpoint frontend logs riusando la pipeline attuale
+#### A1 — path backend atteso
+Cercare in `backend/routers/` o `backend/api/` il router che gestisce i log.
+Non creare un nuovo router se ne esiste già uno, anche parziale.
+
+#### A2 — Endpoint frontend logs riusando la pipeline attuale
 - Verificare l'endpoint/log pipeline esistente dei logs.
 - Se `GET /api/logs` esiste già per la lettura, aggiungere **un endpoint dedicato di ingest frontend** coerente con l'architettura esistente, ad esempio `POST /api/logs/frontend`, salvo endpoint equivalente già presente.
 - Gli eventi frontend devono confluire nello stesso storage/stream di log già usato dal viewer, aggiungendo un campo chiaro `source: frontend`.
 
-#### A2 — Contratto evento frontend tipizzato
+#### A3 — Contratto evento frontend tipizzato
 Definire un payload tipizzato, minimale e stabile, con campi del tipo:
 - `timestamp`
 - `level` (`info` | `warn` | `error`)
@@ -115,7 +115,7 @@ Definire un payload tipizzato, minimale e stabile, con campi del tipo:
 
 Non includere mai API key, header Authorization, cookie o body completi di richieste sensibili.
 
-#### A3 — Servizio frontend centralizzato
+#### A4 — Servizio frontend centralizzato
 Creare un servizio unico di logging frontend, ad esempio `frontendLogger`, con buffer e flush controllato.
 Deve supportare almeno:
 - log navigazione pagina;
@@ -129,7 +129,7 @@ Vincoli:
 - fallback silenzioso in caso di errore del logger;
 - niente `console.log` in produzione.
 
-#### A4 — Eventi da coprire obbligatoriamente
+#### A5 — Eventi da coprire obbligatoriamente
 1. Cambio pagina / route
 2. Errori di chiamate API principali
 3. Errori di rendering catturabili o boundary error, se già presente un error boundary
@@ -141,7 +141,7 @@ Vincoli:
 
 Non loggare i click banali o rumorosi.
 
-#### A5 — Viewer System Logs
+#### A6 — Viewer System Logs
 Aggiornare il viewer dei log affinché:
 - distingua chiaramente backend e frontend;
 - mostri almeno `timestamp`, `source`, `level`, `event`, `message`;
@@ -259,15 +259,15 @@ La barra inferiore reale, come verificato da screenshot, mostra attualmente:
 - `GDrive: Non configurato`
 - `Sync Now`
 
-Non mostra alcuna informazione relativa a Yahoo. [file:881]
+Non mostra alcuna informazione relativa a Yahoo. 
 
 ### Problema
-- Il pulsante `Sync Now` non è autoesplicativo e genera ambiguità operativa. [file:881]
-- Il badge `GDrive: Non configurato` occupa spazio in una barra globale ma non porta valore continuo su tutte le pagine. [file:881]
-- Manca del tutto un indicatore utile sul recency state dell'aggiornamento prezzi via Yahoo, che invece è più rilevante nel contesto di monitoraggio. [file:881]
+- Il pulsante `Sync Now` non è autoesplicativo e genera ambiguità operativa.
+- Il badge `GDrive: Non configurato` occupa spazio in una barra globale ma non porta valore continuo su tutte le pagine. 
+- Manca del tutto un indicatore utile sul recency state dell'aggiornamento prezzi via Yahoo, che invece è più rilevante nel contesto di monitoraggio. 
 
 ### Obiettivo
-Semplificare la barra inferiore rimuovendo elementi poco chiari e sostituendoli con un indicatore realmente utile: **elapsed time dall'ultima chiamata Yahoo**. [file:881]
+Semplificare la barra inferiore rimuovendo elementi poco chiari e sostituendoli con un indicatore realmente utile: **elapsed time dall'ultima chiamata Yahoo**. 
 
 ### Vincoli specifici
 - Rimuovere il pulsante `Sync Now` **con tutte le sue dipendenze UI** nella barra/status area corrente.
@@ -322,6 +322,12 @@ Definire una resa visiva semplice e coerente:
 - ritardo elevato o ultimo tentativo fallito: warning/danger chiaro.
 
 Le soglie vanno mantenute semplici e documentate nel codice.
+
+### Implementazione soglie
+Soglie suggerite (modificabili, ma documentate nel codice):
+- < 5 minuti: stato normale
+- 5–30 minuti: warning discreto
+- > 30 minuti o ultimo esito fallito: warning/danger
 
 ### Acceptance criteria
 - La barra inferiore non mostra più `Sync Now`.
@@ -447,3 +453,12 @@ Prima di considerare chiuso il lavoro:
 - [ ] System Logs utili anche per eventi frontend
 - [ ] nessun dead code evidente lasciato dopo rimozione `Sync Now`
 - [ ] commit atomici e messaggi coerenti
+
+---
+
+## STOP conditions — Fermarsi e chiedere se:
+- il componente della barra inferiore reale differisce da `AppStatusBar.tsx`
+- l'endpoint di status non espone dati Yahoo
+- il backend non supporta un campo equivalente a `finnhub_key_configured`
+- la rimozione di `Sync Now` implica rimuovere logica usata altrove
+Non procedere con assunzioni: fermarsi, descrivere il problema trovato, attendere conferma.

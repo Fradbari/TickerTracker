@@ -149,12 +149,12 @@ Aggiornare il viewer dei log affinché:
 - se già esistono filtri, aggiungere o estendere il filtro `source`.
 
 ### File attesi coinvolti
-- router/log service backend logs
-- eventuale schema pydantic dei log frontend
-- `frontend/src/shared/services/frontendLogger.ts` o equivalente
-- entry point router/app per logging navigazione
-- hook/API layer per logging errori
-- viewer/pannello System Logs
+- il router backend che gestisce i log (cercarlo in `backend/routers/` o `backend/api/`)
+- eventuale schema pydantic dei log frontend (da creare se assente)
+- `frontend/src/shared/services/frontendLogger.ts` o equivalente (da creare)
+- componente/hook che gestisce la navigazione per agganciare il log pagina
+- hook o interceptor API layer per il logging errori
+- componente viewer/pannello System Logs (già esistente, da estendere)
 
 ### Acceptance criteria
 - Aprendo il pannello System Logs si vedono anche eventi frontend rilevanti.

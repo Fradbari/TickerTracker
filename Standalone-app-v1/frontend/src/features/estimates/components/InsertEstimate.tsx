@@ -6,6 +6,10 @@ import { useEstimateDefaults } from '@/features/admin/components/AdminSettings'
 import apiClient from '@/shared/api/client'
 import toast from 'react-hot-toast'
 
+/**
+ * Componente principale per inserire una nuova stima.
+ */
+
 type FinnhubStatus = {
   finnhub_key_configured: boolean
 }

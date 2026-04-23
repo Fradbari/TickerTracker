@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from typing import Any
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
@@ -13,6 +14,37 @@ from src.market_data.yahoo_client import get_current_price
 
 logger = logging.getLogger(__name__)
 
+_RUNTIME_STATUS: dict[str, Any] = {
+    "running": False,
+    "next_run_iso": None,
+    "last_run_iso": None,
+    "estimates_monitored": 0,
+    "last_yahoo_call": None,
+}
+
+
+def _isoformat_utc(value: datetime) -> str:
+    return value.isoformat()
+
+
+def _set_last_yahoo_call(timestamp: datetime, success: bool) -> None:
+    _RUNTIME_STATUS["last_yahoo_call"] = {
+        "timestamp": _isoformat_utc(timestamp),
+        "success": success,
+    }
+
+
+def get_price_loop_runtime_status() -> dict[str, Any]:
+    last_yahoo_call = _RUNTIME_STATUS.get("last_yahoo_call")
+
+    return {
+        "running": _RUNTIME_STATUS.get("running", False),
+        "next_run_iso": _RUNTIME_STATUS.get("next_run_iso"),
+        "last_run_iso": _RUNTIME_STATUS.get("last_run_iso"),
+        "estimates_monitored": _RUNTIME_STATUS.get("estimates_monitored", 0),
+        "last_yahoo_call": dict(last_yahoo_call) if isinstance(last_yahoo_call, dict) else None,
+    }
+
 async def start_price_loop(context: dict = None):
     """
     Continuous background loop that fetches active symbols from DB, 
@@ -23,11 +55,21 @@ async def start_price_loop(context: dict = None):
     """
     settings = get_settings()
     interval_seconds = getattr(settings, "PRICE_LOOP_INTERVAL_SECONDS", 60)
+    _RUNTIME_STATUS["running"] = True
+    _RUNTIME_STATUS["next_run_iso"] = _isoformat_utc(
+        datetime.now(timezone.utc) + timedelta(seconds=interval_seconds)
+    )
     
     logger.info(f"Starting background price loop, interval={interval_seconds}s...")
     
     while True:
         try:
+            loop_started_at = datetime.now(timezone.utc)
+            _RUNTIME_STATUS["last_run_iso"] = _isoformat_utc(loop_started_at)
+            _RUNTIME_STATUS["next_run_iso"] = _isoformat_utc(
+                loop_started_at + timedelta(seconds=interval_seconds)
+            )
+
             active_estimates = []
             async with AsyncSessionLocal() as db_session:
                 stmt = (
@@ -40,6 +82,7 @@ async def start_price_loop(context: dict = None):
                 active_estimates = result.scalars().all()
             
             checked_count = len(active_estimates)
+            _RUNTIME_STATUS["estimates_monitored"] = checked_count
             closed_count = 0
 
             if active_estimates:
@@ -50,7 +93,9 @@ async def start_price_loop(context: dict = None):
 
                 for symbol, estimates in estimates_by_symbol.items():
                     try:
+                        yahoo_attempt_at = datetime.now(timezone.utc)
                         curr_price = await get_current_price(symbol)
+                        _set_last_yahoo_call(yahoo_attempt_at, curr_price is not None)
                         
                         if curr_price is None:
                             quote_data = await get_quote(symbol)
@@ -99,12 +144,14 @@ async def start_price_loop(context: dict = None):
                     except asyncio.CancelledError:
                         raise
                     except Exception as e:
+                        _set_last_yahoo_call(datetime.now(timezone.utc), False)
                         logger.error(f"Errore aggiornamento prezzo per il ticker {symbol}: {e}")
                         continue
 
             logger.info(f"Price loop tick: {checked_count} estimates checked, {closed_count} closed.")
 
         except asyncio.CancelledError:
+            _RUNTIME_STATUS["running"] = False
             logger.info("Price loop fermato.")
             return
         except Exception as e:
@@ -113,5 +160,6 @@ async def start_price_loop(context: dict = None):
         try:
             await asyncio.sleep(interval_seconds)
         except asyncio.CancelledError:
+            _RUNTIME_STATUS["running"] = False
             logger.info("Price loop fermato.")
             return

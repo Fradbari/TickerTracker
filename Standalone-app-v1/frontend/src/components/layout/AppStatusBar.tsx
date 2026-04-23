@@ -12,9 +12,36 @@ interface TaskStatus {
     last_gdrive_sync: { timestamp: string; success: boolean } | null;
 }
 
+const formatElapsed = (timestampIso: string, nowMs: number): string | null => {
+    const parsedTimestamp = Date.parse(timestampIso);
+    if (Number.isNaN(parsedTimestamp)) {
+        return null;
+    }
+
+    const elapsedSeconds = Math.max(0, Math.floor((nowMs - parsedTimestamp) / 1000));
+
+    if (elapsedSeconds < 60) {
+        return `${elapsedSeconds}s`;
+    }
+
+    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+    if (elapsedMinutes < 60) {
+        return `${elapsedMinutes}m`;
+    }
+
+    const elapsedHours = Math.floor(elapsedMinutes / 60);
+    const remainingMinutes = elapsedMinutes % 60;
+    if (remainingMinutes === 0) {
+        return `${elapsedHours}h`;
+    }
+
+    return `${elapsedHours}h ${remainingMinutes}m`;
+};
+
 export const AppStatusBar: React.FC = () => {
     const [status, setStatus] = useState<TaskStatus | null>(null);
     const [offline, setOffline] = useState(false);
+    const [elapsedNowMs, setElapsedNowMs] = useState(() => Date.now());
 
     useEffect(() => {
         const fetchStatus = async () => {
@@ -32,12 +59,37 @@ export const AppStatusBar: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        const elapsedTimer = setInterval(() => {
+            setElapsedNowMs(Date.now());
+        }, 5000);
+
+        return () => clearInterval(elapsedTimer);
+    }, []);
+
     const renderLoopStatus = () => {
         if (offline) return <span style={{ color: theme.colors.textMuted }}>● OFFLINE</span>;
         if (!status) return <span style={{ color: theme.colors.warning }}>● LOADING</span>;
         return status.running 
             ? <span style={{ color: theme.colors.success }}>● RUNNING</span>
             : <span style={{ color: theme.colors.warning }}>● PAUSED</span>;
+    };
+
+    const renderYahooStatus = () => {
+        if (!status?.last_yahoo_call) {
+            return <span style={{ color: theme.colors.textMuted }}>Yahoo: nessun aggiornamento registrato</span>;
+        }
+
+        const elapsed = formatElapsed(status.last_yahoo_call.timestamp, elapsedNowMs);
+        if (!elapsed) {
+            return <span style={{ color: theme.colors.textMuted }}>Yahoo: nessun aggiornamento registrato</span>;
+        }
+
+        if (status.last_yahoo_call.success) {
+            return <span style={{ color: theme.colors.success }}>Yahoo: aggiornato {elapsed} fa</span>;
+        }
+
+        return <span style={{ color: theme.colors.danger }}>Yahoo: ultimo tentativo fallito {elapsed} fa</span>;
     };
 
     return (
@@ -62,13 +114,7 @@ export const AppStatusBar: React.FC = () => {
             {status && !offline && (
                 <>
                     <div>Stime attive: <span style={{ color: theme.colors.text }}>{status.estimates_monitored}</span></div>
-                    {status.last_yahoo_call && (
-                        <div>
-                            Yahoo: {status.last_yahoo_call.success 
-                                ? <span style={{ color: theme.colors.success }}>OK</span> 
-                                : <span style={{ color: theme.colors.danger }}>FAIL</span>}
-                        </div>
-                    )}
+                    <div>{renderYahooStatus()}</div>
                 </>
             )}
         </div>

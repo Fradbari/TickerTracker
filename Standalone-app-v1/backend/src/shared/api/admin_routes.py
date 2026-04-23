@@ -142,3 +142,34 @@ async def save_finnhub_key(request: FinnhubKeyRequest, db = Depends(get_db)):
             
         await db.commit()
         return {"valid": True, "quota_remaining": quota}
+
+
+class AdminConfigRequest(BaseModel):
+    price_update_interval_minutes: int
+
+@router.get("/config", dependencies=[Depends(verify_admin_token)], summary="Ottieni configurazione globale")
+async def get_config(db = Depends(get_db)):
+    result = await db.execute(select(AppConfig).where(AppConfig.key == "GLOBAL_CONFIG"))
+    config = result.scalar_one_or_none()
+    if config:
+        try:
+            data = json.loads(config.value)
+            return {"price_update_interval_minutes": data.get("price_update_interval_minutes", 15)}
+        except:
+            return {"price_update_interval_minutes": 15}
+    return {"price_update_interval_minutes": 15}
+
+@router.patch("/config", dependencies=[Depends(verify_admin_token)], summary="Aggiorna configurazione globale")
+async def update_config(request: AdminConfigRequest, db = Depends(get_db)):
+    result = await db.execute(select(AppConfig).where(AppConfig.key == "GLOBAL_CONFIG"))
+    config = result.scalar_one_or_none()
+    
+    val = json.dumps({"price_update_interval_minutes": request.price_update_interval_minutes})
+    if config:
+        config.value = val
+    else:
+        config = AppConfig(key="GLOBAL_CONFIG", value=val)
+        db.add(config)
+        
+    await db.commit()
+    return {"price_update_interval_minutes": request.price_update_interval_minutes}

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAsyncQueue } from '@/app/providers/AsyncQueueProvider'
@@ -84,7 +84,7 @@ export const InsertEstimate: React.FC = () => {
     const delayDebounceFn = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const res = await apiClient.get(`/api/market-data/search?q=${tickerQuery}`)
+        const res = await apiClient.get(`/api/market/symbol-search?q=${tickerQuery}`)
         setSearchResults(res.data.data?.results || [])
         setShowDropdown(true)
       } catch (err) {
@@ -167,7 +167,7 @@ export const InsertEstimate: React.FC = () => {
       
       if (!tickerUuid) {
         updateItem(queueId, { message: 'Ricerca UUID ticker...', progress: 50 })
-        const searchRes = await apiClient.get(`/api/market-data/search?q=${t}`)
+        const searchRes = await apiClient.get(`/api/market/symbol-search?q=${t}`)
         const tickersObj = searchRes.data.data?.results
         
         if (!tickersObj || tickersObj.length === 0) {

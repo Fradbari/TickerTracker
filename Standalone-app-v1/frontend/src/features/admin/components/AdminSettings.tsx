@@ -219,7 +219,10 @@ export const PriceIntervalSettings: React.FC = () => {
 
   useEffect(() => {
     // Carica il valore corrente dal backend
-    fetch('/api/admin/config')
+    const adminToken = localStorage.getItem('admin_token') || ''
+    fetch('/api/admin/config', {
+      headers: { 'X-Admin-Token': adminToken },
+    })
       .then(res => res.json())
       .then((data: { price_update_interval_minutes?: number }) => {
         if (data.price_update_interval_minutes !== undefined) {
@@ -232,9 +235,13 @@ export const PriceIntervalSettings: React.FC = () => {
   const handleSave = async () => {
     setSaving(true)
     try {
+      const adminToken = localStorage.getItem('admin_token') || ''
       const res = await fetch('/api/admin/config', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Admin-Token': adminToken 
+        },
         body: JSON.stringify({ price_update_interval_minutes: intervalMinutes }),
       })
       if (!res.ok) {
@@ -299,9 +306,10 @@ export const GDriveSettings: React.FC = () => {
   const [syncing, setSyncing] = useState(false)
 
   useEffect(() => {
+    // TODO: riabilitare quando /api/sse/stream sarà implementato nel backend
+    /*
     const eventSource = new EventSource('/api/sse/stream')
     eventSource.addEventListener('sync_progress', (e: MessageEvent) => {
-      // TODO: replace `any` with a typed schema when the SSE payload is finalized
       const data = JSON.parse(e.data) as { progress_pct: number; message: string }
       setSyncProgress(data.progress_pct)
       setSyncMessage(data.message)
@@ -311,6 +319,7 @@ export const GDriveSettings: React.FC = () => {
       }
     })
     return () => eventSource.close()
+    */
   }, [])
 
   const triggerExport = async () => {
@@ -432,8 +441,9 @@ export const FinnhubSettings: React.FC = () => {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    const adminToken = localStorage.getItem('admin_token') || ''
     fetch('/api/admin/config/finnhub-key', {
-      headers: { Authorization: 'Bearer ' },
+      headers: { 'X-Admin-Token': adminToken },
     })
       .then(res => res.json())
       .then((data: { exists?: boolean }) => {
@@ -447,11 +457,12 @@ export const FinnhubSettings: React.FC = () => {
     setStatus(null)
     setQuota(null)
     try {
+      const adminToken = localStorage.getItem('admin_token') || ''
       const res = await fetch('/api/admin/config/finnhub-key', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer ',
+          'X-Admin-Token': adminToken,
         },
         body: JSON.stringify({ api_key: apiKey }),
       })

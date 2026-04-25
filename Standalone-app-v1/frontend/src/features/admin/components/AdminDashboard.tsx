@@ -2,7 +2,7 @@ import React from 'react'
 import { useBackendStats } from '@/shared/api/queries/backendStats'
 import { KpiCard } from '@/shared/components/KpiCard'
 import { Database, Settings, RefreshCw, Power } from 'lucide-react'
-import { AdminSettings, PriceIntervalSettings, GDriveSettings, FinnhubSettings } from './AdminSettings'
+import { AdminSettings, AdminTokenSettings, PriceIntervalSettings, GDriveSettings, FinnhubSettings } from './AdminSettings'
 import { SystemStatusCards } from './SystemStatusCards'
 
 export function AdminDashboard() {
@@ -60,6 +60,7 @@ export function AdminDashboard() {
       <SystemStatusCards />
 
       <AdminSettings />
+      <AdminTokenSettings />
       <PriceIntervalSettings />
       <GDriveSettings />
       <FinnhubSettings />

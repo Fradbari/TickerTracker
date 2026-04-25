@@ -20,6 +20,7 @@ from src.infra.metrics.routes import router as metrics_router
 from src.infra.scheduler import scheduler as app_scheduler
 from src.infra.security.rate_limit import setup_rate_limiter
 from src.market_data.api import routes as market_data_routes
+from src.sync.api.routes import router as sync_router
 from src.shared.api import health_routes
 from src.shared.infra.config import get_settings
 from src.shared.infra.security_middleware import setup_security_middleware
@@ -81,6 +82,7 @@ app.include_router(health_routes.router)
 app.include_router(health_routes.router, prefix="/api")  # Bypass nginx intercept
 app.include_router(estimates_router)
 app.include_router(market_data_routes.router)
+app.include_router(sync_router, prefix="/api")
 app.include_router(metrics_router)
 app.include_router(admin_routes.router)
 
@@ -94,7 +96,6 @@ if settings.ENVIRONMENT in ['local', 'test']:
     app.include_router(test_routes.router)  # ✅ [3.6] GET /metrics — Prometheus scrape endpoint
 
 # TODO: Register additional bounded context routers
-# - sync
 # - analytics
 
 

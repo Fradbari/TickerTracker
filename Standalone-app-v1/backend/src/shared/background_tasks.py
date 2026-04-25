@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -7,6 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from src.shared.infra.config import get_settings
 from src.shared.infra.database import AsyncSessionLocal
+from src.shared.domain.app_config import AppConfig
 from src.estimates.domain.entities import Estimate, EstimateStatus
 from src.shared.services.sse_manager import sse_manager
 from src.market_data.finnhub_client import get_quote
@@ -45,6 +47,31 @@ def get_price_loop_runtime_status() -> dict[str, Any]:
         "last_yahoo_call": dict(last_yahoo_call) if isinstance(last_yahoo_call, dict) else None,
     }
 
+
+async def _resolve_price_loop_interval_seconds(default_seconds: int) -> int:
+    try:
+        async with AsyncSessionLocal() as db_session:
+            result = await db_session.execute(
+                select(AppConfig).where(AppConfig.key == "GLOBAL_CONFIG")
+            )
+            config = result.scalar_one_or_none()
+            if not config:
+                return default_seconds
+
+            data = json.loads(config.value)
+            minutes_value = data.get("price_update_interval_minutes")
+            if minutes_value is None:
+                return default_seconds
+
+            minutes = int(minutes_value)
+            return minutes * 60 if minutes > 0 else default_seconds
+    except Exception as exc:
+        logger.warning(
+            "Unable to resolve GLOBAL_CONFIG interval, using fallback",
+            exc_info=exc,
+        )
+        return default_seconds
+
 async def start_price_loop(context: dict = None):
     """
     Continuous background loop that fetches active symbols from DB, 
@@ -54,7 +81,8 @@ async def start_price_loop(context: dict = None):
     Continues on single ticker error.
     """
     settings = get_settings()
-    interval_seconds = getattr(settings, "PRICE_LOOP_INTERVAL_SECONDS", 60)
+    default_interval_seconds = int(getattr(settings, "PRICE_LOOP_INTERVAL_SECONDS", 60))
+    interval_seconds = await _resolve_price_loop_interval_seconds(default_interval_seconds)
     _RUNTIME_STATUS["running"] = True
     _RUNTIME_STATUS["next_run_iso"] = _isoformat_utc(
         datetime.now(timezone.utc) + timedelta(seconds=interval_seconds)

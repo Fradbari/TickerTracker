@@ -304,8 +304,22 @@ export const GDriveSettings: React.FC = () => {
   const [syncMessage, setSyncMessage] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const [driveConfigured, setDriveConfigured] = useState<boolean | null>(null)
 
   useEffect(() => {
+    fetch('/api/health')
+      .then(res => res.json())
+      .then((data: { components?: Array<{ name: string; message?: string }> }) => {
+        const googleDrive = data.components?.find(c => c.name === 'google_drive')
+        if (!googleDrive) {
+          setDriveConfigured(null)
+          return
+        }
+        const message = (googleDrive.message || '').toLowerCase()
+        setDriveConfigured(!message.includes('not configured'))
+      })
+      .catch(() => setDriveConfigured(null))
+
     // TODO: riabilitare quando /api/sse/stream sarà implementato nel backend
     /*
     const eventSource = new EventSource('/api/sse/stream')
@@ -365,6 +379,14 @@ export const GDriveSettings: React.FC = () => {
       <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
         Sincronizzazione GDrive
       </h2>
+
+      <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+        {driveConfigured === null
+          ? 'Google Drive: Stato non disponibile'
+          : driveConfigured
+            ? 'Google Drive: Configurato'
+            : 'Google Drive: Non configurato (richiede variabile env)'}
+      </p>
 
       <div className="space-y-4">
         <div className="flex gap-3">
@@ -438,18 +460,33 @@ export const FinnhubSettings: React.FC = () => {
   const [visible, setVisible] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [quota, setQuota] = useState<string | null>(null)
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null)
+  const [isConfigured, setIsConfigured] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
+  const loadFinnhubStatus = () => {
     const adminToken = localStorage.getItem('admin_token') || ''
     fetch('/api/admin/config/finnhub-key', {
       headers: { 'X-Admin-Token': adminToken },
     })
       .then(res => res.json())
-      .then((data: { exists?: boolean }) => {
-        if (data.exists) setApiKey('********')
+      .then((data: { valid?: boolean; updated_at?: string | null; quota_remaining?: string | null }) => {
+        const valid = Boolean(data.valid)
+        setIsConfigured(valid)
+        setUpdatedAt(data.updated_at ?? null)
+        setQuota(data.quota_remaining ?? null)
+        if (valid) {
+          setStatus('Valida')
+          setApiKey('********')
+        } else {
+          setStatus(null)
+        }
       })
       .catch(() => {})
+  }
+
+  useEffect(() => {
+    loadFinnhubStatus()
   }, [])
 
   const handleValidate = async () => {
@@ -470,6 +507,7 @@ export const FinnhubSettings: React.FC = () => {
       if (res.ok && data.valid) {
         setStatus('Valida')
         setQuota(data.quota_remaining ?? null)
+        loadFinnhubStatus()
         toast.success('Chiave Finnhub verificata e salvata')
       } else {
         const msg = data.detail ?? 'Chiave non valida'
@@ -490,44 +528,52 @@ export const FinnhubSettings: React.FC = () => {
         Integrazioni Esterne
       </h2>
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Finnhub API Key
-          </label>
-          <div className="flex items-center space-x-2">
-            <input
-              data-testid="finnhub-api-key"
-              type={visible ? 'text' : 'password'}
-              className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Inserisci API Key Finnhub"
-            />
+        {isConfigured ? (
+          <div className="text-sm text-green-600 dark:text-green-400">
+            Chiave configurata ✓ | Aggiornata: {updatedAt ?? '-'} | Quota: {quota ?? '-'}
+          </div>
+        ) : (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Finnhub API Key
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  data-testid="finnhub-api-key"
+                  type={visible ? 'text' : 'password'}
+                  className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="Inserisci API Key Finnhub"
+                />
+                <button
+                  type="button"
+                  onClick={() => setVisible(!visible)}
+                  className="px-3 py-2 bg-gray-200 dark:bg-slate-600 rounded text-sm"
+                  data-testid="toggle-visibility"
+                >
+                  {visible ? 'Nascondi' : 'Mostra'}
+                </button>
+              </div>
+            </div>
+
             <button
-              type="button"
-              onClick={() => setVisible(!visible)}
-              className="px-3 py-2 bg-gray-200 dark:bg-slate-600 rounded text-sm"
-              data-testid="toggle-visibility"
+              data-testid="validate-finnhub"
+              onClick={() => void handleValidate()}
+              disabled={loading || !apiKey}
+              className="mt-4 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-2 px-4 rounded"
             >
-              {visible ? 'Nascondi' : 'Mostra'}
+              {loading ? 'Verifica in corso...' : 'Verifica e Salva'}
             </button>
-          </div>
-        </div>
 
-        <button
-          data-testid="validate-finnhub"
-          onClick={() => void handleValidate()}
-          disabled={loading || !apiKey}
-          className="mt-4 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-2 px-4 rounded"
-        >
-          {loading ? 'Verifica in corso...' : 'Verifica e Salva'}
-        </button>
-
-        {status && (
-          <div className={`mt-2 text-sm ${status === 'Valida' ? 'text-green-500' : 'text-red-500'}`}>
-            Stato: {status}
-            {quota && <span className="ml-2 text-slate-400">(Quota residua: {quota}/60)</span>}
-          </div>
+            {status && (
+              <div className={`mt-2 text-sm ${status === 'Valida' ? 'text-green-500' : 'text-red-500'}`}>
+                Stato: {status}
+                {quota && <span className="ml-2 text-slate-400">(Quota residua: {quota}/60)</span>}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

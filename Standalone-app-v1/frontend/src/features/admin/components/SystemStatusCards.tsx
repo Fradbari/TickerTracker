@@ -44,6 +44,7 @@ export const SystemStatusCards: React.FC = () => {
   const dbStatus = components.find(c => c.name === 'database')
   const redisStatus = components.find(c => c.name === 'redis')
   const yahooStatus = components.find(c => c.name === 'yahoo_finance')
+  const gdriveStatus = components.find(c => c.name === 'google_drive')
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -69,7 +70,7 @@ export const SystemStatusCards: React.FC = () => {
         <Activity size={16} /> System Health & Connections
       </h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Backend / Cron */}
         <div className="flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50" title="Il sistema in background verifica i Target/Stop loss ogni minuto e sincronizza lo storico (60gg) alle 23:00 UTC.">
           <div className="flex items-center justify-between mb-2">
@@ -97,6 +98,21 @@ export const SystemStatusCards: React.FC = () => {
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
             Ping Latency: {yahooStatus?.latency_ms ? `${yahooStatus.latency_ms}ms` : 'N/A'}<br/>
             State: {yahooStatus?.status === 'HEALTHY' ? 'Connesso' : 'Disconnesso / Lento'}
+          </div>
+        </div>
+
+        {/* Google Drive */}
+        <div className="flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50" title="Verifica accesso al folder di backup configurato via variabile ambiente.">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
+              <Globe size={18} className="text-emerald-500" />
+              Google Drive
+            </div>
+            {renderStatusBadge(gdriveStatus?.status)}
+          </div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            Ping Latency: {gdriveStatus?.latency_ms ? `${gdriveStatus.latency_ms}ms` : 'N/A'}<br/>
+            State: {gdriveStatus?.status === 'HEALTHY' ? 'Configurato' : 'Non configurato / Degradato'}
           </div>
         </div>
         

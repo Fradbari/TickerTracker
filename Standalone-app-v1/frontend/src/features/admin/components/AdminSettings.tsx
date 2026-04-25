@@ -31,111 +31,12 @@ const DEFAULT_SETTINGS: EstimateDefaults = {
   refreshInterval: 30,
 }
 
-const ADMIN_TOKEN_STORAGE_KEY = 'admin_token'
-const ADMIN_TOKEN_CHANGED_EVENT = 'admin-token-changed'
-
-const readAdminToken = (): string => {
-  if (typeof window === 'undefined') return ''
-  return (localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) || '').trim()
-}
-
-const saveAdminToken = (token: string): void => {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token)
-  window.dispatchEvent(new Event(ADMIN_TOKEN_CHANGED_EVENT))
-}
-
-const removeAdminToken = (): void => {
-  if (typeof window === 'undefined') return
-  localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY)
-  window.dispatchEvent(new Event(ADMIN_TOKEN_CHANGED_EVENT))
-}
-
-const useAdminToken = () => {
-  const [adminToken, setAdminTokenState] = useState<string>('')
-
-  useEffect(() => {
-    const syncToken = () => setAdminTokenState(readAdminToken())
-    syncToken()
-
-    window.addEventListener(ADMIN_TOKEN_CHANGED_EVENT, syncToken)
-    window.addEventListener('storage', syncToken)
-    return () => {
-      window.removeEventListener(ADMIN_TOKEN_CHANGED_EVENT, syncToken)
-      window.removeEventListener('storage', syncToken)
-    }
-  }, [])
-
-  return {
-    adminToken,
-    setAdminToken: (token: string) => saveAdminToken(token.trim()),
-    clearAdminToken: () => removeAdminToken(),
-  }
-}
-
 // ---------------------------------------------------------------------------
-// AdminTokenSettings — setup token admin per chiamate protette
+// Constants
 // ---------------------------------------------------------------------------
 
-export const AdminTokenSettings: React.FC = () => {
-  const { adminToken, setAdminToken, clearAdminToken } = useAdminToken()
-  const [inputToken, setInputToken] = useState('')
+const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN ?? 'dev-admin-token';
 
-  const handleSetToken = () => {
-    const token = inputToken.trim()
-    if (!token) {
-      toast.error('Inserisci un token admin valido.')
-      return
-    }
-    setAdminToken(token)
-    setInputToken('')
-    toast.success('Token admin impostato')
-  }
-
-  const handleLogout = () => {
-    clearAdminToken()
-    toast.success('Token admin rimosso')
-  }
-
-  return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg shadow mt-8 p-6">
-      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
-        Token Admin
-      </h2>
-
-      {adminToken ? (
-        <div className="space-y-3">
-          <p className="text-sm text-green-600 dark:text-green-400">Token admin impostato.</p>
-          <button
-            onClick={handleLogout}
-            className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Logout / Cambia token
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Inserisci il token admin per abilitare le chiamate protette (/api/admin/*).
-          </p>
-          <input
-            type="password"
-            className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-            value={inputToken}
-            onChange={(e) => setInputToken(e.target.value)}
-            placeholder="Inserisci token admin"
-          />
-          <button
-            onClick={handleSetToken}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Imposta token admin
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Hook: useEstimateDefaults
@@ -320,16 +221,13 @@ export const AdminSettings: React.FC = () => {
 // ---------------------------------------------------------------------------
 
 export const PriceIntervalSettings: React.FC = () => {
-  const { adminToken } = useAdminToken()
   const [intervalMinutes, setIntervalMinutes] = useState<number>(5)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (!adminToken) return
-
     // Carica il valore corrente dal backend
     fetch('/api/admin/config', {
-      headers: { 'X-Admin-Token': adminToken },
+      headers: { 'X-Admin-Token': ADMIN_TOKEN },
     })
       .then(res => res.json())
       .then((data: { price_update_interval_minutes?: number }) => {
@@ -338,13 +236,9 @@ export const PriceIntervalSettings: React.FC = () => {
         }
       })
       .catch(() => {})
-  }, [adminToken])
+  }, [])
 
   const handleSave = async () => {
-    if (!adminToken) {
-      toast.error('Imposta prima il token admin.')
-      return
-    }
 
     setSaving(true)
     try {
@@ -352,7 +246,7 @@ export const PriceIntervalSettings: React.FC = () => {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
-          'X-Admin-Token': adminToken 
+          'X-Admin-Token': ADMIN_TOKEN 
         },
         body: JSON.stringify({ price_update_interval_minutes: intervalMinutes }),
       })
@@ -375,11 +269,6 @@ export const PriceIntervalSettings: React.FC = () => {
         Intervallo Aggiornamento Prezzi
       </h2>
 
-      {!adminToken && (
-        <p className="text-sm text-amber-600 dark:text-amber-400 mb-3">
-          Imposta il token admin nella sezione Token Admin per modificare questa configurazione.
-        </p>
-      )}
 
       <div className="space-y-4">
         <div>
@@ -404,7 +293,7 @@ export const PriceIntervalSettings: React.FC = () => {
 
         <button
           onClick={() => void handleSave()}
-          disabled={saving || !adminToken}
+          disabled={saving}
           className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-2 px-4 rounded"
         >
           {saving ? 'Salvataggio...' : 'Salva Intervallo'}
@@ -575,7 +464,6 @@ export const GDriveSettings: React.FC = () => {
 // ---------------------------------------------------------------------------
 
 export const FinnhubSettings: React.FC = () => {
-  const { adminToken } = useAdminToken()
   const [apiKey, setApiKey] = useState('')
   const [visible, setVisible] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
@@ -585,14 +473,9 @@ export const FinnhubSettings: React.FC = () => {
   const [loading, setLoading] = useState(false)
 
   const loadFinnhubStatus = () => {
-    if (!adminToken) {
-      setStatus(null)
-      setIsConfigured(false)
-      return
-    }
 
     fetch('/api/admin/config/finnhub-key', {
-      headers: { 'X-Admin-Token': adminToken },
+      headers: { 'X-Admin-Token': ADMIN_TOKEN },
     })
       .then(res => res.json())
       .then((data: { valid?: boolean; updated_at?: string | null; quota_remaining?: string | null }) => {
@@ -612,13 +495,9 @@ export const FinnhubSettings: React.FC = () => {
 
   useEffect(() => {
     loadFinnhubStatus()
-  }, [adminToken])
+  }, [])
 
   const handleValidate = async () => {
-    if (!adminToken) {
-      toast.error('Imposta prima il token admin.')
-      return
-    }
 
     setLoading(true)
     setStatus(null)
@@ -628,7 +507,7 @@ export const FinnhubSettings: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Admin-Token': adminToken,
+          'X-Admin-Token': ADMIN_TOKEN,
         },
         body: JSON.stringify({ api_key: apiKey }),
       })

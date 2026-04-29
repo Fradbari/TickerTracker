@@ -948,142 +948,15 @@
         };
 
         // Ticker Details Modal
-        
         const TickerDetailsModal = ({ isOpen, estimate, onClose }) => {
           const [artifact, setArtifact] = useState(null);
           const [isLoadingArtifact, setIsLoadingArtifact] = useState(false);
           const [artifactError, setArtifactError] = useState('');
-
-          useEffect(() => {
-            let cancelled = false;
-            const run = async () => {
-              if (!isOpen || !estimate) {
-                setArtifact(null);
-                setArtifactError('');
-                return;
-              }
-              setIsLoadingArtifact(true);
-              setArtifactError('');
-              try {
-                const loadedArtifact = await loadEstimateArtifact(estimate.id);
-                if (!cancelled) setArtifact(loadedArtifact);
-              } catch (error) {
-                console.error('Errore caricamento artifact', error);
-                if (!cancelled) setArtifactError(error.message || 'Errore caricamento dettagli storici');
-              } finally {
-                if (!cancelled) setIsLoadingArtifact(false);
-              }
-            };
-            run();
-            return () => { cancelled = true; };
-          }, [isOpen, estimate?.id]);
-
+          useEffect(() => { let cancelled = false; const run = async () => { if (!isOpen || !estimate) { setArtifact(null); setArtifactError(''); return; } setIsLoadingArtifact(true); setArtifactError(''); try { const loadedArtifact = await loadEstimateArtifact(estimate.id); if (!cancelled) setArtifact(loadedArtifact); } catch (error) { if (!cancelled) setArtifactError(error.message || 'Errore caricamento dettagli storici'); } finally { if (!cancelled) setIsLoadingArtifact(false); } }; run(); return () => { cancelled = true; }; }, [isOpen, estimate?.id]);
           if (!isOpen || !estimate) return null;
-
-          const historicalData = artifact?.historicalData || estimate.lastHistoricalData || null;
-          const historicalSummary = estimate.lastHistoricalDataSummary || buildHistoricalDataSummary(historicalData) || {};
-          const f = artifact?.fundamentals || estimate.lastFundamentals || {};
-          const cal = f.calendarEvents || {};
-          const rec = f.recommendationTrend || {};
-          const earn = f.earningsHistory || {};
-          const trend = f.earningsTrend || {};
-          const lastCandle = historicalData?.candles?.length > 0 ? historicalData.candles[historicalData.candles.length - 1] : null;
-          const openValue = lastCandle?.open ?? historicalSummary.lastCandleOpen;
-          const highValue = historicalData?.dayHigh ?? historicalSummary.dayHigh;
-          const lowValue = historicalData?.dayLow ?? historicalSummary.dayLow;
-          const closeValue = estimate.currentPrice ?? historicalData?.current ?? historicalSummary.current;
-          const volumeValue = historicalData?.volume ?? historicalSummary.volume;
-
-          return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-              <div className="bg-surface border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
-                <div className="p-6 bg-gradient-to-r from-primary to-surface border-b border-white/10">
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    📊 Dettagli {estimate.ticker} - {estimate.aiName}
-                  </h3>
-                  <div className="text-sm text-gray-400">
-                    Versione {estimate.version} • Inserito il {new Date(estimate.startDate).toLocaleDateString()}
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  {(isLoadingArtifact || artifactError) && (
-                    <div className={`rounded-xl p-4 border ${artifactError ? 'bg-red-500/10 border-red-500/30 text-red-200' : 'bg-blue-500/10 border-blue-500/30 text-blue-200'}`}>
-                      {isLoadingArtifact ? '⏳ Caricamento storico completo da IndexedDB...' : `⚠️ ${artifactError}`}
-                    </div>
-                  )}
-
-                  {!historicalData && (
-                    <div className="rounded-xl p-4 border border-amber-500/30 bg-amber-500/10 text-amber-100 text-sm">
-                      ℹ️ Nessuno snapshot OHLC completo è ancora disponibile per questa stima. Dopo il primo aggiornamento prezzi verrà salvato automaticamente in IndexedDB.
-                    </div>
-                  )}
-
-                  <div className="glass rounded-xl p-4">
-                    <h4 className="text-lg font-bold text-white mb-4">📈 Dati OHLC e Volume</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Open</div><div className="text-lg font-bold text-white">{openValue != null ? `$${Number(openValue).toFixed(2)}` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">High</div><div className="text-lg font-bold text-emerald-400">{highValue != null ? `$${Number(highValue).toFixed(2)}` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Low</div><div className="text-lg font-bold text-red-400">{lowValue != null ? `$${Number(lowValue).toFixed(2)}` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Close</div><div className="text-lg font-bold text-white">{closeValue != null ? `$${Number(closeValue).toFixed(2)}` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Volume</div><div className="text-lg font-bold text-blue-400">{volumeValue != null ? Number(volumeValue).toLocaleString() : 'N/A'}</div></div>
-                    </div>
-                    <div className="mt-4 text-xs text-gray-500 flex flex-wrap gap-4">
-                      <span>Snapshot completi: {historicalSummary.candlesCount ?? historicalData?.candles?.length ?? 0} candele</span>
-                      {historicalSummary.lastCandleDate && <span>Ultima candela: {historicalSummary.lastCandleDate}</span>}
-                    </div>
-                  </div>
-
-                  <div className="glass rounded-xl p-4">
-                    <h4 className="text-lg font-bold text-white mb-4">📅 Eventi Calendario</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Earnings Date</div><div className="text-sm font-bold text-white">{cal.earningsDate || 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">EPS Estimate</div><div className="text-sm font-bold text-white">{cal.earningsAverage ? `$${cal.earningsAverage.toFixed(2)}` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Revenue Estimate</div><div className="text-sm font-bold text-white">{cal.revenueAverage ? `$${cal.revenueAverage.toLocaleString()}` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Dividend Date</div><div className="text-sm font-bold text-white">{cal.dividendDate || 'N/A'}</div></div>
-                    </div>
-                  </div>
-
-                  <div className="glass rounded-xl p-4">
-                    <h4 className="text-lg font-bold text-white mb-4">📊 Raccomandazioni Analisti</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-                      <div className="bg-emerald-500/20 rounded-lg p-3"><div className="text-xs text-gray-400">Strong Buy</div><div className="text-lg font-bold text-emerald-400">{rec.strongBuy || 0}</div></div>
-                      <div className="bg-green-500/20 rounded-lg p-3"><div className="text-xs text-gray-400">Buy</div><div className="text-lg font-bold text-green-400">{rec.buy || 0}</div></div>
-                      <div className="bg-yellow-500/20 rounded-lg p-3"><div className="text-xs text-gray-400">Hold</div><div className="text-lg font-bold text-yellow-400">{rec.hold || 0}</div></div>
-                      <div className="bg-orange-500/20 rounded-lg p-3"><div className="text-xs text-gray-400">Sell</div><div className="text-lg font-bold text-orange-400">{rec.sell || 0}</div></div>
-                      <div className="bg-red-500/20 rounded-lg p-3"><div className="text-xs text-gray-400">Strong Sell</div><div className="text-lg font-bold text-red-400">{rec.strongSell || 0}</div></div>
-                    </div>
-                  </div>
-
-                  <div className="glass rounded-xl p-4">
-                    <h4 className="text-lg font-bold text-white mb-4">💰 Ultimo Trimestre Earnings</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Data Quarter</div><div className="text-sm font-bold text-white">{earn.lastQuarterDate || 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">EPS Actual</div><div className="text-sm font-bold text-white">{earn.lastQuarterActual ? `$${earn.lastQuarterActual.toFixed(2)}` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">EPS Estimate</div><div className="text-sm font-bold text-white">{earn.lastQuarterEstimate ? `$${earn.lastQuarterEstimate.toFixed(2)}` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Revenue</div><div className="text-sm font-bold text-white">{earn.lastQuarterRevenue ? `$${earn.lastQuarterRevenue.toLocaleString()}` : 'N/A'}</div></div>
-                    </div>
-                  </div>
-
-                  <div className="glass rounded-xl p-4">
-                    <h4 className="text-lg font-bold text-white mb-4">🔮 Previsioni Earnings (+1 Anno)</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Growth Estimate</div><div className="text-sm font-bold text-white">{trend.growthEstimate ? `${trend.growthEstimate.toFixed(2)}%` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">EPS Estimate Avg</div><div className="text-sm font-bold text-white">{trend.earningsEstimateAvg ? `$${trend.earningsEstimateAvg.toFixed(2)}` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Revenue Estimate Avg</div><div className="text-sm font-bold text-white">{trend.revenueEstimateAvg ? `$${trend.revenueEstimateAvg.toLocaleString()}` : 'N/A'}</div></div>
-                      <div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Num Analysts</div><div className="text-sm font-bold text-white">{trend.numberOfAnalysts || 'N/A'}</div></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 border-t border-white/10 bg-surface flex justify-end">
-                  <button onClick={onClose} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-all">Chiudi</button>
-                </div>
-              </div>
-            </div>
-          );
+          const historicalData = artifact?.historicalData || estimate.lastHistoricalData || null; const historicalSummary = estimate.lastHistoricalDataSummary || buildHistoricalDataSummary(historicalData) || {}; const f = artifact?.fundamentals || estimate.lastFundamentals || {}; const cal = f.calendarEvents || {}; const rec = f.recommendationTrend || {}; const earn = f.earningsHistory || {}; const trend = f.earningsTrend || {}; const lastCandle = historicalData?.candles?.length > 0 ? historicalData.candles[historicalData.candles.length - 1] : null; const openValue = lastCandle?.open ?? historicalSummary.lastCandleOpen; const highValue = historicalData?.dayHigh ?? historicalSummary.dayHigh; const lowValue = historicalData?.dayLow ?? historicalSummary.dayLow; const closeValue = estimate.currentPrice ?? historicalData?.current ?? historicalSummary.current; const volumeValue = historicalData?.volume ?? historicalSummary.volume;
+          return (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"><div className="bg-surface border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]"><div className="p-6 bg-gradient-to-r from-primary to-surface border-b border-white/10"><h3 className="text-xl font-bold text-white mb-2">📊 Dettagli {estimate.ticker} - {estimate.aiName}</h3><div className="text-sm text-gray-400">Versione {estimate.version} • Inserito il {new Date(estimate.startDate).toLocaleDateString()}</div></div><div className="flex-1 overflow-y-auto p-6 space-y-6">{(isLoadingArtifact || artifactError) && <div className={`rounded-xl p-4 border ${artifactError ? 'bg-red-500/10 border-red-500/30 text-red-200' : 'bg-blue-500/10 border-blue-500/30 text-blue-200'}`}>{isLoadingArtifact ? '⏳ Caricamento storico completo da IndexedDB...' : `⚠️ ${artifactError}`}</div>}<div className="glass rounded-xl p-4"><h4 className="text-lg font-bold text-white mb-4">📈 Dati OHLC e Volume</h4><div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center"><div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Open</div><div className="text-lg font-bold text-white">{openValue != null ? `$${Number(openValue).toFixed(2)}` : 'N/A'}</div></div><div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">High</div><div className="text-lg font-bold text-emerald-400">{highValue != null ? `$${Number(highValue).toFixed(2)}` : 'N/A'}</div></div><div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Low</div><div className="text-lg font-bold text-red-400">{lowValue != null ? `$${Number(lowValue).toFixed(2)}` : 'N/A'}</div></div><div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Close</div><div className="text-lg font-bold text-white">{closeValue != null ? `$${Number(closeValue).toFixed(2)}` : 'N/A'}</div></div><div className="bg-black/20 rounded-lg p-3"><div className="text-xs text-gray-400">Volume</div><div className="text-lg font-bold text-blue-400">{volumeValue != null ? Number(volumeValue).toLocaleString() : 'N/A'}</div></div></div></div></div><div className="p-4 border-t border-white/10 bg-surface flex justify-end"><button onClick={onClose} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-all">Chiudi</button></div></div></div>);
         };
-
 
                 // Dashboard Component (NEW)
         const Dashboard = ({ estimates, switchTab }) => {
@@ -1780,268 +1653,30 @@
 
           const resetFilters = () => setFilters(initialFilters);
 
-
           const UPDATE_CONCURRENCY = 6;
           const UPDATE_RESULT_FLUSH_SIZE = 4;
-
           const updatePrices = async () => {
             const activeEstimates = estimates.filter(e => e.status === 'active');
             const gasUrl = localStorage.getItem('gasUrl') || '';
-
-            setShowUpdateModal(true);
-            setUpdateResults([]);
-            setIsUpdateFinished(false);
-            setHasUpdateError(false);
-            setUpdatePaused(false);
-            updateControlRef.current = { paused: false, shouldStop: false };
-
-            if (activeEstimates.length === 0) {
-              setUpdateProgress({ current: 0, total: 0, currentTicker: '' });
-              setUpdateResults([{ status: 'warning', ticker: 'Sistema', message: 'Nessuna stima attiva.', time: new Date().toLocaleTimeString() }]);
-              setIsUpdateFinished(true);
-              return;
-            }
-
-            const groupedMap = new Map();
-            for (const est of activeEstimates) {
-              if (!groupedMap.has(est.ticker)) groupedMap.set(est.ticker, []);
-              groupedMap.get(est.ticker).push(est);
-            }
-            const tickerGroups = Array.from(groupedMap.entries()).map(([ticker, estimatesForTicker]) => {
-              const oldestEstimate = estimatesForTicker.reduce((oldest, est) => new Date(est.startDate) < new Date(oldest.startDate) ? est : oldest);
-              const daysSinceOldest = Math.ceil((Date.now() - new Date(oldestEstimate.startDate).getTime()) / 86400000);
-              return {
-                ticker,
-                estimatesForTicker,
-                range: calculateYahooRange(daysSinceOldest),
-              };
-            });
-
+            setShowUpdateModal(true); setUpdateResults([]); setIsUpdateFinished(false); setHasUpdateError(false); setUpdatePaused(false); updateControlRef.current = { paused: false, shouldStop: false };
+            if (activeEstimates.length === 0) { setUpdateProgress({ current: 0, total: 0, currentTicker: '' }); setUpdateResults([{ status: 'warning', ticker: 'Sistema', message: 'Nessuna stima attiva.', time: new Date().toLocaleTimeString() }]); setIsUpdateFinished(true); return; }
+            const groupedMap = new Map(); for (const est of activeEstimates) { if (!groupedMap.has(est.ticker)) groupedMap.set(est.ticker, []); groupedMap.get(est.ticker).push(est); }
+            const tickerGroups = Array.from(groupedMap.entries()).map(([ticker, estimatesForTicker]) => { const oldestEstimate = estimatesForTicker.reduce((oldest, est) => new Date(est.startDate) < new Date(oldest.startDate) ? est : oldest); const daysSinceOldest = Math.ceil((Date.now() - new Date(oldestEstimate.startDate).getTime()) / 86400000); return { ticker, estimatesForTicker, range: calculateYahooRange(daysSinceOldest) }; });
+            onLog('Aggiornamento prezzi avviato', 'info', { category: 'update', action: 'Aggiornamento prezzi avviato', detail: `${tickerGroups.length} ticker attivi`, event: 'update-start' });
             setUpdateProgress({ current: 0, total: tickerGroups.length, currentTicker: '' });
-
-            const queue = [...tickerGroups];
-            const updatedEstimateMap = new Map();
-            const bufferedResults = [];
-            const batchedLogEntries = [];
-            let processedCount = 0;
-            let stopRequested = false;
-
-            const flushBufferedResults = () => {
-              if (bufferedResults.length > 0) {
-                const toFlush = bufferedResults.splice(0, bufferedResults.length);
-                setUpdateResults(prev => [...prev, ...toFlush]);
-              }
-            };
-
-            const queueResult = (entry) => {
-              bufferedResults.push(entry);
-              if (bufferedResults.length >= UPDATE_RESULT_FLUSH_SIZE) flushBufferedResults();
-            };
-
-            const waitWhilePaused = async () => {
-              while (updateControlRef.current.paused) {
-                await new Promise(r => setTimeout(r, 120));
-              }
-            };
-
-            const buildUpdatedEstimate = (est, historicalData, fundamentals, nowIso) => {
-              const updated = { ...est };
-              updated.currentPrice = historicalData.current;
-              updated.lastUpdate = nowIso;
-              updated.lastFundamentals = fundamentals;
-              updated.lastHistoricalDataSummary = buildHistoricalDataSummary(historicalData);
-              delete updated.lastHistoricalData;
-
-              const minMax = calculateHistoricalMinMax(historicalData, est.startDate, historicalData.current);
-              if (minMax.candlesAnalyzed === 0 && !minMax.marketOpenToday) {
-                updated.highPrice = est.startPrice;
-                updated.lowPrice = est.startPrice;
-              } else {
-                updated.highPrice = Math.max(est.startPrice, minMax.highPrice);
-                updated.lowPrice = Math.min(est.startPrice, minMax.lowPrice);
-              }
-
-              const changePercent = ((historicalData.current - est.startPrice) / est.startPrice) * 100;
-              updated.profitLossPercent = changePercent;
-              updated.profitLoss = (est.amount * changePercent) / 100;
-
-              const daysPassed = Math.floor((Date.now() - new Date(est.startDate).getTime()) / 86400000);
-              const highChange = ((updated.highPrice - est.startPrice) / est.startPrice) * 100;
-              const lowChange = ((updated.lowPrice - est.startPrice) / est.startPrice) * 100;
-
-              let exitMsg = '';
-              let exitType = 'info';
-              if (highChange >= est.profitTarget) {
-                updated.status = 'completed-positive';
-                updated.endDate = nowIso;
-                updated.exitReason = 'target';
-                updated.endPrice = est.startPrice * (1 + est.profitTarget / 100);
-                updated.profitLoss = (est.amount * est.profitTarget) / 100;
-                updated.profitLossPercent = est.profitTarget;
-                exitMsg = `TARGET ${est.ticker} (v${est.version})`;
-                exitType = 'success';
-              } else if (lowChange <= est.stopLoss) {
-                updated.status = 'completed-negative';
-                updated.endDate = nowIso;
-                updated.exitReason = 'stoploss';
-                updated.endPrice = est.startPrice * (1 + est.stopLoss / 100);
-                updated.profitLoss = (est.amount * est.stopLoss) / 100;
-                updated.profitLossPercent = est.stopLoss;
-                exitMsg = `STOP ${est.ticker} (v${est.version})`;
-                exitType = 'warning';
-              } else if (daysPassed >= est.duration) {
-                updated.status = 'completed-negative';
-                updated.endDate = nowIso;
-                updated.exitReason = 'timeout';
-                updated.endPrice = historicalData.current;
-                exitMsg = `TIMEOUT ${est.ticker} (v${est.version})`;
-                exitType = 'warning';
-              }
-
-              return { updated, exitMsg, exitType };
-            };
-
-            const processTickerGroup = async (group) => {
-              await waitWhilePaused();
-              if (updateControlRef.current.shouldStop) return { stopped: true, ticker: group.ticker };
-
-              const tickerStart = Date.now();
-              setUpdateProgress(prev => ({ ...prev, currentTicker: group.ticker }));
-
-              try {
-                const [historicalData, fundamentals] = await Promise.all([
-                  getHistoricalData(group.ticker, group.range),
-                  getFundamentals(group.ticker)
-                ]);
-
-                if (gasUrl) {
-                  const lastCandle = historicalData.candles.length > 0 ? historicalData.candles[historicalData.candles.length - 1] : null;
-                  const priceDataForHistory = {
-                    open: lastCandle?.open || historicalData.current,
-                    high: historicalData.dayHigh || historicalData.current,
-                    low: historicalData.dayLow || historicalData.current,
-                    close: historicalData.current,
-                    adjClose: lastCandle?.adjClose || historicalData.current,
-                    volume: historicalData.volume || lastCandle?.volume || 0
-                  };
-                  const historyRow = createHistoryRow(group.ticker, priceDataForHistory, fundamentals);
-                  await saveHistoryToDrive(gasUrl, group.ticker, historyRow);
-                }
-
-                const nowIso = new Date().toISOString();
-                await Promise.all(group.estimatesForTicker.map(est => saveEstimateArtifact(est.id, {
-                  ticker: group.ticker,
-                  historicalData,
-                  fundamentals,
-                  updatedAt: nowIso,
-                })));
-
-                const updatedItems = [];
-                const localLogs = [];
-                for (const est of group.estimatesForTicker) {
-                  const { updated, exitMsg, exitType } = buildUpdatedEstimate(est, historicalData, fundamentals, nowIso);
-                  updatedItems.push(updated);
-                  if (exitMsg) {
-                    localLogs.push({ timestamp: nowIso, message: exitMsg, type: exitType });
-                  }
-                }
-
-                return {
-                  status: 'success',
-                  ticker: group.ticker,
-                  currentPrice: historicalData.current,
-                  updatedItems,
-                  localLogs,
-                  elapsedMs: Date.now() - tickerStart,
-                };
-              } catch (e) {
-                return {
-                  status: 'error',
-                  ticker: group.ticker,
-                  errorMessage: e.message || 'Errore sconosciuto',
-                  elapsedMs: Date.now() - tickerStart,
-                };
-              }
-            };
-
-            const worker = async () => {
-              while (queue.length > 0) {
-                await waitWhilePaused();
-                if (updateControlRef.current.shouldStop) {
-                  stopRequested = true;
-                  return;
-                }
-
-                const group = queue.shift();
-                if (!group) return;
-                const outcome = await processTickerGroup(group);
-
-                if (outcome?.stopped) {
-                  stopRequested = true;
-                  return;
-                }
-
-                if (outcome.status === 'success') {
-                  outcome.updatedItems.forEach(item => updatedEstimateMap.set(item.id, item));
-                  if (outcome.localLogs?.length) batchedLogEntries.push(...outcome.localLogs);
-                  queueResult({
-                    status: 'success',
-                    ticker: outcome.ticker,
-                    message: `$${outcome.currentPrice.toFixed(2)} - ${outcome.updatedItems.length} stime aggiornate (${(outcome.elapsedMs / 1000).toFixed(1)}s)`,
-                    time: new Date().toLocaleTimeString()
-                  });
-                } else {
-                  queueResult({
-                    status: 'error',
-                    ticker: outcome.ticker,
-                    message: `❌ Errore (${(outcome.elapsedMs / 1000).toFixed(1)}s)\n🔍 Dettagli: ${outcome.errorMessage}\n📡 Endpoint: Yahoo Finance APIs`,
-                    time: new Date().toLocaleTimeString()
-                  });
-                  setHasUpdateError(true);
-                }
-
-                processedCount++;
-                setUpdateProgress(prev => ({ ...prev, current: processedCount, currentTicker: outcome.ticker }));
-                await new Promise(r => setTimeout(r, 0));
-              }
-            };
-
-            const workerCount = Math.min(UPDATE_CONCURRENCY, tickerGroups.length);
-            await Promise.all(Array.from({ length: workerCount }, () => worker()));
-            flushBufferedResults();
-
-            if (stopRequested || updateControlRef.current.shouldStop) {
-              setUpdateResults(prev => [...prev, { status: 'warning', ticker: 'Sistema', message: 'Aggiornamento annullato', time: new Date().toLocaleTimeString() }]);
-              setIsUpdateFinished(true);
-              setUpdatePaused(false);
-              updateControlRef.current = { paused: false, shouldStop: false };
-              return;
-            }
-
-            const nextEstimates = estimates.map(est => updatedEstimateMap.get(est.id) || est);
-            if (typeof onBulkUpdateEstimates === 'function') {
-              await onBulkUpdateEstimates(nextEstimates, { logEntries: batchedLogEntries });
-            } else {
-              nextEstimates.forEach(onUpdateEstimate);
-              batchedLogEntries.forEach(entry => onLog(entry.message, entry.type));
-            }
-
-            const successExits = batchedLogEntries.filter(l => l.type === 'success').length;
-            const warningExits = batchedLogEntries.filter(l => l.type === 'warning').length;
-            onLog(`🔄 Aggiornati ${processedCount} ticker in modalità concorrente (${workerCount} worker)`, 'info');
-            if (batchedLogEntries.length > 0) {
-              toast.addToast(`Esiti chiusi: ${successExits} target, ${warningExits} stop/timeout`, successExits > 0 ? 'success' : 'warning');
-            }
-
-            setUpdateProgress(prev => ({ ...prev, current: processedCount, currentTicker: '' }));
-            setIsUpdateFinished(true);
-            setUpdatePaused(false);
-            updateControlRef.current = { paused: false, shouldStop: false };
-            toast.addToast(`Aggiornamento completato: ${processedCount} ticker • worker ${workerCount}`, 'success');
+            const queue = [...tickerGroups]; const updatedEstimateMap = new Map(); const bufferedResults = []; const batchedLogEntries = []; let processedCount = 0; let stopRequested = false;
+            const flushBufferedResults = () => { if (bufferedResults.length > 0) { const toFlush = bufferedResults.splice(0, bufferedResults.length); setUpdateResults(prev => [...prev, ...toFlush]); } };
+            const queueResult = (entry) => { bufferedResults.push(entry); if (bufferedResults.length >= UPDATE_RESULT_FLUSH_SIZE) flushBufferedResults(); };
+            const waitWhilePaused = async () => { while (updateControlRef.current.paused) await new Promise(r => setTimeout(r, 120)); };
+            const buildUpdatedEstimate = (est, historicalData, fundamentals, nowIso) => { const updated = { ...est }; updated.currentPrice = historicalData.current; updated.lastUpdate = nowIso; updated.lastFundamentals = fundamentals; updated.lastHistoricalDataSummary = buildHistoricalDataSummary(historicalData); delete updated.lastHistoricalData; const minMax = calculateHistoricalMinMax(historicalData, est.startDate, historicalData.current); if (minMax.candlesAnalyzed === 0 && !minMax.marketOpenToday) { updated.highPrice = est.startPrice; updated.lowPrice = est.startPrice; } else { updated.highPrice = Math.max(est.startPrice, minMax.highPrice); updated.lowPrice = Math.min(est.startPrice, minMax.lowPrice); } const changePercent = ((historicalData.current - est.startPrice) / est.startPrice) * 100; updated.profitLossPercent = changePercent; updated.profitLoss = (est.amount * changePercent) / 100; const daysPassed = Math.floor((Date.now() - new Date(est.startDate).getTime()) / 86400000); const highChange = ((updated.highPrice - est.startPrice) / est.startPrice) * 100; const lowChange = ((updated.lowPrice - est.startPrice) / est.startPrice) * 100; let logEntry = null; if (highChange >= est.profitTarget) { updated.status = 'completed-positive'; updated.endDate = nowIso; updated.exitReason = 'target'; updated.endPrice = est.startPrice * (1 + est.profitTarget / 100); updated.profitLoss = (est.amount * est.profitTarget) / 100; updated.profitLossPercent = est.profitTarget; logEntry = normalizeLogEntry({ timestamp: nowIso, type: 'success', category: 'target', action: 'Target raggiunto', ticker: est.ticker, detail: `Versione v${est.version} • +${est.profitTarget}%`, event: 'target-hit', message: `Target raggiunto ${est.ticker} (v${est.version})` }); } else if (lowChange <= est.stopLoss) { updated.status = 'completed-negative'; updated.endDate = nowIso; updated.exitReason = 'stoploss'; updated.endPrice = est.startPrice * (1 + est.stopLoss / 100); updated.profitLoss = (est.amount * est.stopLoss) / 100; updated.profitLossPercent = est.stopLoss; logEntry = normalizeLogEntry({ timestamp: nowIso, type: 'warning', category: 'risk', action: 'Stop loss attivato', ticker: est.ticker, detail: `Versione v${est.version} • ${est.stopLoss}%`, event: 'stop-loss', message: `Stop loss ${est.ticker} (v${est.version})` }); } else if (daysPassed >= est.duration) { updated.status = 'completed-negative'; updated.endDate = nowIso; updated.exitReason = 'timeout'; updated.endPrice = historicalData.current; logEntry = normalizeLogEntry({ timestamp: nowIso, type: 'warning', category: 'risk', action: 'Durata scaduta', ticker: est.ticker, detail: `Versione v${est.version} • ${est.duration} giorni`, event: 'timeout', message: `Timeout ${est.ticker} (v${est.version})` }); } return { updated, logEntry }; };
+            const processTickerGroup = async (group) => { await waitWhilePaused(); if (updateControlRef.current.shouldStop) return { stopped: true, ticker: group.ticker }; const tickerStart = Date.now(); setUpdateProgress(prev => ({ ...prev, currentTicker: group.ticker })); try { const [historicalData, fundamentals] = await Promise.all([getHistoricalData(group.ticker, group.range), getFundamentals(group.ticker)]); if (gasUrl) { const lastCandle = historicalData.candles.length > 0 ? historicalData.candles[historicalData.candles.length - 1] : null; const priceDataForHistory = { open: lastCandle?.open || historicalData.current, high: historicalData.dayHigh || historicalData.current, low: historicalData.dayLow || historicalData.current, close: historicalData.current, adjClose: lastCandle?.adjClose || historicalData.current, volume: historicalData.volume || lastCandle?.volume || 0 }; const historyRow = createHistoryRow(group.ticker, priceDataForHistory, fundamentals); await saveHistoryToDrive(gasUrl, group.ticker, historyRow); } const nowIso = new Date().toISOString(); await Promise.all(group.estimatesForTicker.map(est => saveEstimateArtifact(est.id, { ticker: group.ticker, historicalData, fundamentals, updatedAt: nowIso }))); const updatedItems = []; const localLogs = []; for (const est of group.estimatesForTicker) { const { updated, logEntry } = buildUpdatedEstimate(est, historicalData, fundamentals, nowIso); updatedItems.push(updated); if (logEntry) localLogs.push(logEntry); } return { status: 'success', ticker: group.ticker, currentPrice: historicalData.current, updatedItems, localLogs, elapsedMs: Date.now() - tickerStart }; } catch (e) { return { status: 'error', ticker: group.ticker, errorMessage: e.message || 'Errore sconosciuto', localLogs: [normalizeLogEntry({ timestamp: new Date().toISOString(), type: 'error', category: 'error', action: 'Errore aggiornamento', ticker: group.ticker, detail: e.message || 'Errore sconosciuto', event: 'update-error', message: `Errore aggiornamento ${group.ticker}: ${e.message || 'Errore sconosciuto'}` })], elapsedMs: Date.now() - tickerStart }; } };
+            const worker = async () => { while (queue.length > 0) { await waitWhilePaused(); if (updateControlRef.current.shouldStop) { stopRequested = true; return; } const group = queue.shift(); if (!group) return; const outcome = await processTickerGroup(group); if (outcome?.stopped) { stopRequested = true; return; } if (outcome.status === 'success') { outcome.updatedItems.forEach(item => updatedEstimateMap.set(item.id, item)); if (outcome.localLogs?.length) batchedLogEntries.push(...outcome.localLogs); queueResult({ status: 'success', ticker: outcome.ticker, message: `$${outcome.currentPrice.toFixed(2)} - ${outcome.updatedItems.length} stime aggiornate (${(outcome.elapsedMs / 1000).toFixed(1)}s)`, time: new Date().toLocaleTimeString() }); } else { if (outcome.localLogs?.length) batchedLogEntries.push(...outcome.localLogs); queueResult({ status: 'error', ticker: outcome.ticker, message: `❌ Errore (${(outcome.elapsedMs / 1000).toFixed(1)}s)
+🔍 Dettagli: ${outcome.errorMessage}
+📡 Endpoint: Yahoo Finance APIs`, time: new Date().toLocaleTimeString() }); setHasUpdateError(true); } processedCount++; setUpdateProgress(prev => ({ ...prev, current: processedCount, currentTicker: outcome.ticker })); await new Promise(r => setTimeout(r, 0)); } };
+            const workerCount = Math.min(UPDATE_CONCURRENCY, tickerGroups.length); await Promise.all(Array.from({ length: workerCount }, () => worker())); flushBufferedResults(); if (stopRequested || updateControlRef.current.shouldStop) { setUpdateResults(prev => [...prev, { status: 'warning', ticker: 'Sistema', message: 'Aggiornamento annullato', time: new Date().toLocaleTimeString() }]); onLog('Aggiornamento prezzi annullato', 'warning', { category: 'update', action: 'Aggiornamento annullato', detail: `${processedCount}/${tickerGroups.length} ticker processati`, event: 'update-cancelled' }); setIsUpdateFinished(true); setUpdatePaused(false); updateControlRef.current = { paused: false, shouldStop: false }; return; } const nextEstimates = estimates.map(est => updatedEstimateMap.get(est.id) || est); if (typeof onBulkUpdateEstimates === 'function') await onBulkUpdateEstimates(nextEstimates, { logEntries: batchedLogEntries }); else { nextEstimates.forEach(onUpdateEstimate); batchedLogEntries.forEach(entry => onLog(entry.message, entry.type, entry)); } const successExits = batchedLogEntries.filter(l => l.category === 'target').length; const riskExits = batchedLogEntries.filter(l => l.category === 'risk').length; onLog('Aggiornamento prezzi completato', 'info', { category: 'update', action: 'Aggiornamento prezzi completato', detail: `${processedCount} ticker • ${workerCount} worker • target ${successExits} • stop/timeout ${riskExits}`, event: 'update-complete' }); if (batchedLogEntries.length > 0) toast.addToast(`Esiti chiusi: ${successExits} target, ${riskExits} stop/timeout`, successExits > 0 ? 'success' : 'warning'); setUpdateProgress(prev => ({ ...prev, current: processedCount, currentTicker: '' })); setIsUpdateFinished(true); setUpdatePaused(false); updateControlRef.current = { paused: false, shouldStop: false }; toast.addToast(`Aggiornamento completato: ${processedCount} ticker • worker ${workerCount}`, 'success');
           };
 
-          // Auto-refresh effect
-          // Auto-refresh effect
+          // Auto-refresh effect          // Auto-refresh effect
           useEffect(() => {
             if (autoRefresh > 0) {
               autoRefreshRef.current = setInterval(() => {
@@ -2833,237 +2468,10 @@
 
         // Logs Component
         const Logs = ({ logs, onClear, onDownload }) => {
-          const toast = useToast();
-          const gasUrl = localStorage.getItem('gasUrl') || '';
-          const [allLogs, setAllLogs] = useState(logs);
-          const [debugLogs, setDebugLogs] = useState([]);
-          const [searchQuery, setSearchQuery] = useState('');
-          const [selectedCategory, setSelectedCategory] = useState('all');
-          const [showFilters, setShowFilters] = useState(false);
-          const [isLoadingLogs, setIsLoadingLogs] = useState(false);
-
-          const logCategories = {
-            'all': { icon: '📊', label: 'Tutti' },
-            'download': { icon: '📥', label: 'Download Ticker' },
-            'update': { icon: '🔄', label: 'Aggiornamenti' },
-            'profit': { icon: '📈', label: 'Profit Target' },
-            'stoploss': { icon: '📉', label: 'Stop Loss' },
-            'yahoo': { icon: '🌐', label: 'Query Yahoo' },
-            'error': { icon: '❌', label: 'Errori' }
-          };
-
-          const categorizeLog = (message) => {
-            const msg = message.toLowerCase();
-            if (msg.includes('download') || msg.includes('scarica') || msg.includes('history_')) return 'download';
-            if (msg.includes('update') || msg.includes('aggiorn') || msg.includes('price')) return 'update';
-            if (msg.includes('profit') || msg.includes('target')) return 'profit';
-            if (msg.includes('stop loss') || msg.includes('stoploss')) return 'stoploss';
-            if (msg.includes('yahoo') || msg.includes('query') || msg.includes('chart')) return 'yahoo';
-            if (msg.includes('error') || msg.includes('errore') || msg.includes('exception')) return 'error';
-            return 'all';
-          };
-
-          // Parser intelligente per log di debug_logs.json
-          const parseDebugLog = (log, category) => {
-            const msg = log.message;
-            
-            // === DOWNLOAD TICKER ===
-            if (category === 'download') {
-              if (msg.includes('History_')) {
-                const match = msg.match(/History_([A-Z0-9.]+)/);
-                const ticker = match ? match[1] : 'N/A';
-                if (msg.includes('rowsAdded')) {
-                  const addedMatch = msg.match(/"rowsAdded":(\d+)/);
-                  const added = addedMatch ? addedMatch[1] : '?';
-                  return { type: 'history', ticker, action: '✅ Salvato su Drive', detail: `${added} righe aggiunte`, icon: '📄' };
-                }
-              }
-            }
-            
-            // === AGGIORNAMENTI PREZZI ===
-            if (category === 'update') {
-              if (msg.includes('UPDATE SUCCESS')) {
-                const tickerMatch = msg.match(/UPDATE SUCCESS: ([A-Z0-9.]+)/);
-                const ticker = tickerMatch ? tickerMatch[1] : 'N/A';
-                const priceMatch = msg.match(/Price: \$?([\d.]+)/);
-                const price = priceMatch ? priceMatch[1] : 'N/A';
-                return { type: 'update', ticker, action: '🔄 Aggiornato', detail: `Prezzo: €${price}`, icon: '💹' };
-              }
-            }
-            
-            // === PROFIT TARGET ===
-            if (category === 'profit') {
-              if (msg.includes('PROFIT')) {
-                const tickerMatch = msg.match(/([A-Z0-9.]+).*PROFIT/);
-                const ticker = tickerMatch ? tickerMatch[1] : 'N/A';
-                const valueMatch = msg.match(/([\d.]+)%/);
-                const value = valueMatch ? valueMatch[1] : 'N/A';
-                return { type: 'profit', ticker, action: '📈 Profit Raggiunto', detail: `+${value}%`, icon: '🎯' };
-              }
-            }
-            
-            // === STOP LOSS ===
-            if (category === 'stoploss') {
-              if (msg.includes('STOP LOSS')) {
-                const tickerMatch = msg.match(/([A-Z0-9.]+).*STOP LOSS/);
-                const ticker = tickerMatch ? tickerMatch[1] : 'N/A';
-                const valueMatch = msg.match(/([\d.]+)%/);
-                const value = valueMatch ? valueMatch[1] : 'N/A';
-                return { type: 'stoploss', ticker, action: '📉 Stop Loss Attivato', detail: `-${value}%`, icon: '🛑' };
-              }
-            }
-            
-            // === YAHOO QUERIES ===
-            if (category === 'yahoo') {
-              if (msg.includes('YAHOO SUCCESS')) {
-                const tickerMatch = msg.match(/YAHOO SUCCESS: ([A-Z0-9.]+)/);
-                const ticker = tickerMatch ? tickerMatch[1] : 'N/A';
-                const modulesMatch = msg.match(/Modules received: ([\w\s,]+)/);
-                const modules = modulesMatch ? modulesMatch[1].split(', ').length : 0;
-                return { type: 'yahoo_success', ticker, action: '✅ Dati Yahoo', detail: `${modules} moduli ricevuti`, icon: '🌐' };
-              }
-              if (msg.includes('YAHOO REQUEST')) {
-                const tickerMatch = msg.match(/YAHOO REQUEST: ([A-Z0-9.]+)/);
-                const ticker = tickerMatch ? tickerMatch[1] : 'N/A';
-                const moduleMatch = msg.match(/Modules: ([\w,]+)/);
-                const module = moduleMatch ? moduleMatch[1].split(',')[0] : 'N/A';
-                return { type: 'yahoo_request', ticker, action: '🔄 Richiesta Yahoo', detail: `Modulo: ${module}`, icon: '🔍' };
-              }
-            }
-            
-            // === ERRORI ===
-            if (category === 'error') {
-              if (msg.includes('error') || msg.includes('Error')) {
-                const tickerMatch = msg.match(/([A-Z0-9.]+).*[Ee]rror/);
-                const ticker = tickerMatch ? tickerMatch[1] : 'N/A';
-                const errorMatch = msg.match(/[Ee]rror[:\s]+(.*?)(?:\n|$)/);
-                const errorMsg = errorMatch ? errorMatch[1].slice(0, 100) : msg.slice(0, 100);
-                return { type: 'error', ticker, action: '❌ Errore', detail: errorMsg, icon: '⚠️' };
-              }
-            }
-            
-            return null;
-          };
-
-          const loadDebugLogs = async () => {
-            if (!gasUrl) { toast.addToast('URL GAS non configurato', 'warning'); return; }
-            setIsLoadingLogs(true);
-            try {
-              const response = await fetch(`${gasUrl}?action=logs`);
-              const result = await response.json();
-              if (result.status === 'success') {
-                setDebugLogs(result.logs || []);
-                toast.addToast(`Caricati ${result.logs?.length || 0} log dal GAS`, 'success');
-              } else throw new Error(result.message);
-            } catch (error) {
-              toast.addToast('Errore caricamento log: ' + error.message, 'error');
-            } finally {
-              setIsLoadingLogs(false);
-            }
-          };
-
-          // Combina log locali e remoti con parsing intelligente
-          const combinedLogs = useMemo(() => {
-            let combined = [...allLogs];
-            
-            // Aggiungi log remoti con parsing intelligente
-            debugLogs.forEach(l => {
-              const category = categorizeLog(l.message);
-              const parsed = parseDebugLog(l, category);
-              
-              combined.push({
-                message: l.message,
-                type: l.level === 'error' ? 'error' : l.level === 'warn' ? 'warning' : 'info',
-                timestamp: l.timestamp,
-                source: 'drive',
-                category,
-                parsed // Includi il log parsato per la visualizzazione intelligente
-              });
-            });
-            
-            // Filtra per categoria
-            let filtered = combined;
-            if (selectedCategory !== 'all') {
-              filtered = combined.filter(log => (log.category || categorizeLog(log.message)) === selectedCategory);
-            }
-            
-            // Filtra per ricerca
-            if (searchQuery.trim()) {
-              const query = searchQuery.toLowerCase();
-              filtered = filtered.filter(log => log.message.toLowerCase().includes(query));
-            }
-            
-            return filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-          }, [allLogs, debugLogs, selectedCategory, searchQuery]);
-
-          return (
-            <div className="animate-fade-in space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold">📝 System Logs</h2>
-                  <span className="text-sm text-gray-400 bg-gray-800 px-2 py-1 rounded">
-                    {combinedLogs.length} log
-                  </span>
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  <button onClick={loadDebugLogs} disabled={isLoadingLogs} className="bg-purple-600/20 text-purple-400 px-4 py-2 rounded-lg hover:bg-purple-600/30 transition-colors text-sm font-bold">
-                    {isLoadingLogs ? '⏳' : '☁️'} Carica da Drive
-                  </button>
-                  <button onClick={() => setShowFilters(!showFilters)} className="bg-amber-600/20 text-amber-400 px-4 py-2 rounded-lg hover:bg-amber-600/30 transition-colors text-sm font-bold">
-                    🔍 Filtri
-                  </button>
-                  <button onClick={() => { onClear(); setAllLogs([]); setDebugLogs([]); toast.addToast('Log cancellati', 'success'); }} className="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-bold">
-                    🗑️ Clear
-                  </button>
-                </div>
-              </div>
-
-              {showFilters && (
-                <div className="glass p-4 rounded-xl space-y-3 animate-fade-in">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
-                    {Object.entries(logCategories).map(([key, { icon, label }]) => (
-                      <button
-                        key={key}
-                        onClick={() => setSelectedCategory(key)}
-                        className={`py-2 px-3 rounded-lg text-sm font-semibold transition-all flex flex-col items-center gap-1 ${
-                          selectedCategory === key
-                            ? 'bg-accent-blue/40 text-accent-blue border border-accent-blue'
-                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                        }`}
-                      >
-                        <span>{icon}</span>
-                        <span className="text-xs">{label}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <input 
-                    type="text"
-                    placeholder="🔍 Ricerca nei log..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-sm text-white focus:border-accent-blue focus:outline-none"
-                  />
-                </div>
-              )}
-
-              <div className="glass rounded-xl p-4 h-[600px] overflow-y-auto">
-                {combinedLogs.length === 0 ? (
-                  <div className="text-center text-gray-500 py-12">
-                    {searchQuery || selectedCategory !== 'all' ? 'Nessun log corrisponde ai filtri' : 'Nessun log disponibile'}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {combinedLogs.map((log, idx) => (
-                      <ExpandableLogRow key={idx} log={log} idx={idx} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          );
+          const [searchQuery, setSearchQuery] = useState(''); const [selectedCategory, setSelectedCategory] = useState('all'); const [selectedType, setSelectedType] = useState('all'); const normalizedLogs = useMemo(() => [...(Array.isArray(logs) ? logs : [])].map((entry, index) => normalizeLogEntry(entry, index)).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)), [logs]); const summary = useMemo(() => ({ total: normalizedLogs.length, errors: normalizedLogs.filter(log => log.type === 'error' || log.category === 'error').length, targets: normalizedLogs.filter(log => log.category === 'target').length, risks: normalizedLogs.filter(log => log.category === 'risk').length }), [normalizedLogs]); const availableCategories = useMemo(() => { const counts = normalizedLogs.reduce((acc, log) => { acc[log.category] = (acc[log.category] || 0) + 1; return acc; }, {}); return ['all','update','target','risk','estimate','cloud','storage','error','system'].filter(category => category === 'all' || counts[category] > 0).map(category => ({ category, count: category === 'all' ? normalizedLogs.length : counts[category] || 0 })); }, [normalizedLogs]); const filteredLogs = useMemo(() => { const query = searchQuery.trim().toLowerCase(); return normalizedLogs.filter(log => (selectedCategory === 'all' || log.category === selectedCategory) && (selectedType === 'all' || log.type === selectedType) && (!query || log.keywords.includes(query))); }, [normalizedLogs, selectedCategory, selectedType, searchQuery]); const groupedLogs = useMemo(() => filteredLogs.reduce((acc, log) => { const label = new Date(log.timestamp).toLocaleDateString('it-IT', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }); if (!acc[label]) acc[label] = []; acc[label].push(log); return acc; }, {}), [filteredLogs]); const downloadStructuredLogs = () => { const text = filteredLogs.map(log => [[`[${new Date(log.timestamp).toLocaleString('it-IT')}]`,`[${(log.type || 'info').toUpperCase()}]`,`[${(LOG_CATEGORY_META[log.category]?.label || log.category || 'Sistema').toUpperCase()}]`,log.ticker ? `[${log.ticker}]` : '',log.action,log.detail ? `- ${log.detail}` : ''].filter(Boolean).join(' ')]).join('\n'); const blob = new Blob([text], { type: 'text/plain' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `logs_filtrati_${Date.now()}.txt`; a.click(); }; const renderLogRow = (log) => { const categoryMeta = LOG_CATEGORY_META[log.category] || LOG_CATEGORY_META.system; const typeMeta = LOG_TYPE_META[log.type] || LOG_TYPE_META.info; const extraLine = log.detail && log.detail !== log.action ? log.detail : (log.message !== log.action ? log.message : ''); return <div key={log.id} className="glass rounded-xl p-4 border border-white/5 hover:border-white/10 transition-all"><div className="flex items-start gap-3"><div className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 ${categoryMeta.chip}`}>{categoryMeta.icon}</div><div className="flex-1 min-w-0"><div className="flex items-start justify-between gap-3 flex-wrap"><div className="min-w-0"><div className="flex items-center gap-2 flex-wrap"><h4 className="font-bold text-white truncate">{log.action}</h4>{log.ticker && <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white/10 text-white border border-white/10">{log.ticker}</span>}<span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${typeMeta.chip}`}>{typeMeta.label}</span></div>{extraLine && <p className="text-sm text-gray-300 mt-1 break-words">{extraLine}</p>}</div><div className="text-xs text-gray-500 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div></div><div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mt-2"><span>{categoryMeta.label}</span>{log.event && <span>• {log.event}</span>}<span>• {new Date(log.timestamp).toLocaleDateString('it-IT')}</span></div></div></div></div>; }; return (<div className="space-y-6 animate-fade-in max-w-6xl mx-auto"><div className="glass p-6 rounded-2xl"><div className="flex items-start justify-between gap-4 flex-wrap mb-5"><div><h2 className="text-xl font-bold gradient-text">📝 Log applicazione</h2><p className="text-sm text-gray-400 mt-1">Vista essenziale: ticker, azione, esito e contesto utili per seguire davvero ciò che accade nell'app.</p></div><div className="flex gap-2 flex-wrap"><button onClick={downloadStructuredLogs} className="px-4 py-2 rounded-lg bg-blue-600/20 text-blue-200 border border-blue-500/30 hover:bg-blue-600/30 text-sm font-semibold">📥 Esporta vista</button><button onClick={onClear} className="px-4 py-2 rounded-lg bg-red-600/20 text-red-200 border border-red-500/30 hover:bg-red-600/30 text-sm font-semibold">🧹 Pulisci</button></div></div><div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5"><div className="bg-black/30 rounded-xl p-4"><div className="text-xs text-gray-500">Eventi totali</div><div className="text-2xl font-bold text-white">{summary.total}</div></div><div className="bg-black/30 rounded-xl p-4"><div className="text-xs text-gray-500">Errori</div><div className="text-2xl font-bold text-red-300">{summary.errors}</div></div><div className="bg-black/30 rounded-xl p-4"><div className="text-xs text-gray-500">Target raggiunti</div><div className="text-2xl font-bold text-emerald-300">{summary.targets}</div></div><div className="bg-black/30 rounded-xl p-4"><div className="text-xs text-gray-500">Stop / timeout</div><div className="text-2xl font-bold text-amber-300">{summary.risks}</div></div></div><div className="grid grid-cols-1 lg:grid-cols-[1.3fr_auto] gap-3 items-start mb-4"><input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-black/30 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-accent-blue focus:outline-none" placeholder="Cerca ticker, azione o dettaglio (es. AAPL, target, backup...)" /><div className="flex gap-2 flex-wrap lg:justify-end"><select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="bg-black/30 border border-gray-700 rounded-xl px-3 py-3 text-sm text-white focus:border-accent-blue focus:outline-none"><option value="all">Tutti gli esiti</option><option value="success">Successi</option><option value="warning">Attenzioni</option><option value="error">Errori</option><option value="info">Info</option></select><button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); setSelectedType('all'); }} className="px-3 py-3 rounded-xl border border-white/10 bg-white/5 text-sm text-gray-300 hover:bg-white/10">Reset</button></div></div><div className="flex gap-2 flex-wrap">{availableCategories.map(({ category, count }) => { const meta = LOG_CATEGORY_META[category] || LOG_CATEGORY_META.system; const isActive = selectedCategory === category; return <button key={category} onClick={() => setSelectedCategory(category)} className={`px-3 py-2 rounded-full border text-sm font-semibold transition-all ${isActive ? `${meta.chip} text-white` : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'}`}>{meta.icon} {meta.label} <span className="opacity-70">({count})</span></button>; })}</div></div>{filteredLogs.length === 0 ? <div className="glass rounded-2xl p-10 text-center text-gray-400">Nessun evento corrisponde ai filtri selezionati.</div> : Object.entries(groupedLogs).map(([dayLabel, dayLogs]) => <div key={dayLabel} className="space-y-3"><div className="sticky top-0 z-10 backdrop-blur-sm bg-background/80 py-1"><h3 className="text-sm font-bold uppercase tracking-wide text-gray-400">{dayLabel}</h3></div><div className="space-y-3">{dayLogs.map(renderLogRow)}</div></div>)}</div>);
         };
 
-        // Chatbot Component
+        // Chatbot Component        // Chatbot Component
         const Chatbot = ({ geminiKey, estimates, messages, setMessages, onClear }) => {
           const toast = useToast();
           const [input, setInput] = useState('');
@@ -3170,7 +2578,7 @@
         };
 
         // Settings Component
-        
+        // Settings Component
         const Settings = ({ finnhubKey, setFinnhubKey, geminiKey, setGeminiKey, onSaveKey, downloadBackup, handleRestore, handleClearData, getAppData, onDriveRestore, onLog, storageDiagnostics, refreshStorageDiagnostics, compactStorage }) => {
           const toast = useToast();
           const [gasUrl, setGasUrl] = useState(localStorage.getItem('gasUrl') || '');
@@ -3179,504 +2587,71 @@
           const [showBackupList, setShowBackupList] = useState(false);
           const [yahooCookie, setYahooCookie] = useState(localStorage.getItem('yahooCookie') || '');
           const [yahooCrumb, setYahooCrumb] = useState(localStorage.getItem('yahooCrumb') || '');
-
           const defaultSettings = JSON.parse(localStorage.getItem('defaultSettings') || '{"duration":"60","profitTarget":"10","stopLoss":"10","amount":"100","confidence":"75"}');
-          const [defaultDuration, setDefaultDuration] = useState(defaultSettings.duration);
-          const [defaultProfitTarget, setDefaultProfitTarget] = useState(defaultSettings.profitTarget);
-          const [defaultStopLoss, setDefaultStopLoss] = useState(defaultSettings.stopLoss);
-          const [defaultAmount, setDefaultAmount] = useState(defaultSettings.amount);
-          const [defaultConfidence, setDefaultConfidence] = useState(defaultSettings.confidence);
-          const [isCompacting, setIsCompacting] = useState(false);
-
-          const saveYahooCredentials = () => {
-            localStorage.setItem('yahooCookie', yahooCookie);
-            localStorage.setItem('yahooCrumb', yahooCrumb);
-            toast.addToast('Credenziali Yahoo salvate!', 'success');
-          };
-
-          const saveGasUrl = () => {
-            localStorage.setItem('gasUrl', gasUrl);
-            toast.addToast('URL GAS salvato', 'success');
-          };
-
-          const saveDefaultSettings = () => {
-            const defaults = { duration: defaultDuration, profitTarget: defaultProfitTarget, stopLoss: defaultStopLoss, amount: defaultAmount, confidence: defaultConfidence };
-            localStorage.setItem('defaultSettings', JSON.stringify(defaults));
-            toast.addToast('Valori di default salvati!', 'success');
-            onLog('Default settings aggiornati', 'info');
-          };
-
-          const handleSaveToDrive = async () => {
-            if (!gasUrl) { toast.addToast("Inserisci l'URL GAS", 'warning'); return; }
-            setIsLoadingDrive(true);
-            try {
-              const payload = await getAppData();
-              const response = await fetch(gasUrl, { method: 'POST', body: JSON.stringify(payload) });
-              const result = await response.json();
-              if (result.status === 'success') toast.addToast(`Salvato: ${result.filename}`, 'success');
-              else throw new Error(result.message);
-            } catch (error) {
-              toast.addToast('Errore Drive: ' + error.message, 'error');
-            } finally {
-              setIsLoadingDrive(false);
-            }
-          };
-
-          const handleRestoreLatest = async () => {
-            if (!gasUrl) { toast.addToast('URL GAS mancante', 'warning'); return; }
-            setIsLoadingDrive(true);
-            try {
-              const response = await fetch(`${gasUrl}?action=latest`);
-              const data = await response.json();
-              if (data.status === 'error') throw new Error(data.message);
-              await onDriveRestore(data);
-              toast.addToast('Backup ripristinato', 'success');
-            } catch (error) {
-              toast.addToast('Errore: ' + error.message, 'error');
-            } finally {
-              setIsLoadingDrive(false);
-            }
-          };
-
-          const fetchBackupList = async () => {
-            if (!gasUrl) { toast.addToast('URL GAS mancante', 'warning'); return; }
-            setIsLoadingDrive(true);
-            try {
-              const response = await fetch(`${gasUrl}?action=list`);
-              const result = await response.json();
-              if (result.status === 'error') throw new Error(result.message);
-              setBackupList(result.files || []);
-              setShowBackupList(true);
-            } catch (error) {
-              toast.addToast('Errore: ' + error.message, 'error');
-            } finally {
-              setIsLoadingDrive(false);
-            }
-          };
-
-          const restoreSelectedDriveBackup = async (fileId) => {
-            setIsLoadingDrive(true);
-            setShowBackupList(false);
-            try {
-              const response = await fetch(`${gasUrl}?action=download&fileId=${fileId}`);
-              const data = await response.json();
-              await onDriveRestore(data);
-              toast.addToast('Backup ripristinato', 'success');
-            } catch (error) {
-              toast.addToast('Errore: ' + error.message, 'error');
-            } finally {
-              setIsLoadingDrive(false);
-            }
-          };
-
-          const handleCompactStorage = async () => {
-            setIsCompacting(true);
-            try {
-              await compactStorage();
-              toast.addToast('Archivio compattato in IndexedDB', 'success');
-            } catch (error) {
-              toast.addToast('Errore compattazione: ' + error.message, 'error');
-            } finally {
-              setIsCompacting(false);
-            }
-          };
-
-          return (
-            <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
-              <div className="glass p-6 rounded-2xl">
-                <h2 className="text-xl font-bold mb-6 gradient-text">⚙️ Configurazione</h2>
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-gray-400 mb-2 font-semibold">🔑 Finnhub API Key</label>
-                    <div className="flex gap-2">
-                      <input type="text" value={finnhubKey} onChange={(e) => setFinnhubKey(e.target.value)} className="flex-1 bg-black/30 border border-gray-600 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none" placeholder="Inserisci..." />
-                      <button onClick={() => { onSaveKey('finnhub'); toast.addToast('Finnhub Key salvata', 'success'); }} className="px-6 bg-emerald-600 hover:bg-emerald-500 rounded-lg font-bold transition-colors">Salva</button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">Per ricerca ticker e prezzi</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-400 mb-2 font-semibold">🤖 Gemini API Key</label>
-                    <div className="flex gap-2">
-                      <input type="password" value={geminiKey} onChange={(e) => setGeminiKey(e.target.value)} className="flex-1 bg-black/30 border border-gray-600 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none" placeholder="Inserisci..." />
-                      <button onClick={() => { onSaveKey('gemini'); toast.addToast('Gemini Key salvata', 'success'); }} className="px-6 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold transition-colors">Salva</button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">Per il chatbot AI</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass p-6 rounded-2xl">
-                <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
-                  <h3 className="text-lg font-bold flex items-center gap-2">🗄️ Diagnostica Storage</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    <button onClick={refreshStorageDiagnostics} className="px-4 py-2 bg-blue-600/20 text-blue-300 border border-blue-500/40 rounded-lg text-sm font-semibold hover:bg-blue-600/30">🔍 Aggiorna</button>
-                    <button onClick={handleCompactStorage} disabled={isCompacting} className="px-4 py-2 bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 rounded-lg text-sm font-semibold hover:bg-emerald-600/30 disabled:opacity-50">{isCompacting ? '⏳ Compattazione...' : '🧹 Compatta Archivio'}</button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                  <div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">Versione storage</div><div className="font-bold text-white">{storageDiagnostics?.version || APP_STORAGE_VERSION}</div></div>
-                  <div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">Stime</div><div className="font-bold text-white">{storageDiagnostics?.counts?.estimates || 0}</div></div>
-                  <div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">Artifacts OHLC</div><div className="font-bold text-white">{storageDiagnostics?.artifactCount || 0}</div></div>
-                  <div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">Peso IndexedDB app</div><div className="font-bold text-emerald-300">{formatBytes(storageDiagnostics?.bytes?.totalManaged || 0)}</div></div>
-                  <div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">LocalStorage residuo</div><div className="font-bold text-amber-300">{formatBytes(storageDiagnostics?.bytes?.localStorage || 0)}</div></div>
-                  <div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">Quota browser stimata</div><div className="font-bold text-white">{storageDiagnostics?.quota ? `${formatBytes(storageDiagnostics.usage || 0)} / ${formatBytes(storageDiagnostics.quota)}` : 'N/A'}</div></div>
-                </div>
-                <div className="mt-4 text-xs text-gray-400 space-y-1">
-                  <div>Estimates: {formatBytes(storageDiagnostics?.bytes?.estimates || 0)} • Logs: {formatBytes(storageDiagnostics?.bytes?.logs || 0)} • Chat: {formatBytes(storageDiagnostics?.bytes?.chatMessages || 0)} • Artifacts: {formatBytes(storageDiagnostics?.bytes?.artifacts || 0)}</div>
-                  {storageDiagnostics?.lastMigrationAt && <div>Ultima migrazione/compattazione: {new Date(storageDiagnostics.lastMigrationAt).toLocaleString()}</div>}
-                </div>
-              </div>
-
-              <div className="glass p-6 rounded-2xl">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">📊 Yahoo Finance API</h3>
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-4">
-                  <p className="text-amber-300 text-sm font-semibold mb-2">⚠️ Configurazione richiesta per dati fondamentali</p>
-                  <p className="text-amber-200/80 text-xs">Yahoo Finance blocca alcune richieste da server. Per scaricare dati fondamentali puoi inserire Cookie e Crumb del tuo browser.</p>
-                </div>
-                <div className="space-y-4">
-                  <div><label className="block text-gray-400 text-xs mb-1">Yahoo Cookie</label><textarea rows="3" className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-xs text-white font-mono focus:border-accent-blue focus:outline-none" placeholder="Incolla qui la stringa del Cookie..." value={yahooCookie} onChange={(e) => setYahooCookie(e.target.value)} /></div>
-                  <div><label className="block text-gray-400 text-xs mb-1">Yahoo Crumb</label><input type="text" className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-sm text-white font-mono focus:border-accent-blue focus:outline-none" placeholder="Es: 26drqSmSVMM" value={yahooCrumb} onChange={(e) => setYahooCrumb(e.target.value)} /></div>
-                  <button onClick={saveYahooCredentials} className="w-full bg-amber-600 hover:bg-amber-500 py-2 rounded-lg font-bold transition-colors">💾 Salva Credenziali Yahoo</button>
-                </div>
-              </div>
-
-              <div className="glass p-6 rounded-2xl">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">☁️ Google Drive Cloud</h3>
-                <div className="mb-4">
-                  <label className="block text-gray-400 text-xs mb-1">Google Apps Script URL</label>
-                  <div className="flex gap-2">
-                    <input type="text" value={gasUrl} onChange={(e) => setGasUrl(e.target.value)} className="flex-1 bg-black/30 border border-gray-600 rounded-lg p-2 text-sm text-white" placeholder="https://script.google.com/..." />
-                    <button onClick={saveGasUrl} className="px-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors">Salva</button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <button onClick={handleSaveToDrive} disabled={isLoadingDrive} className="bg-accent-blue/20 hover:bg-accent-blue/30 text-accent-blue border border-accent-blue/50 py-2 rounded-lg font-semibold transition-all flex justify-center items-center gap-2">{isLoadingDrive ? <span className="animate-spin">⏳</span> : '💾 Salva'}</button>
-                  <button onClick={handleRestoreLatest} disabled={isLoadingDrive} className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/50 py-2 rounded-lg font-semibold transition-all">{isLoadingDrive ? <span className="animate-spin">⏳</span> : '📥 Ultimo'}</button>
-                  <button onClick={fetchBackupList} disabled={isLoadingDrive} className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/50 py-2 rounded-lg font-semibold transition-all">{isLoadingDrive ? <span className="animate-spin">⏳</span> : '📋 Lista'}</button>
-                </div>
-                {showBackupList && (
-                  <div className="mt-4 bg-black/40 p-3 rounded-lg border border-gray-600 max-h-48 overflow-y-auto animate-fade-in">
-                    <div className="flex justify-between items-center mb-2"><span className="text-sm font-bold text-gray-300">Seleziona Backup:</span><button onClick={() => setShowBackupList(false)} className="text-xs text-red-400 hover:underline">Chiudi</button></div>
-                    {backupList.length === 0 ? <div className="text-gray-500 text-sm text-center">Nessun backup</div> : <div className="space-y-1">{backupList.map(file => (<div key={file.id} className="flex justify-between items-center p-2 hover:bg-white/5 rounded cursor-pointer group" onClick={() => restoreSelectedDriveBackup(file.id)}><div className="text-sm"><div className="font-medium text-gray-200">{file.name}</div><div className="text-xs text-gray-500">{new Date(file.date).toLocaleString()}</div></div><span className="text-xs bg-emerald-600 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity">Ripristina</span></div>))}</div>}
-                  </div>
-                )}
-              </div>
-
-              <div className="glass p-6 rounded-2xl space-y-3">
-                <h3 className="text-lg font-bold mb-4">⚙️ Valori di Default</h3>
-                <input type="number" placeholder="Durata default" value={defaultDuration} onChange={(e) => setDefaultDuration(e.target.value)} className="w-full p-2 bg-gray-700 rounded border border-gray-600" />
-                <input type="number" placeholder="Target Profit %" value={defaultProfitTarget} onChange={(e) => setDefaultProfitTarget(e.target.value)} className="w-full p-2 bg-gray-700 rounded border border-gray-600" />
-                <input type="number" placeholder="Stop Loss %" value={defaultStopLoss} onChange={(e) => setDefaultStopLoss(e.target.value)} className="w-full p-2 bg-gray-700 rounded border border-gray-600" />
-                <input type="number" placeholder="Importo default (€)" value={defaultAmount} onChange={(e) => setDefaultAmount(e.target.value)} className="w-full p-2 bg-gray-700 rounded border border-gray-600" />
-                <input type="number" placeholder="Confidence default %" value={defaultConfidence} onChange={(e) => setDefaultConfidence(e.target.value)} className="w-full p-2 bg-gray-700 rounded border border-gray-600" />
-                <button onClick={saveDefaultSettings} className="w-full bg-green-600 hover:bg-green-500 py-2 rounded font-bold shadow-lg transition-all">💾 Salva Defaults</button>
-              </div>
-
-              <div className="glass p-6 rounded-2xl space-y-3">
-                <h3 className="text-lg font-bold mb-4">💾 Backup Locale Completo</h3>
-                <p className="text-sm text-gray-400">Il backup JSON ora include anche gli artifacts IndexedDB (snapshot OHLC/fundamentals) oltre a stime, log e chat.</p>
-                <button onClick={downloadBackup} className="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold shadow-lg transition-all">📥 Scarica Backup Completo (.json)</button>
-                <label className="block w-full text-center bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold cursor-pointer shadow-lg transition-all">📤 Ripristina Backup Completo<input type="file" className="hidden" accept=".json" onChange={handleRestore} /></label>
-                <button onClick={handleClearData} className="w-full bg-red-600 hover:bg-red-500 py-3 rounded-lg font-bold mt-4 shadow-lg transition-all">⚠️ RESET COMPLETO</button>
-              </div>
-            </div>
-          );
+          const [defaultDuration, setDefaultDuration] = useState(defaultSettings.duration); const [defaultProfitTarget, setDefaultProfitTarget] = useState(defaultSettings.profitTarget); const [defaultStopLoss, setDefaultStopLoss] = useState(defaultSettings.stopLoss); const [defaultAmount, setDefaultAmount] = useState(defaultSettings.amount); const [defaultConfidence, setDefaultConfidence] = useState(defaultSettings.confidence); const [isCompacting, setIsCompacting] = useState(false);
+          const saveYahooCredentials = () => { localStorage.setItem('yahooCookie', yahooCookie); localStorage.setItem('yahooCrumb', yahooCrumb); toast.addToast('Credenziali Yahoo salvate!', 'success'); }; const saveGasUrl = () => { localStorage.setItem('gasUrl', gasUrl); toast.addToast('URL GAS salvato', 'success'); }; const saveDefaultSettings = () => { const defaults = { duration: defaultDuration, profitTarget: defaultProfitTarget, stopLoss: defaultStopLoss, amount: defaultAmount, confidence: defaultConfidence }; localStorage.setItem('defaultSettings', JSON.stringify(defaults)); toast.addToast('Valori di default salvati!', 'success'); onLog('Default settings aggiornati', 'info', { category: 'system', action: 'Default aggiornati', detail: 'Valori iniziali modificati' }); };
+          const handleSaveToDrive = async () => { if (!gasUrl) { toast.addToast("Inserisci l'URL GAS", 'warning'); return; } setIsLoadingDrive(true); try { const payload = await getAppData(); const response = await fetch(gasUrl, { method: 'POST', body: JSON.stringify(payload) }); const result = await response.json(); if (result.status === 'success') toast.addToast(`Salvato: ${result.filename}`, 'success'); else throw new Error(result.message); } catch (error) { toast.addToast('Errore Drive: ' + error.message, 'error'); } finally { setIsLoadingDrive(false); } };
+          const handleRestoreLatest = async () => { if (!gasUrl) { toast.addToast('URL GAS mancante', 'warning'); return; } setIsLoadingDrive(true); try { const response = await fetch(`${gasUrl}?action=latest`); const data = await response.json(); if (data.status === 'error') throw new Error(data.message); await onDriveRestore(data); toast.addToast('Backup ripristinato', 'success'); } catch (error) { toast.addToast('Errore: ' + error.message, 'error'); } finally { setIsLoadingDrive(false); } };
+          const fetchBackupList = async () => { if (!gasUrl) { toast.addToast('URL GAS mancante', 'warning'); return; } setIsLoadingDrive(true); try { const response = await fetch(`${gasUrl}?action=list`); const result = await response.json(); if (result.status === 'error') throw new Error(result.message); setBackupList(result.files || []); setShowBackupList(true); } catch (error) { toast.addToast('Errore: ' + error.message, 'error'); } finally { setIsLoadingDrive(false); } };
+          const restoreSelectedDriveBackup = async (fileId) => { setIsLoadingDrive(true); setShowBackupList(false); try { const response = await fetch(`${gasUrl}?action=download&fileId=${fileId}`); const data = await response.json(); await onDriveRestore(data); toast.addToast('Backup ripristinato', 'success'); } catch (error) { toast.addToast('Errore: ' + error.message, 'error'); } finally { setIsLoadingDrive(false); } };
+          const handleCompactStorage = async () => { setIsCompacting(true); try { await compactStorage(); toast.addToast('Archivio compattato in IndexedDB', 'success'); } catch (error) { toast.addToast('Errore compattazione: ' + error.message, 'error'); } finally { setIsCompacting(false); } };
+          return <div className="max-w-3xl mx-auto space-y-8 animate-fade-in"><div className="glass p-6 rounded-2xl"><h2 className="text-xl font-bold mb-6 gradient-text">⚙️ Configurazione</h2><div className="space-y-6"><div><label className="block text-gray-400 mb-2 font-semibold">🔑 Finnhub API Key</label><div className="flex gap-2"><input type="text" value={finnhubKey} onChange={(e) => setFinnhubKey(e.target.value)} className="flex-1 bg-black/30 border border-gray-600 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none" placeholder="Inserisci..." /><button onClick={() => { onSaveKey('finnhub'); toast.addToast('Finnhub Key salvata', 'success'); }} className="px-6 bg-emerald-600 hover:bg-emerald-500 rounded-lg font-bold transition-colors">Salva</button></div></div><div><label className="block text-gray-400 mb-2 font-semibold">🤖 Gemini API Key</label><div className="flex gap-2"><input type="password" value={geminiKey} onChange={(e) => setGeminiKey(e.target.value)} className="flex-1 bg-black/30 border border-gray-600 rounded-lg p-3 text-white focus:border-accent-blue focus:outline-none" placeholder="Inserisci..." /><button onClick={() => { onSaveKey('gemini'); toast.addToast('Gemini Key salvata', 'success'); }} className="px-6 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold transition-colors">Salva</button></div></div></div></div><div className="glass p-6 rounded-2xl"><div className="flex items-center justify-between gap-4 flex-wrap mb-4"><h3 className="text-lg font-bold flex items-center gap-2">🗄️ Diagnostica Storage</h3><div className="flex gap-2 flex-wrap"><button onClick={refreshStorageDiagnostics} className="px-4 py-2 bg-blue-600/20 text-blue-300 border border-blue-500/40 rounded-lg text-sm font-semibold hover:bg-blue-600/30">🔍 Aggiorna</button><button onClick={handleCompactStorage} disabled={isCompacting} className="px-4 py-2 bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 rounded-lg text-sm font-semibold hover:bg-emerald-600/30 disabled:opacity-50">{isCompacting ? '⏳ Compattazione...' : '🧹 Compatta Archivio'}</button></div></div><div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm"><div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">Versione storage</div><div className="font-bold text-white">{storageDiagnostics?.version || APP_STORAGE_VERSION}</div></div><div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">Stime</div><div className="font-bold text-white">{storageDiagnostics?.counts?.estimates || 0}</div></div><div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">Artifacts OHLC</div><div className="font-bold text-white">{storageDiagnostics?.artifactCount || 0}</div></div><div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">Peso IndexedDB app</div><div className="font-bold text-emerald-300">{formatBytes(storageDiagnostics?.bytes?.totalManaged || 0)}</div></div><div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">LocalStorage residuo</div><div className="font-bold text-amber-300">{formatBytes(storageDiagnostics?.bytes?.localStorage || 0)}</div></div><div className="bg-black/30 rounded-lg p-3"><div className="text-gray-500 text-xs">Quota browser stimata</div><div className="font-bold text-white">{storageDiagnostics?.quota ? `${formatBytes(storageDiagnostics.usage || 0)} / ${formatBytes(storageDiagnostics.quota)}` : 'N/A'}</div></div></div></div><div className="glass p-6 rounded-2xl"><h3 className="text-lg font-bold mb-4 flex items-center gap-2">📊 Yahoo Finance API</h3><div className="space-y-4"><div><label className="block text-gray-400 text-xs mb-1">Yahoo Cookie</label><textarea rows="3" className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-xs text-white font-mono focus:border-accent-blue focus:outline-none" value={yahooCookie} onChange={(e) => setYahooCookie(e.target.value)} /></div><div><label className="block text-gray-400 text-xs mb-1">Yahoo Crumb</label><input type="text" className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-sm text-white font-mono focus:border-accent-blue focus:outline-none" value={yahooCrumb} onChange={(e) => setYahooCrumb(e.target.value)} /></div><button onClick={saveYahooCredentials} className="w-full bg-amber-600 hover:bg-amber-500 py-2 rounded-lg font-bold transition-colors">💾 Salva Credenziali Yahoo</button></div></div><div className="glass p-6 rounded-2xl"><h3 className="text-lg font-bold mb-4 flex items-center gap-2">☁️ Google Drive Cloud</h3><div className="mb-4"><label className="block text-gray-400 text-xs mb-1">Google Apps Script URL</label><div className="flex gap-2"><input type="text" value={gasUrl} onChange={(e) => setGasUrl(e.target.value)} className="flex-1 bg-black/30 border border-gray-600 rounded-lg p-2 text-sm text-white" placeholder="https://script.google.com/..." /><button onClick={saveGasUrl} className="px-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors">Salva</button></div></div><div className="grid grid-cols-1 md:grid-cols-3 gap-3"><button onClick={handleSaveToDrive} disabled={isLoadingDrive} className="bg-accent-blue/20 hover:bg-accent-blue/30 text-accent-blue border border-accent-blue/50 py-2 rounded-lg font-semibold transition-all flex justify-center items-center gap-2">{isLoadingDrive ? <span className="animate-spin">⏳</span> : '💾 Salva'}</button><button onClick={handleRestoreLatest} disabled={isLoadingDrive} className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/50 py-2 rounded-lg font-semibold transition-all">{isLoadingDrive ? <span className="animate-spin">⏳</span> : '📥 Ultimo'}</button><button onClick={fetchBackupList} disabled={isLoadingDrive} className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/50 py-2 rounded-lg font-semibold transition-all">{isLoadingDrive ? <span className="animate-spin">⏳</span> : '📋 Lista'}</button></div>{showBackupList && <div className="mt-4 bg-black/40 p-3 rounded-lg border border-gray-600 max-h-48 overflow-y-auto animate-fade-in"><div className="flex justify-between items-center mb-2"><span className="text-sm font-bold text-gray-300">Seleziona Backup:</span><button onClick={() => setShowBackupList(false)} className="text-xs text-red-400 hover:underline">Chiudi</button></div>{backupList.length === 0 ? <div className="text-gray-500 text-sm text-center">Nessun backup</div> : <div className="space-y-1">{backupList.map(file => <div key={file.id} className="flex justify-between items-center p-2 hover:bg-white/5 rounded cursor-pointer group" onClick={() => restoreSelectedDriveBackup(file.id)}><div className="text-sm"><div className="font-medium text-gray-200">{file.name}</div><div className="text-xs text-gray-500">{new Date(file.date).toLocaleString()}</div></div><span className="text-xs bg-emerald-600 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity">Ripristina</span></div>)}</div>}</div>}</div><div className="glass p-6 rounded-2xl space-y-3"><h3 className="text-lg font-bold mb-4">⚙️ Valori di Default</h3><input type="number" value={defaultDuration} onChange={(e) => setDefaultDuration(e.target.value)} className="w-full p-2 bg-gray-700 rounded border border-gray-600" /><input type="number" value={defaultProfitTarget} onChange={(e) => setDefaultProfitTarget(e.target.value)} className="w-full p-2 bg-gray-700 rounded border border-gray-600" /><input type="number" value={defaultStopLoss} onChange={(e) => setDefaultStopLoss(e.target.value)} className="w-full p-2 bg-gray-700 rounded border border-gray-600" /><input type="number" value={defaultAmount} onChange={(e) => setDefaultAmount(e.target.value)} className="w-full p-2 bg-gray-700 rounded border border-gray-600" /><input type="number" value={defaultConfidence} onChange={(e) => setDefaultConfidence(e.target.value)} className="w-full p-2 bg-gray-700 rounded border border-gray-600" /><button onClick={saveDefaultSettings} className="w-full bg-green-600 hover:bg-green-500 py-2 rounded font-bold shadow-lg transition-all">💾 Salva Defaults</button></div><div className="glass p-6 rounded-2xl space-y-3"><h3 className="text-lg font-bold mb-4">💾 Backup Locale Completo</h3><button onClick={downloadBackup} className="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold shadow-lg transition-all">📥 Scarica Backup Completo (.json)</button><label className="block w-full text-center bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold cursor-pointer shadow-lg transition-all">📤 Ripristina Backup Completo<input type="file" className="hidden" accept=".json" onChange={handleRestore} /></label><button onClick={handleClearData} className="w-full bg-red-600 hover:bg-red-500 py-3 rounded-lg font-bold mt-4 shadow-lg transition-all">⚠️ RESET COMPLETO</button></div></div>;
         };
 
-
         
-        // --- INDEXEDDB STORAGE & HARDENING LAYER ---
-        const APP_STORAGE_VERSION = '4.2-idb-hardening-perf';
+        // --- INDEXEDDB STORAGE, LOGGING & HARDENING LAYER ---
+        const APP_STORAGE_VERSION = '4.3.1-idb-perf-logux-chatfix';
         const APP_DB_NAME = 'TickerTrackerProDB';
         const APP_DB_VERSION = 2;
         const KV_STORE = 'kv';
         const ARTIFACT_STORE = 'estimateArtifacts';
-
-        const cloneData = (value) => {
-          if (value === undefined) return undefined;
-          if (value === null) return null;
-          return JSON.parse(JSON.stringify(value));
+        const LOG_CATEGORY_META = {
+          all: { icon: '📋', label: 'Tutti', chip: 'bg-white/10 border-white/10' },
+          update: { icon: '🔄', label: 'Aggiornamenti', chip: 'bg-blue-500/10 border-blue-400/30' },
+          target: { icon: '🎯', label: 'Target', chip: 'bg-emerald-500/10 border-emerald-400/30' },
+          risk: { icon: '🛡️', label: 'Rischio', chip: 'bg-amber-500/10 border-amber-400/30' },
+          estimate: { icon: '📌', label: 'Stime', chip: 'bg-cyan-500/10 border-cyan-400/30' },
+          storage: { icon: '🗄️', label: 'Storage', chip: 'bg-purple-500/10 border-purple-400/30' },
+          cloud: { icon: '☁️', label: 'Cloud', chip: 'bg-indigo-500/10 border-indigo-400/30' },
+          error: { icon: '❌', label: 'Errori', chip: 'bg-red-500/10 border-red-400/30' },
+          system: { icon: 'ℹ️', label: 'Sistema', chip: 'bg-slate-500/10 border-slate-400/30' },
         };
-
-        const estimatePayloadBytes = (value) => {
-          try {
-            return new Blob([JSON.stringify(value ?? null)]).size;
-          } catch (error) {
-            return 0;
-          }
+        const LOG_TYPE_META = {
+          success: { label: 'Successo', chip: 'bg-emerald-500/10 border-emerald-400/30' },
+          warning: { label: 'Attenzione', chip: 'bg-amber-500/10 border-amber-400/30' },
+          error: { label: 'Errore', chip: 'bg-red-500/10 border-red-400/30' },
+          info: { label: 'Info', chip: 'bg-blue-500/10 border-blue-400/30' },
         };
-
-        const formatBytes = (bytes = 0) => {
-          if (!bytes) return '0 B';
-          const units = ['B', 'KB', 'MB', 'GB'];
-          let size = bytes;
-          let unitIndex = 0;
-          while (size >= 1024 && unitIndex < units.length - 1) {
-            size /= 1024;
-            unitIndex++;
-          }
-          return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 2)} ${units[unitIndex]}`;
+        const cloneData = (value) => { if (value === undefined) return undefined; if (value === null) return null; return JSON.parse(JSON.stringify(value)); };
+        const estimatePayloadBytes = (value) => { try { return new Blob([JSON.stringify(value ?? null)]).size; } catch { return 0; } };
+        const formatBytes = (bytes = 0) => { if (!bytes) return '0 B'; const units = ['B', 'KB', 'MB', 'GB']; let size = bytes; let unitIndex = 0; while (size >= 1024 && unitIndex < units.length - 1) { size /= 1024; unitIndex++; } return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 2)} ${units[unitIndex]}`; };
+        const calculateLocalStorageBytes = () => { let total = 0; for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i); const value = localStorage.getItem(key) || ''; total += new Blob([String(key)]).size + new Blob([String(value)]).size; } return total; };
+        const openAppDB = () => new Promise((resolve, reject) => { if (!window.indexedDB) return reject(new Error('IndexedDB non è supportato in questo browser.')); const request = window.indexedDB.open(APP_DB_NAME, APP_DB_VERSION); request.onupgradeneeded = (event) => { const db = event.target.result; if (!db.objectStoreNames.contains(KV_STORE)) db.createObjectStore(KV_STORE); if (!db.objectStoreNames.contains(ARTIFACT_STORE)) { const artifactStore = db.createObjectStore(ARTIFACT_STORE, { keyPath: 'estimateId' }); artifactStore.createIndex('ticker', 'ticker', { unique: false }); artifactStore.createIndex('updatedAt', 'updatedAt', { unique: false }); } }; request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error || new Error('Errore apertura IndexedDB')); });
+        const withStore = async (storeName, mode, executor) => { const db = await openAppDB(); return new Promise((resolve, reject) => { const tx = db.transaction(storeName, mode); const store = tx.objectStore(storeName); let settled = false; const once = (fn) => (value) => { if (settled) return; settled = true; fn(value); }; const resolveOnce = once(resolve); const rejectOnce = once(reject); tx.oncomplete = () => db.close(); tx.onerror = () => { db.close(); rejectOnce(tx.error || new Error(`Errore transazione su ${storeName}`)); }; tx.onabort = () => { db.close(); rejectOnce(tx.error || new Error(`Transazione abortita su ${storeName}`)); }; try { executor(store, resolveOnce, rejectOnce); } catch (error) { db.close(); rejectOnce(error); } }); };
+        const idbGet = async (storeName, key) => withStore(storeName, 'readonly', (store, resolve, reject) => { const request = store.get(key); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error || new Error(`Errore lettura ${key}`)); });
+        const idbSet = async (storeName, value, key = undefined) => withStore(storeName, 'readwrite', (store, resolve, reject) => { const request = key === undefined ? store.put(value) : store.put(value, key); request.onsuccess = () => resolve(value); request.onerror = () => reject(request.error || new Error('Errore scrittura IndexedDB')); });
+        const idbDelete = async (storeName, key) => withStore(storeName, 'readwrite', (store, resolve, reject) => { const request = store.delete(key); request.onsuccess = () => resolve(true); request.onerror = () => reject(request.error || new Error(`Errore eliminazione ${key}`)); });
+        const idbGetAll = async (storeName) => withStore(storeName, 'readonly', (store, resolve, reject) => { const request = store.getAll(); request.onsuccess = () => resolve(request.result || []); request.onerror = () => reject(request.error || new Error(`Errore getAll su ${storeName}`)); });
+        const idbCount = async (storeName) => withStore(storeName, 'readonly', (store, resolve, reject) => { const request = store.count(); request.onsuccess = () => resolve(request.result || 0); request.onerror = () => reject(request.error || new Error(`Errore count su ${storeName}`)); });
+        const idbClearStore = async (storeName) => withStore(storeName, 'readwrite', (store, resolve, reject) => { const request = store.clear(); request.onsuccess = () => resolve(true); request.onerror = () => reject(request.error || new Error(`Errore clear su ${storeName}`)); });
+        const extractTickerFromText = (text = '') => { const tokens = String(text).match(/\b[A-Z]{1,5}(?:\.[A-Z])?\b/g) || []; const blacklist = new Set(['TARGET', 'STOP', 'TIMEOUT', 'INFO', 'ERROR', 'LOG', 'USD', 'EUR', 'GAS', 'JSON', 'API']); return tokens.find(token => !blacklist.has(token)) || ''; };
+        const normalizeLogEntry = (log = {}, fallbackIndex = 0) => {
+          const rawMessage = String(log.message || '').trim(); const message = rawMessage || String(log.action || 'Evento applicazione').trim(); const timestamp = log.timestamp || new Date().toISOString(); const type = ['success', 'warning', 'error', 'info'].includes(log.type) ? log.type : (rawMessage.toLowerCase().includes('errore') ? 'error' : 'info'); const lower = message.toLowerCase(); let category = log.category || ''; let action = String(log.action || '').trim(); let detail = String(log.detail || '').trim(); let ticker = String(log.ticker || extractTickerFromText(message) || '').trim(); let event = String(log.event || '').trim();
+          if (!category) { if (lower.startsWith('target') || lower.includes('target raggiunto') || lower.includes('profit target')) category = 'target'; else if (lower.startsWith('stop') || lower.includes('stop loss') || lower.includes('timeout')) category = 'risk'; else if (lower.includes('aggiornamento prezzi') || lower.includes('aggiornati ') || lower.includes('aggiornamento completato')) category = 'update'; else if (lower.includes('restore') || lower.includes('backup') || lower.includes('drive') || lower.includes('cloud')) category = 'cloud'; else if (lower.includes('indexeddb') || lower.includes('storage') || lower.includes('compattazione')) category = 'storage'; else if (lower.includes('stima') || lower.includes('estimate')) category = 'estimate'; else if (type === 'error' || lower.includes('errore') || lower.includes('exception')) category = 'error'; else category = 'system'; }
+          if (!event) { if (category === 'target') event = 'target-hit'; else if (category === 'risk' && lower.includes('timeout')) event = 'timeout'; else if (category === 'risk') event = 'stop-loss'; else if (category === 'update' && lower.includes('avviato')) event = 'update-start'; else if (category === 'update') event = 'update-summary'; else if (category === 'cloud' && lower.includes('restore')) event = 'restore'; else if (category === 'storage') event = 'storage-event'; else if (category === 'estimate' && lower.includes('rimossa')) event = 'estimate-removed'; else event = category; }
+          if (!action) { if (category === 'target') action = 'Target raggiunto'; else if (category === 'risk' && event === 'timeout') action = 'Durata scaduta'; else if (category === 'risk') action = 'Stop loss attivato'; else if (category === 'update' && event === 'update-start') action = 'Aggiornamento prezzi avviato'; else if (category === 'update') action = 'Aggiornamento prezzi'; else if (category === 'cloud' && event === 'restore') action = 'Ripristino backup'; else if (category === 'cloud') action = 'Evento cloud'; else if (category === 'storage') action = 'Evento storage'; else if (category === 'estimate') action = 'Evento stime'; else if (category === 'error') action = 'Errore applicazione'; else action = 'Evento sistema'; }
+          if (!detail && message && message !== action) detail = message; const id = log.id || `${timestamp}-${ticker || category}-${fallbackIndex}`; const keywords = `${ticker} ${action} ${detail} ${message} ${category} ${event}`.toLowerCase(); return { ...log, id, timestamp, type, category, action, detail, ticker, event, message, keywords };
         };
+        const buildHistoricalDataSummary = (historicalData) => { if (!historicalData) return null; const candles = historicalData.candles || []; const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null; return { current: historicalData.current ?? null, dayHigh: historicalData.dayHigh ?? null, dayLow: historicalData.dayLow ?? null, previousClose: historicalData.previousClose ?? null, volume: historicalData.volume ?? null, candlesCount: candles.length, lastCandleDate: lastCandle?.dateString || (lastCandle?.date ? new Date(lastCandle.date).toDateString() : null), lastCandleOpen: lastCandle?.open ?? null, lastCandleClose: lastCandle?.close ?? null, lastCandleAdjClose: lastCandle?.adjClose ?? null }; };
+        const stripHistoricalPayloadFromEstimate = (estimate) => { if (!estimate) return estimate; const sanitized = { ...estimate }; if (sanitized.lastHistoricalData) sanitized.lastHistoricalDataSummary = buildHistoricalDataSummary(sanitized.lastHistoricalData); delete sanitized.lastHistoricalData; return sanitized; };
+        const saveEstimateArtifact = async (estimateId, payload = {}) => { if (!estimateId) return null; const artifact = { estimateId, ticker: payload.ticker || '', historicalData: cloneData(payload.historicalData || null), fundamentals: cloneData(payload.fundamentals || null), updatedAt: payload.updatedAt || new Date().toISOString() }; await idbSet(ARTIFACT_STORE, artifact); return artifact; };
+        const loadEstimateArtifact = async (estimateId) => estimateId ? ((await idbGet(ARTIFACT_STORE, estimateId)) || null) : null;
+        const deleteEstimateArtifact = async (estimateId) => { if (estimateId) await idbDelete(ARTIFACT_STORE, estimateId); };
+        const clearAppIndexedDB = async () => { await Promise.all([idbClearStore(KV_STORE), idbClearStore(ARTIFACT_STORE)]); };
+        const compactEstimatesAndArtifacts = async (estimates = []) => { const compacted = []; for (const estimate of (Array.isArray(estimates) ? estimates : [])) { if (estimate?.lastHistoricalData || estimate?.lastFundamentals) await saveEstimateArtifact(estimate.id, { ticker: estimate.ticker, historicalData: estimate.lastHistoricalData || null, fundamentals: estimate.lastFundamentals || null, updatedAt: estimate.lastUpdate || new Date().toISOString() }); compacted.push(stripHistoricalPayloadFromEstimate(estimate)); } return compacted; };
+        const migrateLegacyLocalStorageToIDB = async () => { const migrationFlag = localStorage.getItem('idbMigrationCompletedV431'); const [existingEstimates, existingLogs, existingChatMessages] = await Promise.all([idbGet(KV_STORE, 'estimates'), idbGet(KV_STORE, 'logs'), idbGet(KV_STORE, 'chatMessages')]); let estimates = Array.isArray(existingEstimates) ? existingEstimates : null; let logs = Array.isArray(existingLogs) ? existingLogs : null; let chatMessages = Array.isArray(existingChatMessages) ? existingChatMessages : null; if ((!Array.isArray(estimates) || estimates.length === 0) && localStorage.getItem('estimates')) { try { estimates = JSON.parse(localStorage.getItem('estimates')); } catch {} } if ((!Array.isArray(logs) || logs.length === 0) && localStorage.getItem('logs')) { try { logs = JSON.parse(localStorage.getItem('logs')); } catch {} } if ((!Array.isArray(chatMessages) || chatMessages.length === 0) && localStorage.getItem('chatMessages')) { try { chatMessages = JSON.parse(localStorage.getItem('chatMessages')); } catch {} } const compactedEstimates = await compactEstimatesAndArtifacts(estimates || []); const normalizedLogs = Array.isArray(logs) ? logs.map((entry, index) => normalizeLogEntry(entry, index)) : []; await idbSet(KV_STORE, compactedEstimates, 'estimates'); await idbSet(KV_STORE, normalizedLogs, 'logs'); await idbSet(KV_STORE, Array.isArray(chatMessages) ? chatMessages : [], 'chatMessages'); await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: migrationFlag !== '1' }, 'storageMeta'); localStorage.removeItem('estimates'); localStorage.removeItem('logs'); localStorage.removeItem('chatMessages'); localStorage.setItem('idbMigrationCompletedV431', '1'); return { estimates: compactedEstimates, logs: normalizedLogs, chatMessages: Array.isArray(chatMessages) ? chatMessages : [] }; };
+        const collectStorageDiagnostics = async ({ estimates = [], logs = [], chatMessages = [] } = {}) => { const [artifactCount, artifacts, storageMeta] = await Promise.all([idbCount(ARTIFACT_STORE), idbGetAll(ARTIFACT_STORE), idbGet(KV_STORE, 'storageMeta')]); let quota = 0; let usage = 0; if (navigator.storage?.estimate) { try { const estimate = await navigator.storage.estimate(); quota = estimate?.quota || 0; usage = estimate?.usage || 0; } catch {} } const bytes = { estimates: estimatePayloadBytes(estimates), logs: estimatePayloadBytes(logs), chatMessages: estimatePayloadBytes(chatMessages), artifacts: estimatePayloadBytes(artifacts), localStorage: calculateLocalStorageBytes() }; bytes.totalManaged = bytes.estimates + bytes.logs + bytes.chatMessages + bytes.artifacts + bytes.localStorage; return { version: storageMeta?.version || APP_STORAGE_VERSION, lastMigrationAt: storageMeta?.migratedAt || null, artifactCount, counts: { estimates: Array.isArray(estimates) ? estimates.length : 0, logs: Array.isArray(logs) ? logs.length : 0, chatMessages: Array.isArray(chatMessages) ? chatMessages.length : 0 }, bytes, quota, usage }; };
 
-        const calculateLocalStorageBytes = () => {
-          let total = 0;
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            const value = localStorage.getItem(key) || '';
-            total += new Blob([String(key)]).size + new Blob([String(value)]).size;
-          }
-          return total;
-        };
-
-        const openAppDB = () => new Promise((resolve, reject) => {
-          if (!window.indexedDB) {
-            reject(new Error('IndexedDB non è supportato in questo browser.'));
-            return;
-          }
-          const request = window.indexedDB.open(APP_DB_NAME, APP_DB_VERSION);
-          request.onupgradeneeded = (event) => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains(KV_STORE)) {
-              db.createObjectStore(KV_STORE);
-            }
-            if (!db.objectStoreNames.contains(ARTIFACT_STORE)) {
-              const artifactStore = db.createObjectStore(ARTIFACT_STORE, { keyPath: 'estimateId' });
-              artifactStore.createIndex('ticker', 'ticker', { unique: false });
-              artifactStore.createIndex('updatedAt', 'updatedAt', { unique: false });
-            }
-          };
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = () => reject(request.error || new Error('Errore apertura IndexedDB'));
-        });
-
-        const withStore = async (storeName, mode, executor) => {
-          const db = await openAppDB();
-          return new Promise((resolve, reject) => {
-            const tx = db.transaction(storeName, mode);
-            const store = tx.objectStore(storeName);
-            let settled = false;
-            const once = (fn) => (value) => {
-              if (settled) return;
-              settled = true;
-              fn(value);
-            };
-            const resolveOnce = once(resolve);
-            const rejectOnce = once(reject);
-            tx.oncomplete = () => db.close();
-            tx.onerror = () => {
-              db.close();
-              rejectOnce(tx.error || new Error(`Errore transazione su ${storeName}`));
-            };
-            tx.onabort = () => {
-              db.close();
-              rejectOnce(tx.error || new Error(`Transazione abortita su ${storeName}`));
-            };
-            try {
-              executor(store, resolveOnce, rejectOnce);
-            } catch (error) {
-              db.close();
-              rejectOnce(error);
-            }
-          });
-        };
-
-        const idbGet = async (storeName, key) => withStore(storeName, 'readonly', (store, resolve, reject) => {
-          const request = store.get(key);
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = () => reject(request.error || new Error(`Errore lettura ${key}`));
-        });
-
-        const idbSet = async (storeName, value, key = undefined) => withStore(storeName, 'readwrite', (store, resolve, reject) => {
-          const request = key === undefined ? store.put(value) : store.put(value, key);
-          request.onsuccess = () => resolve(value);
-          request.onerror = () => reject(request.error || new Error('Errore scrittura IndexedDB'));
-        });
-
-        const idbDelete = async (storeName, key) => withStore(storeName, 'readwrite', (store, resolve, reject) => {
-          const request = store.delete(key);
-          request.onsuccess = () => resolve(true);
-          request.onerror = () => reject(request.error || new Error(`Errore eliminazione ${key}`));
-        });
-
-        const idbGetAll = async (storeName) => withStore(storeName, 'readonly', (store, resolve, reject) => {
-          const request = store.getAll();
-          request.onsuccess = () => resolve(request.result || []);
-          request.onerror = () => reject(request.error || new Error(`Errore getAll su ${storeName}`));
-        });
-
-        const idbCount = async (storeName) => withStore(storeName, 'readonly', (store, resolve, reject) => {
-          const request = store.count();
-          request.onsuccess = () => resolve(request.result || 0);
-          request.onerror = () => reject(request.error || new Error(`Errore count su ${storeName}`));
-        });
-
-        const idbClearStore = async (storeName) => withStore(storeName, 'readwrite', (store, resolve, reject) => {
-          const request = store.clear();
-          request.onsuccess = () => resolve(true);
-          request.onerror = () => reject(request.error || new Error(`Errore clear su ${storeName}`));
-        });
-
-        const buildHistoricalDataSummary = (historicalData) => {
-          if (!historicalData) return null;
-          const candles = historicalData.candles || [];
-          const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
-          return {
-            current: historicalData.current ?? null,
-            dayHigh: historicalData.dayHigh ?? null,
-            dayLow: historicalData.dayLow ?? null,
-            previousClose: historicalData.previousClose ?? null,
-            volume: historicalData.volume ?? null,
-            candlesCount: candles.length,
-            lastCandleDate: lastCandle?.dateString || (lastCandle?.date ? new Date(lastCandle.date).toDateString() : null),
-            lastCandleOpen: lastCandle?.open ?? null,
-            lastCandleClose: lastCandle?.close ?? null,
-            lastCandleAdjClose: lastCandle?.adjClose ?? null,
-          };
-        };
-
-        const stripHistoricalPayloadFromEstimate = (estimate) => {
-          if (!estimate) return estimate;
-          const sanitized = { ...estimate };
-          if (sanitized.lastHistoricalData) {
-            sanitized.lastHistoricalDataSummary = buildHistoricalDataSummary(sanitized.lastHistoricalData);
-          }
-          delete sanitized.lastHistoricalData;
-          return sanitized;
-        };
-
-        const saveEstimateArtifact = async (estimateId, payload = {}) => {
-          if (!estimateId) return null;
-          const artifact = {
-            estimateId,
-            ticker: payload.ticker || '',
-            historicalData: cloneData(payload.historicalData || null),
-            fundamentals: cloneData(payload.fundamentals || null),
-            updatedAt: payload.updatedAt || new Date().toISOString(),
-          };
-          await idbSet(ARTIFACT_STORE, artifact);
-          return artifact;
-        };
-
-        const loadEstimateArtifact = async (estimateId) => {
-          if (!estimateId) return null;
-          return (await idbGet(ARTIFACT_STORE, estimateId)) || null;
-        };
-
-        const deleteEstimateArtifact = async (estimateId) => {
-          if (!estimateId) return;
-          await idbDelete(ARTIFACT_STORE, estimateId);
-        };
-
-        const clearAppIndexedDB = async () => {
-          await Promise.all([
-            idbClearStore(KV_STORE),
-            idbClearStore(ARTIFACT_STORE),
-          ]);
-        };
-
-        const compactEstimatesAndArtifacts = async (estimates = []) => {
-          const compacted = [];
-          for (const estimate of (Array.isArray(estimates) ? estimates : [])) {
-            if (estimate?.lastHistoricalData || estimate?.lastFundamentals) {
-              await saveEstimateArtifact(estimate.id, {
-                ticker: estimate.ticker,
-                historicalData: estimate.lastHistoricalData || null,
-                fundamentals: estimate.lastFundamentals || null,
-                updatedAt: estimate.lastUpdate || new Date().toISOString(),
-              });
-            }
-            compacted.push(stripHistoricalPayloadFromEstimate(estimate));
-          }
-          return compacted;
-        };
-
-        const migrateLegacyLocalStorageToIDB = async () => {
-          const migrationFlag = localStorage.getItem('idbMigrationCompletedV27');
-          const [existingEstimates, existingLogs, existingChatMessages] = await Promise.all([
-            idbGet(KV_STORE, 'estimates'),
-            idbGet(KV_STORE, 'logs'),
-            idbGet(KV_STORE, 'chatMessages'),
-          ]);
-
-          let estimates = Array.isArray(existingEstimates) ? existingEstimates : null;
-          let logs = Array.isArray(existingLogs) ? existingLogs : null;
-          let chatMessages = Array.isArray(existingChatMessages) ? existingChatMessages : null;
-
-          if ((!Array.isArray(estimates) || estimates.length === 0) && localStorage.getItem('estimates')) {
-            try { estimates = JSON.parse(localStorage.getItem('estimates')); } catch (error) { console.warn('Migrazione estimates fallita', error); }
-          }
-          if ((!Array.isArray(logs) || logs.length === 0) && localStorage.getItem('logs')) {
-            try { logs = JSON.parse(localStorage.getItem('logs')); } catch (error) { console.warn('Migrazione logs fallita', error); }
-          }
-          if ((!Array.isArray(chatMessages) || chatMessages.length === 0) && localStorage.getItem('chatMessages')) {
-            try { chatMessages = JSON.parse(localStorage.getItem('chatMessages')); } catch (error) { console.warn('Migrazione chat fallita', error); }
-          }
-
-          const compactedEstimates = await compactEstimatesAndArtifacts(estimates || []);
-          await idbSet(KV_STORE, compactedEstimates, 'estimates');
-          await idbSet(KV_STORE, Array.isArray(logs) ? logs : [], 'logs');
-          await idbSet(KV_STORE, Array.isArray(chatMessages) ? chatMessages : [], 'chatMessages');
-          await idbSet(KV_STORE, {
-            version: APP_STORAGE_VERSION,
-            migratedAt: new Date().toISOString(),
-            migratedFromLocalStorage: migrationFlag !== '1',
-          }, 'storageMeta');
-
-          localStorage.removeItem('estimates');
-          localStorage.removeItem('logs');
-          localStorage.removeItem('chatMessages');
-          localStorage.setItem('idbMigrationCompletedV27', '1');
-
-          return {
-            estimates: compactedEstimates,
-            logs: Array.isArray(logs) ? logs : [],
-            chatMessages: Array.isArray(chatMessages) ? chatMessages : [],
-          };
-        };
-
-        const collectStorageDiagnostics = async ({ estimates = [], logs = [], chatMessages = [] } = {}) => {
-          const [artifactCount, artifacts, storageMeta] = await Promise.all([
-            idbCount(ARTIFACT_STORE),
-            idbGetAll(ARTIFACT_STORE),
-            idbGet(KV_STORE, 'storageMeta'),
-          ]);
-
-          let quota = 0;
-          let usage = 0;
-          if (navigator.storage?.estimate) {
-            try {
-              const estimate = await navigator.storage.estimate();
-              quota = estimate?.quota || 0;
-              usage = estimate?.usage || 0;
-            } catch (error) {
-              console.warn('navigator.storage.estimate non disponibile', error);
-            }
-          }
-
-          const bytes = {
-            estimates: estimatePayloadBytes(estimates),
-            logs: estimatePayloadBytes(logs),
-            chatMessages: estimatePayloadBytes(chatMessages),
-            artifacts: estimatePayloadBytes(artifacts),
-            localStorage: calculateLocalStorageBytes(),
-          };
-          bytes.totalManaged = bytes.estimates + bytes.logs + bytes.chatMessages + bytes.artifacts + bytes.localStorage;
-
-          return {
-            version: storageMeta?.version || APP_STORAGE_VERSION,
-            lastMigrationAt: storageMeta?.migratedAt || null,
-            artifactCount,
-            counts: {
-              estimates: Array.isArray(estimates) ? estimates.length : 0,
-              logs: Array.isArray(logs) ? logs.length : 0,
-              chatMessages: Array.isArray(chatMessages) ? chatMessages.length : 0,
-            },
-            bytes,
-            quota,
-            usage,
-          };
-        };
 
         // --- LOG BATCH SYNC SYSTEM ---        // --- LOG BATCH SYNC SYSTEM ---
         let logQueue = [];
@@ -3717,389 +2692,29 @@
           }
         };
 
-
         // --- APP COMPONENT ---
         const App = () => {
           const defaultChatMessage = { role: 'model', text: 'Ciao! Sono il tuo assistente finanziario AI. Chiedimi pure!', timestamp: new Date().toISOString() };
-          const [activeTab, setActiveTab] = useState('dashboard');
-          const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-          const [estimates, setEstimates] = useState([]);
-          const [logs, setLogs] = useState([]);
-          const [finnhubKey, setFinnhubKey] = useState('');
-          const [geminiKey, setGeminiKey] = useState('');
-          const [autoRefresh, setAutoRefresh] = useState(0);
-          const [chatMessages, setChatMessages] = useState([defaultChatMessage]);
-          const [storageReady, setStorageReady] = useState(false);
-          const [storageDiagnostics, setStorageDiagnostics] = useState({
-            version: APP_STORAGE_VERSION,
-            counts: { estimates: 0, logs: 0, chatMessages: 0 },
-            bytes: { estimates: 0, logs: 0, chatMessages: 0, artifacts: 0, localStorage: 0, totalManaged: 0 },
-            artifactCount: 0,
-            quota: 0,
-            usage: 0,
-            lastMigrationAt: null,
-          });
-          const hasHydratedRef = useRef(false);
-          const skipNextEstimatePersistRef = useRef(0);
-          const skipNextLogsPersistRef = useRef(0);
-          const skipNextChatPersistRef = useRef(0);
-
-          const refreshStorageDiagnostics = useCallback(async (override = {}) => {
-            try {
-              const diagnostics = await collectStorageDiagnostics({
-                estimates: override.estimates ?? estimates,
-                logs: override.logs ?? logs,
-                chatMessages: override.chatMessages ?? chatMessages,
-              });
-              setStorageDiagnostics(diagnostics);
-              return diagnostics;
-            } catch (error) {
-              console.error('Errore diagnostica storage', error);
-              return null;
-            }
-          }, [estimates, logs, chatMessages]);
-
-          useEffect(() => {
-            let cancelled = false;
-            const initialize = async () => {
-              try {
-                const migrated = await migrateLegacyLocalStorageToIDB();
-                const savedFinnhubKey = localStorage.getItem('finnhubApiKey');
-                const savedGeminiKey = localStorage.getItem('geminiApiKey');
-                const savedAutoRefresh = localStorage.getItem('autoRefresh');
-                const loadedChat = Array.isArray(migrated.chatMessages) && migrated.chatMessages.length > 0 ? migrated.chatMessages : [defaultChatMessage];
-
-                if (!cancelled) {
-                  setEstimates(Array.isArray(migrated.estimates) ? migrated.estimates : []);
-                  setLogs(Array.isArray(migrated.logs) ? migrated.logs : []);
-                  setChatMessages(loadedChat);
-                  if (savedFinnhubKey) setFinnhubKey(savedFinnhubKey);
-                  if (savedGeminiKey) setGeminiKey(savedGeminiKey);
-                  if (savedAutoRefresh) setAutoRefresh(Number(savedAutoRefresh));
-                  hasHydratedRef.current = true;
-                  setStorageReady(true);
-                }
-
-                await refreshStorageDiagnostics({ estimates: migrated.estimates || [], logs: migrated.logs || [], chatMessages: loadedChat });
-              } catch (error) {
-                console.error('Errore inizializzazione storage', error);
-                if (!cancelled) {
-                  setStorageReady(true);
-                  hasHydratedRef.current = true;
-                }
-              }
-            };
-            initialize();
-            return () => { cancelled = true; };
-          }, []);
-
-          const persistManagedState = useCallback(async (key, value, override = {}) => {
-            if (!hasHydratedRef.current) return;
-            try {
-              await idbSet(KV_STORE, value, key);
-              await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: true }, 'storageMeta');
-              await refreshStorageDiagnostics(override);
-            } catch (error) {
-              console.error(`Errore persistenza ${key}`, error);
-            }
-          }, [refreshStorageDiagnostics]);
-
-          useEffect(() => {
-            if (!storageReady) return;
-            if (skipNextEstimatePersistRef.current > 0) {
-              skipNextEstimatePersistRef.current -= 1;
-              return;
-            }
-            persistManagedState('estimates', estimates, { estimates });
-          }, [estimates, storageReady, persistManagedState]);
-
-          useEffect(() => {
-            if (!storageReady) return;
-            if (skipNextLogsPersistRef.current > 0) {
-              skipNextLogsPersistRef.current -= 1;
-              return;
-            }
-            persistManagedState('logs', logs, { logs });
-          }, [logs, storageReady, persistManagedState]);
-
-          useEffect(() => {
-            if (!storageReady) return;
-            if (skipNextChatPersistRef.current > 0) {
-              skipNextChatPersistRef.current -= 1;
-              return;
-            }
-            persistManagedState('chatMessages', chatMessages, { chatMessages });
-          }, [chatMessages, storageReady, persistManagedState]);
-
-          useEffect(() => {
-            localStorage.setItem('autoRefresh', String(autoRefresh));
-          }, [autoRefresh]);
-
-          const addLog = useCallback((message, type) => {
-            setLogs(prev => [...prev.slice(-499), { timestamp: new Date().toISOString(), message, type }]);
-            logToGASBatch(message, type === 'error' || type === 'warning' ? type : 'info');
-          }, []);
-
-          const handleAddEstimate = useCallback((est) => {
-            const sanitizedEstimate = stripHistoricalPayloadFromEstimate(est);
-            setEstimates(prev => [...prev, sanitizedEstimate]);
-          }, []);
-
-          const handleUpdateEstimate = useCallback((updated) => {
-            const sanitizedEstimate = stripHistoricalPayloadFromEstimate(updated);
-            setEstimates(prev => prev.map(e => e.id === sanitizedEstimate.id ? sanitizedEstimate : e));
-          }, []);
-
-          const applyBulkEstimateUpdates = useCallback(async (nextEstimates, { logEntries = [] } = {}) => {
-            const sanitizedEstimates = (Array.isArray(nextEstimates) ? nextEstimates : []).map(stripHistoricalPayloadFromEstimate);
-            const normalizedLogs = (Array.isArray(logEntries) ? logEntries : []).map(entry => ({
-              timestamp: entry.timestamp || new Date().toISOString(),
-              message: entry.message || '',
-              type: entry.type || 'info',
-            }));
-            const combinedLogs = normalizedLogs.length > 0 ? [...logs, ...normalizedLogs].slice(-499) : logs;
-
-            skipNextEstimatePersistRef.current += 1;
-            setEstimates(sanitizedEstimates);
-
-            if (normalizedLogs.length > 0) {
-              skipNextLogsPersistRef.current += 1;
-              setLogs(combinedLogs);
-              normalizedLogs.forEach(entry => logToGASBatch(entry.message, entry.type === 'error' || entry.type === 'warning' ? entry.type : 'info'));
-            }
-
-            try {
-              await idbSet(KV_STORE, sanitizedEstimates, 'estimates');
-              if (normalizedLogs.length > 0) {
-                await idbSet(KV_STORE, combinedLogs, 'logs');
-              }
-              await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: false }, 'storageMeta');
-              await refreshStorageDiagnostics({ estimates: sanitizedEstimates, logs: combinedLogs });
-            } catch (error) {
-              console.error('Errore applyBulkEstimateUpdates', error);
-            }
-          }, [logs, refreshStorageDiagnostics]);
-
-          const handleRemoveEstimate = useCallback(async (id, skipConfirm = false) => {
-            if (skipConfirm || confirm('Eliminare questa stima?')) {
-              const removed = estimates.find(e => e.id === id);
-              setEstimates(prev => prev.filter(e => e.id !== id));
-              try {
-                await deleteEstimateArtifact(id);
-              } catch (error) {
-                console.warn('Errore eliminazione artifact', error);
-              }
-              addLog(removed ? `🗑️ Stima rimossa: ${removed.ticker}` : 'Stima rimossa', 'warning');
-            }
-          }, [addLog, estimates]);
-
-          const handleClearChat = () => {
-            if (confirm('Cancellare la conversazione?')) {
-              skipNextChatPersistRef.current += 1;
-              const nextMessages = [{ role: 'model', text: 'Ciao! Sono il tuo assistente. Chiedimi pure!', timestamp: new Date().toISOString() }];
-              setChatMessages(nextMessages);
-              idbSet(KV_STORE, nextMessages, 'chatMessages').catch(err => console.error('Errore reset chat', err));
-            }
-          };
-
-          const handleSaveKey = (type) => {
-            if (type === 'finnhub') localStorage.setItem('finnhubApiKey', finnhubKey);
-            else if (type === 'gemini') localStorage.setItem('geminiApiKey', geminiKey);
-          };
-
-          const handleClearData = async () => {
-            if (confirm('CANCELLARE TUTTO?')) {
-              try {
-                setEstimates([]);
-                setLogs([]);
-                setChatMessages([defaultChatMessage]);
-                await clearAppIndexedDB();
-              } catch (error) {
-                console.error('Errore reset storage', error);
-              }
-              localStorage.clear();
-              location.reload();
-            }
-          };
-
-          const handleDownloadLogs = () => {
-            const text = logs.map(l => `[${new Date(l.timestamp).toLocaleString()}] [${l.type.toUpperCase()}] ${l.message}`).join('\n');
-            const blob = new Blob([text], { type: 'text/plain' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `logs_${Date.now()}.txt`;
-            a.click();
-          };
-
-          const getAppData = useCallback(async () => {
-            const artifacts = await idbGetAll(ARTIFACT_STORE);
-            return {
-              version: '4.2-idb-hardening-perf',
-              timestamp: new Date().toISOString(),
-              estimates,
-              logs,
-              chatMessages,
-              artifacts,
-              storageDiagnostics,
-              config: {
-                finnhubKey,
-                geminiKey,
-                gasUrl: localStorage.getItem('gasUrl') || '',
-                autoRefresh,
-                yahooCookie: localStorage.getItem('yahooCookie') || '',
-                yahooCrumb: localStorage.getItem('yahooCrumb') || '',
-                defaultSettings: localStorage.getItem('defaultSettings') || '',
-              }
-            };
-          }, [estimates, logs, chatMessages, storageDiagnostics, finnhubKey, geminiKey, autoRefresh]);
-
-          const downloadBackup = async () => {
-            const payload = await getAppData();
-            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'stock_tracker_backup_complete.json';
-            a.click();
-          };
-
-          const applyRestoredData = async (data) => {
-            try {
-              const restoredEstimatesRaw = Array.isArray(data.estimates) ? data.estimates : [];
-              const restoredLogs = Array.isArray(data.logs) ? data.logs : [];
-              const restoredChatMessages = Array.isArray(data.chatMessages) && data.chatMessages.length > 0 ? data.chatMessages : [defaultChatMessage];
-
-              await idbClearStore(ARTIFACT_STORE);
-              let restoredEstimates = restoredEstimatesRaw.map(stripHistoricalPayloadFromEstimate);
-              if (Array.isArray(data.artifacts) && data.artifacts.length > 0) {
-                for (const artifact of data.artifacts) await idbSet(ARTIFACT_STORE, artifact);
-              } else {
-                restoredEstimates = await compactEstimatesAndArtifacts(restoredEstimatesRaw);
-              }
-
-              await idbSet(KV_STORE, restoredEstimates, 'estimates');
-              await idbSet(KV_STORE, restoredLogs, 'logs');
-              await idbSet(KV_STORE, restoredChatMessages, 'chatMessages');
-              await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: false }, 'storageMeta');
-
-              skipNextEstimatePersistRef.current += 1;
-              skipNextLogsPersistRef.current += 1;
-              skipNextChatPersistRef.current += 1;
-              setEstimates(restoredEstimates);
-              setLogs(restoredLogs);
-              setChatMessages(restoredChatMessages);
-
-              if (data.config) {
-                if (data.config.finnhubKey !== undefined) {
-                  setFinnhubKey(data.config.finnhubKey || '');
-                  if (data.config.finnhubKey) localStorage.setItem('finnhubApiKey', data.config.finnhubKey); else localStorage.removeItem('finnhubApiKey');
-                }
-                if (data.config.geminiKey !== undefined) {
-                  setGeminiKey(data.config.geminiKey || '');
-                  if (data.config.geminiKey) localStorage.setItem('geminiApiKey', data.config.geminiKey); else localStorage.removeItem('geminiApiKey');
-                }
-                if (data.config.gasUrl !== undefined) {
-                  if (data.config.gasUrl) localStorage.setItem('gasUrl', data.config.gasUrl); else localStorage.removeItem('gasUrl');
-                }
-                if (data.config.autoRefresh !== undefined) setAutoRefresh(Number(data.config.autoRefresh) || 0);
-                if (data.config.yahooCookie !== undefined) {
-                  if (data.config.yahooCookie) localStorage.setItem('yahooCookie', data.config.yahooCookie); else localStorage.removeItem('yahooCookie');
-                }
-                if (data.config.yahooCrumb !== undefined) {
-                  if (data.config.yahooCrumb) localStorage.setItem('yahooCrumb', data.config.yahooCrumb); else localStorage.removeItem('yahooCrumb');
-                }
-                if (data.config.defaultSettings) localStorage.setItem('defaultSettings', data.config.defaultSettings);
-              }
-
-              await refreshStorageDiagnostics({ estimates: restoredEstimates, logs: restoredLogs, chatMessages: restoredChatMessages });
-              return true;
-            } catch (error) {
-              console.error('Errore applyRestoredData', error);
-              return false;
-            }
-          };
-
-          const handleRestore = (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async (ev) => {
-              try {
-                const data = JSON.parse(ev.target.result);
-                if (await applyRestoredData(data)) addLog('Restore effettuato', 'success');
-                else addLog('Errore struttura backup', 'error');
-              } catch (error) {
-                alert('Errore nel file di backup');
-              }
-            };
-            reader.readAsText(file);
-          };
-
-          const onDriveRestore = async (data) => {
-            if (await applyRestoredData(data)) addLog('Restore da Cloud effettuato', 'success');
-            else addLog('Errore restore Cloud', 'error');
-          };
-
-          const compactStorage = useCallback(async () => {
-            const compacted = await compactEstimatesAndArtifacts(estimates);
-            skipNextEstimatePersistRef.current += 1;
-            setEstimates(compacted);
-            await idbSet(KV_STORE, compacted, 'estimates');
-            await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: false }, 'storageMeta');
-            await refreshStorageDiagnostics({ estimates: compacted });
-            addLog('Compattazione storage eseguita', 'success');
-            return compacted;
-          }, [estimates, refreshStorageDiagnostics, addLog]);
-
-          const tabs = [
-            { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
-            { id: 'input', icon: '📊', label: 'Inserimento' },
-            { id: 'estimates', icon: '📈', label: 'Stime' },
-            { id: 'stats', icon: '📉', label: 'Global Stats' },
-            { id: 'chat', icon: '💬', label: 'IA Chat' },
-            { id: 'logs', icon: '📝', label: 'Log' },
-            { id: 'settings', icon: '⚙️', label: 'Setup' },
-          ];
-
-          const btnClass = 'px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-0.5';
-          const activeTabClass = 'bg-gradient-to-r from-accent-blue to-accent-purple text-white shadow-lg shadow-accent-blue/30';
-          const inactiveTabClass = 'text-gray-400 hover:text-white hover:bg-white/5';
-
-          if (!storageReady) {
-            return (
-              <div className="min-h-screen bg-background text-gray-200 flex items-center justify-center">
-                <div className="glass rounded-2xl p-8 text-center space-y-3">
-                  <div className="text-4xl animate-spin">⏳</div>
-                  <div className="text-xl font-bold text-white">Inizializzazione archivio locale</div>
-                  <div className="text-sm text-gray-400">Migrazione dati verso IndexedDB in corso...</div>
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <div className="min-h-screen bg-background text-gray-200 pb-20">
-              <MobileNav activeTab={activeTab} setActiveTab={setActiveTab} isOpen={mobileMenuOpen} setIsOpen={setMobileMenuOpen} />
-              <header className="pt-8 pb-4 px-4 text-center">
-                <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-1">AI Stock Tracker Pro</h1>
-                <p className="text-gray-500 text-sm">Monitoraggio performance modelli predittivi • Storage v{APP_STORAGE_VERSION}</p>
-              </header>
-
-              <PortfolioWidget estimates={estimates} />
-              <div className="container mx-auto px-4 mb-6"><div className="hidden md:flex flex-wrap justify-center gap-2 border-b border-gray-800 pb-4">{tabs.map(tab => (<button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`${btnClass} ${activeTab === tab.id ? activeTabClass : inactiveTabClass}`}>{tab.icon} {tab.label}</button>))}</div></div>
-
-              <main className="container mx-auto px-4 max-w-6xl">
-                {activeTab === 'dashboard' && <Dashboard estimates={estimates} switchTab={setActiveTab} />}
-                {activeTab === 'input' && <EstimateForm onAdd={handleAddEstimate} onRemove={handleRemoveEstimate} onLog={addLog} finnhubKey={finnhubKey} isOnline={!!finnhubKey} switchTab={setActiveTab} estimates={estimates} />}
-                {activeTab === 'estimates' && <EstimateList estimates={estimates} onUpdateEstimate={handleUpdateEstimate} onBulkUpdateEstimates={applyBulkEstimateUpdates} onRemove={handleRemoveEstimate} onLog={addLog} autoRefresh={autoRefresh} setAutoRefresh={setAutoRefresh} />}
-                {activeTab === 'stats' && <Stats estimates={estimates} />}
-                {activeTab === 'chat' && <Chatbot geminiKey={geminiKey} estimates={estimates} messages={chatMessages} setMessages={setChatMessages} onClear={handleClearChat} />}
-                {activeTab === 'logs' && <Logs logs={logs} onClear={() => setLogs([])} onDownload={handleDownloadLogs} />}
-                {activeTab === 'settings' && <Settings finnhubKey={finnhubKey} setFinnhubKey={setFinnhubKey} geminiKey={geminiKey} setGeminiKey={setGeminiKey} onSaveKey={handleSaveKey} downloadBackup={downloadBackup} handleRestore={handleRestore} handleClearData={handleClearData} getAppData={getAppData} onDriveRestore={onDriveRestore} onLog={addLog} storageDiagnostics={storageDiagnostics} refreshStorageDiagnostics={refreshStorageDiagnostics} compactStorage={compactStorage} />}
-              </main>
-            </div>
-          );
+          const [activeTab, setActiveTab] = useState('dashboard'); const [mobileMenuOpen, setMobileMenuOpen] = useState(false); const [estimates, setEstimates] = useState([]); const [logs, setLogs] = useState([]); const [finnhubKey, setFinnhubKey] = useState(''); const [geminiKey, setGeminiKey] = useState(''); const [autoRefresh, setAutoRefresh] = useState(0); const [chatMessages, setChatMessages] = useState([defaultChatMessage]); const [storageReady, setStorageReady] = useState(false); const [storageDiagnostics, setStorageDiagnostics] = useState({ version: APP_STORAGE_VERSION, counts: { estimates: 0, logs: 0, chatMessages: 0 }, bytes: { estimates: 0, logs: 0, chatMessages: 0, artifacts: 0, localStorage: 0, totalManaged: 0 }, artifactCount: 0, quota: 0, usage: 0, lastMigrationAt: null }); const hasHydratedRef = useRef(false); const skipNextEstimatePersistRef = useRef(0); const skipNextLogsPersistRef = useRef(0); const skipNextChatPersistRef = useRef(0);
+          const refreshStorageDiagnostics = useCallback(async (override = {}) => { try { const diagnostics = await collectStorageDiagnostics({ estimates: override.estimates ?? estimates, logs: override.logs ?? logs, chatMessages: override.chatMessages ?? chatMessages }); setStorageDiagnostics(diagnostics); return diagnostics; } catch (error) { console.error('Errore diagnostica storage', error); return null; } }, [estimates, logs, chatMessages]);
+          useEffect(() => { let cancelled = false; const initialize = async () => { try { const migrated = await migrateLegacyLocalStorageToIDB(); const savedFinnhubKey = localStorage.getItem('finnhubApiKey'); const savedGeminiKey = localStorage.getItem('geminiApiKey'); const savedAutoRefresh = localStorage.getItem('autoRefresh'); const loadedChat = Array.isArray(migrated.chatMessages) && migrated.chatMessages.length > 0 ? migrated.chatMessages : [defaultChatMessage]; if (!cancelled) { setEstimates(Array.isArray(migrated.estimates) ? migrated.estimates : []); setLogs(Array.isArray(migrated.logs) ? migrated.logs : []); setChatMessages(loadedChat); if (savedFinnhubKey) setFinnhubKey(savedFinnhubKey); if (savedGeminiKey) setGeminiKey(savedGeminiKey); if (savedAutoRefresh) setAutoRefresh(Number(savedAutoRefresh)); hasHydratedRef.current = true; setStorageReady(true); } await refreshStorageDiagnostics({ estimates: migrated.estimates || [], logs: migrated.logs || [], chatMessages: loadedChat }); } catch (error) { console.error('Errore inizializzazione storage', error); if (!cancelled) { setStorageReady(true); hasHydratedRef.current = true; } } }; initialize(); return () => { cancelled = true; }; }, []);
+          const persistManagedState = useCallback(async (key, value, override = {}) => { if (!hasHydratedRef.current) return; try { await idbSet(KV_STORE, value, key); await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: true }, 'storageMeta'); await refreshStorageDiagnostics(override); } catch (error) { console.error(`Errore persistenza ${key}`, error); } }, [refreshStorageDiagnostics]);
+          useEffect(() => { if (!storageReady) return; if (skipNextEstimatePersistRef.current > 0) { skipNextEstimatePersistRef.current -= 1; return; } persistManagedState('estimates', estimates, { estimates }); }, [estimates, storageReady, persistManagedState]);
+          useEffect(() => { if (!storageReady) return; if (skipNextLogsPersistRef.current > 0) { skipNextLogsPersistRef.current -= 1; return; } persistManagedState('logs', logs, { logs }); }, [logs, storageReady, persistManagedState]);
+          useEffect(() => { if (!storageReady) return; if (skipNextChatPersistRef.current > 0) { skipNextChatPersistRef.current -= 1; return; } persistManagedState('chatMessages', chatMessages, { chatMessages }); }, [chatMessages, storageReady, persistManagedState]);
+          useEffect(() => { localStorage.setItem('autoRefresh', String(autoRefresh)); }, [autoRefresh]);
+          const addLog = useCallback((message, type = 'info', meta = {}) => { const entry = normalizeLogEntry({ timestamp: new Date().toISOString(), message, type, ...meta }); setLogs(prev => [...prev.slice(-499), entry]); logToGASBatch(entry.message, entry.type === 'error' || entry.type === 'warning' ? entry.type : 'info'); }, []);
+          const handleAddEstimate = useCallback((est) => { const sanitizedEstimate = stripHistoricalPayloadFromEstimate(est); setEstimates(prev => [...prev, sanitizedEstimate]); }, []); const handleUpdateEstimate = useCallback((updated) => { const sanitizedEstimate = stripHistoricalPayloadFromEstimate(updated); setEstimates(prev => prev.map(e => e.id === sanitizedEstimate.id ? sanitizedEstimate : e)); }, []);
+          const applyBulkEstimateUpdates = useCallback(async (nextEstimates, { logEntries = [] } = {}) => { const sanitizedEstimates = (Array.isArray(nextEstimates) ? nextEstimates : []).map(stripHistoricalPayloadFromEstimate); const normalizedLogs = (Array.isArray(logEntries) ? logEntries : []).map((entry, index) => normalizeLogEntry({ timestamp: entry.timestamp || new Date().toISOString(), type: entry.type || 'info', ...entry }, index)); const combinedLogs = normalizedLogs.length > 0 ? [...logs, ...normalizedLogs].slice(-499) : logs; skipNextEstimatePersistRef.current += 1; setEstimates(sanitizedEstimates); if (normalizedLogs.length > 0) { skipNextLogsPersistRef.current += 1; setLogs(combinedLogs); normalizedLogs.forEach(entry => logToGASBatch(entry.message, entry.type === 'error' || entry.type === 'warning' ? entry.type : 'info')); } try { await idbSet(KV_STORE, sanitizedEstimates, 'estimates'); if (normalizedLogs.length > 0) await idbSet(KV_STORE, combinedLogs, 'logs'); await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: false }, 'storageMeta'); await refreshStorageDiagnostics({ estimates: sanitizedEstimates, logs: combinedLogs }); } catch (error) { console.error('Errore applyBulkEstimateUpdates', error); } }, [logs, refreshStorageDiagnostics]);
+          const handleRemoveEstimate = useCallback(async (id, skipConfirm = false) => { if (skipConfirm || confirm('Eliminare questa stima?')) { const removed = estimates.find(e => e.id === id); setEstimates(prev => prev.filter(e => e.id !== id)); try { await deleteEstimateArtifact(id); } catch (error) { console.warn('Errore eliminazione artifact', error); } addLog(removed ? `Stima rimossa ${removed.ticker}` : 'Stima rimossa', 'warning', { category: 'estimate', action: 'Stima rimossa', ticker: removed?.ticker || '', detail: removed ? `Versione v${removed.version}` : '' }); } }, [addLog, estimates]);
+          const handleClearChat = () => { if (confirm('Cancellare la conversazione?')) { skipNextChatPersistRef.current += 1; const nextMessages = [{ role: 'model', text: 'Ciao! Sono il tuo assistente. Chiedimi pure!', timestamp: new Date().toISOString() }]; setChatMessages(nextMessages); idbSet(KV_STORE, nextMessages, 'chatMessages').catch(err => console.error('Errore reset chat', err)); addLog('Chat azzerata', 'info', { category: 'system', action: 'Chat azzerata', detail: 'Conversazione ripulita' }); } };
+          const handleSaveKey = (type) => { if (type === 'finnhub') localStorage.setItem('finnhubApiKey', finnhubKey); else if (type === 'gemini') localStorage.setItem('geminiApiKey', geminiKey); }; const handleClearData = async () => { if (confirm('CANCELLARE TUTTO?')) { try { setEstimates([]); setLogs([]); setChatMessages([defaultChatMessage]); await clearAppIndexedDB(); } catch (error) { console.error('Errore reset storage', error); } localStorage.clear(); location.reload(); } }; const handleDownloadLogs = () => { const text = logs.map(l => `[${new Date(l.timestamp).toLocaleString()}] [${l.type.toUpperCase()}] ${l.ticker ? `[${l.ticker}] ` : ''}${l.action || l.message}${l.detail ? ` - ${l.detail}` : ''}`).join('\n'); const blob = new Blob([text], { type: 'text/plain' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `logs_${Date.now()}.txt`; a.click(); };
+          const getAppData = useCallback(async () => { const artifacts = await idbGetAll(ARTIFACT_STORE); return { version: '4.3.1-idb-perf-logux-chatfix', timestamp: new Date().toISOString(), estimates, logs, chatMessages, artifacts, storageDiagnostics, config: { finnhubKey, geminiKey, gasUrl: localStorage.getItem('gasUrl') || '', autoRefresh, yahooCookie: localStorage.getItem('yahooCookie') || '', yahooCrumb: localStorage.getItem('yahooCrumb') || '', defaultSettings: localStorage.getItem('defaultSettings') || '' } }; }, [estimates, logs, chatMessages, storageDiagnostics, finnhubKey, geminiKey, autoRefresh]);
+          const downloadBackup = async () => { const payload = await getAppData(); const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'stock_tracker_backup_complete.json'; a.click(); };
+          const applyRestoredData = async (data) => { try { const restoredEstimatesRaw = Array.isArray(data.estimates) ? data.estimates : []; const restoredLogs = Array.isArray(data.logs) ? data.logs.map((entry, index) => normalizeLogEntry(entry, index)) : []; const restoredChatMessages = Array.isArray(data.chatMessages) && data.chatMessages.length > 0 ? data.chatMessages : [defaultChatMessage]; await idbClearStore(ARTIFACT_STORE); let restoredEstimates = restoredEstimatesRaw.map(stripHistoricalPayloadFromEstimate); if (Array.isArray(data.artifacts) && data.artifacts.length > 0) for (const artifact of data.artifacts) await idbSet(ARTIFACT_STORE, artifact); else restoredEstimates = await compactEstimatesAndArtifacts(restoredEstimatesRaw); await idbSet(KV_STORE, restoredEstimates, 'estimates'); await idbSet(KV_STORE, restoredLogs, 'logs'); await idbSet(KV_STORE, restoredChatMessages, 'chatMessages'); await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: false }, 'storageMeta'); skipNextEstimatePersistRef.current += 1; skipNextLogsPersistRef.current += 1; skipNextChatPersistRef.current += 1; setEstimates(restoredEstimates); setLogs(restoredLogs); setChatMessages(restoredChatMessages); if (data.config) { if (data.config.finnhubKey !== undefined) { setFinnhubKey(data.config.finnhubKey || ''); if (data.config.finnhubKey) localStorage.setItem('finnhubApiKey', data.config.finnhubKey); else localStorage.removeItem('finnhubApiKey'); } if (data.config.geminiKey !== undefined) { setGeminiKey(data.config.geminiKey || ''); if (data.config.geminiKey) localStorage.setItem('geminiApiKey', data.config.geminiKey); else localStorage.removeItem('geminiApiKey'); } if (data.config.gasUrl !== undefined) { if (data.config.gasUrl) localStorage.setItem('gasUrl', data.config.gasUrl); else localStorage.removeItem('gasUrl'); } if (data.config.autoRefresh !== undefined) setAutoRefresh(Number(data.config.autoRefresh) || 0); if (data.config.yahooCookie !== undefined) { if (data.config.yahooCookie) localStorage.setItem('yahooCookie', data.config.yahooCookie); else localStorage.removeItem('yahooCookie'); } if (data.config.yahooCrumb !== undefined) { if (data.config.yahooCrumb) localStorage.setItem('yahooCrumb', data.config.yahooCrumb); else localStorage.removeItem('yahooCrumb'); } if (data.config.defaultSettings) localStorage.setItem('defaultSettings', data.config.defaultSettings); } await refreshStorageDiagnostics({ estimates: restoredEstimates, logs: restoredLogs, chatMessages: restoredChatMessages }); return true; } catch (error) { console.error('Errore applyRestoredData', error); return false; } };
+          const handleRestore = (e) => { const file = e.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = async (ev) => { try { const data = JSON.parse(ev.target.result); if (await applyRestoredData(data)) addLog('Backup locale ripristinato', 'success', { category: 'cloud', action: 'Backup ripristinato', detail: file.name, event: 'restore' }); else addLog('Errore struttura backup', 'error', { category: 'error', action: 'Restore fallito', detail: file.name }); } catch (error) { alert('Errore nel file di backup'); } }; reader.readAsText(file); }; const onDriveRestore = async (data) => { if (await applyRestoredData(data)) addLog('Backup cloud ripristinato', 'success', { category: 'cloud', action: 'Backup cloud ripristinato', detail: 'Google Drive', event: 'restore' }); else addLog('Errore restore Cloud', 'error', { category: 'error', action: 'Restore cloud fallito', detail: 'Google Drive' }); }; const compactStorage = useCallback(async () => { const compacted = await compactEstimatesAndArtifacts(estimates); skipNextEstimatePersistRef.current += 1; setEstimates(compacted); await idbSet(KV_STORE, compacted, 'estimates'); await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: false }, 'storageMeta'); await refreshStorageDiagnostics({ estimates: compacted }); addLog('Compattazione storage eseguita', 'success', { category: 'storage', action: 'Compattazione storage', detail: `${compacted.length} stime ottimizzate` }); return compacted; }, [estimates, refreshStorageDiagnostics, addLog]);
+          const tabs = [{ id: 'dashboard', icon: '🏠', label: 'Dashboard' }, { id: 'input', icon: '📊', label: 'Inserimento' }, { id: 'estimates', icon: '📈', label: 'Stime' }, { id: 'stats', icon: '📉', label: 'Global Stats' }, { id: 'chat', icon: '💬', label: 'IA Chat' }, { id: 'logs', icon: '📝', label: 'Log' }, { id: 'settings', icon: '⚙️', label: 'Setup' }]; const btnClass = 'px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-0.5'; const activeTabClass = 'bg-gradient-to-r from-accent-blue to-accent-purple text-white shadow-lg shadow-accent-blue/30'; const inactiveTabClass = 'text-gray-400 hover:text-white hover:bg-white/5'; if (!storageReady) return <div className="min-h-screen bg-background text-gray-200 flex items-center justify-center"><div className="glass rounded-2xl p-8 text-center space-y-3"><div className="text-4xl animate-spin">⏳</div><div className="text-xl font-bold text-white">Inizializzazione archivio locale</div><div className="text-sm text-gray-400">Migrazione dati verso IndexedDB in corso...</div></div></div>; return <div className="min-h-screen bg-background text-gray-200 pb-20"><MobileNav activeTab={activeTab} setActiveTab={setActiveTab} isOpen={mobileMenuOpen} setIsOpen={setMobileMenuOpen} /><header className="pt-8 pb-4 px-4 text-center"><h1 className="text-3xl md:text-4xl font-bold gradient-text mb-1">AI Stock Tracker Pro</h1><p className="text-gray-500 text-sm">Monitoraggio performance modelli predittivi • Storage v{APP_STORAGE_VERSION}</p></header><PortfolioWidget estimates={estimates} /><div className="container mx-auto px-4 mb-6"><div className="hidden md:flex flex-wrap justify-center gap-2 border-b border-gray-800 pb-4">{tabs.map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`${btnClass} ${activeTab === tab.id ? activeTabClass : inactiveTabClass}`}>{tab.icon} {tab.label}</button>)}</div></div><main className="container mx-auto px-4 max-w-6xl">{activeTab === 'dashboard' && <Dashboard estimates={estimates} switchTab={setActiveTab} />}{activeTab === 'input' && <EstimateForm onAdd={handleAddEstimate} onRemove={handleRemoveEstimate} onLog={addLog} finnhubKey={finnhubKey} isOnline={!!finnhubKey} switchTab={setActiveTab} estimates={estimates} />}{activeTab === 'estimates' && <EstimateList estimates={estimates} onUpdateEstimate={handleUpdateEstimate} onBulkUpdateEstimates={applyBulkEstimateUpdates} onRemove={handleRemoveEstimate} onLog={addLog} autoRefresh={autoRefresh} setAutoRefresh={setAutoRefresh} />}{activeTab === 'stats' && <Stats estimates={estimates} />}{activeTab === 'chat' && <Chatbot geminiKey={geminiKey} estimates={estimates} messages={chatMessages} setMessages={setChatMessages} onClear={handleClearChat} />}{activeTab === 'logs' && <Logs logs={logs} onClear={() => setLogs([])} onDownload={handleDownloadLogs} />}{activeTab === 'settings' && <Settings finnhubKey={finnhubKey} setFinnhubKey={setFinnhubKey} geminiKey={geminiKey} setGeminiKey={setGeminiKey} onSaveKey={handleSaveKey} downloadBackup={downloadBackup} handleRestore={handleRestore} handleClearData={handleClearData} getAppData={getAppData} onDriveRestore={onDriveRestore} onLog={addLog} storageDiagnostics={storageDiagnostics} refreshStorageDiagnostics={refreshStorageDiagnostics} compactStorage={compactStorage} />}</main></div>;
         };
-
 
         // Wrap App with ToastProvider        // Wrap App with ToastProvider
         const AppWithToast = () => (

@@ -87,9 +87,26 @@ async def get_candles(symbol: str, resolution: str, from_ts: int, to_ts: int) ->
 
 async def symbol_lookup(query: str) -> list[FinnhubSymbolResult]:
     """Cerca su Finnhub simboli ticker matchanti (autocomplete)."""
-    api_key = settings.FINNHUB_API_KEY.get_secret_value() if settings.FINNHUB_API_KEY else ""
+    from src.shared.infra.database import AsyncSessionLocal
+    from sqlalchemy import text
+
+    api_key = ""
+    try:
+        # Recupera la chiave dal DB a ogni chiamata per invalidare in-memory logic
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(text("SELECT value FROM app_config WHERE key = 'FINNHUB_API_KEY'"))
+            row = result.fetchone()
+            if row and row[0]:
+                api_key = row[0]
+    except Exception as e:
+        logger.error(f"Errore lettura FINNHUB_API_KEY da DB: {e}")
+
     if not api_key:
-        logger.warning("FINNHUB_API_KEY non configurata. Ricerca fallback vuota.")
+        api_key = settings.FINNHUB_API_KEY.get_secret_value() if settings.FINNHUB_API_KEY else ""
+
+    # Se è la chiave placeholder o vuota
+    if not api_key or api_key == "your-finnhub-api-key-here":
+        logger.warning("FINNHUB_API_KEY non configurata o placeholder. Skipping Finnhub.")
         return []
 
     url = f"https://finnhub.io/api/v1/search?q={query}&token={api_key}"

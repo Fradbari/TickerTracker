@@ -235,14 +235,40 @@ async def create_estimate(
             command.user_id = request.state.user.id
             
         estimate = await estimate_service.create_estimate(command)
+
+        estimate_payload = EstimateResponse.model_validate(
+            {
+                "id": estimate.id,
+                "ticker_id": estimate.ticker_id,
+                "user_id": estimate.user_id,
+                "status": estimate.status,
+                "start_price": estimate.start_price,
+                "target_price": estimate.target_price,
+                "stop_loss_price": estimate.stop_loss_price,
+                "target_profit_percent": estimate.target_profit_percent,
+                "stop_loss_percent": estimate.stop_loss_percent,
+                "exit_price": estimate.exit_price,
+                "realized_pnl": estimate.realized_pnl,
+                "realized_pnl_percent": estimate.realized_pnl_percent,
+                "ai_model": estimate.ai_model,
+                "ai_version": estimate.ai_version,
+                "ai_confidence": estimate.ai_confidence,
+                "ai_reasoning": estimate.ai_reasoning,
+                "created_at": estimate.created_at,
+                "updated_at": estimate.updated_at,
+                "closed_at": estimate.closed_at,
+                "is_deleted": estimate.is_deleted,
+                "ticker": None,
+            }
+        )
         
         response_data = EstimateCreatedResponse(
-            estimate=EstimateResponse.model_validate(estimate),
+            estimate=estimate_payload,
             message="Estimate created successfully"
         )
         
         return success_response(
-            data=response_data.model_dump(),
+            data=response_data.model_dump(mode="json"),
             message="Estimate created successfully",
             status_code=201
         )

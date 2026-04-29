@@ -38,6 +38,12 @@ class EstimateStatus(str, enum.Enum):
     EXPIRED = "EXPIRED"
 
 
+class EstimateDirection(str, enum.Enum):
+    """Trading direction for an estimate."""
+    LONG = "LONG"
+    SHORT = "SHORT"
+
+
 class Estimate(Base):
     """
     Estimate entity representing a trading prediction/estimate.
@@ -129,6 +135,13 @@ class Estimate(Base):
         default=EstimateStatus.OPEN,
         index=True,
         doc="Current status of the estimate"
+    )
+
+    direction = Column(
+        SQLEnum(EstimateDirection, name="direction"),
+        nullable=False,
+        default=EstimateDirection.LONG,
+        doc="Trading direction of the estimate"
     )
 
     # AI-related fields

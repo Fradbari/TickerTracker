@@ -81,8 +81,8 @@ def success_response(data: Any = None, trace_id: str = "", message: str = "", st
     """
     resp = ApiResponse(success=True, data=data, error=None, trace_id=trace_id)
     if status_code != 200:
-        return JSONResponse(content=resp.model_dump(), status_code=status_code)
-    return resp.model_dump()
+        return JSONResponse(content=resp.model_dump(mode="json"), status_code=status_code)
+    return resp.model_dump(mode="json")
 
 
 def error_response(
@@ -116,4 +116,4 @@ def error_response(
         error=ApiError(code=err_code, message=message, details=details),
         trace_id=trace_id,
     )
-    return JSONResponse(content=resp.model_dump(), status_code=status_code)
+    return JSONResponse(content=resp.model_dump(mode="json"), status_code=status_code)

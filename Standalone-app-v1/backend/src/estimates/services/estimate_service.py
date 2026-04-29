@@ -13,7 +13,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.estimates.domain.entities import Estimate, EstimateStatus
+from src.estimates.domain.entities import Estimate, EstimateDirection, EstimateStatus
 from src.estimates.domain.events import EstimateEvent, EstimateEventType
 from src.estimates.domain.pnl import calculate_pnl
 from src.estimates.repositories.estimate_repository import EstimateRepository
@@ -33,6 +33,7 @@ from src.estimates.services.exceptions import (
 )
 from src.market_data.domain.entities import Ticker
 from src.market_data.repositories.market_data_repository import MarketDataRepository
+from src.market_data.yahoo_client import get_current_price as get_yahoo_current_price
 
 
 class EstimateService:
@@ -97,8 +98,15 @@ class EstimateService:
         if not ticker:
             raise TickerNotFoundError(command.ticker_id)
 
-        # Get current market price
+        # Get current market price, falling back to Yahoo if the local DB has no rows yet.
         current_price = await self._get_current_price(command.ticker_id)
+        if current_price is None:
+            current_price = await self._get_current_price_from_yahoo(ticker.symbol)
+            if current_price is None:
+                raise MarketDataNotAvailableError(
+                    command.ticker_id,
+                    "No market data found for this ticker"
+                )
 
         # Calculate target and stop loss prices
         target_price, stop_loss_price = self._calculate_prices(
@@ -119,6 +127,7 @@ class EstimateService:
             id=uuid.uuid4(),
             ticker_id=command.ticker_id,
             user_id=command.user_id,
+            direction=EstimateDirection.LONG,
             start_price=current_price,
             target_price=target_price,
             stop_loss_price=stop_loss_price,
@@ -155,6 +164,7 @@ class EstimateService:
                 session.add(event)
             # Refresh outside transaction to get database-generated fields
             await session.refresh(estimate)
+            estimate.ticker = ticker
 
         return estimate
 
@@ -485,13 +495,17 @@ class EstimateService:
         latest_data = await self._market_data_repo.get_latest_price(ticker_id)
 
         if not latest_data:
-            raise MarketDataNotAvailableError(
-                ticker_id,
-                "No market data found for this ticker"
-            )
+            return None
 
         # Use close price as current price
         return latest_data.close
+
+    async def _get_current_price_from_yahoo(self, symbol: str) -> Decimal | None:
+        """Fetch a live fallback price when the local market data cache is empty."""
+        price = await get_yahoo_current_price(symbol)
+        if price is None:
+            return None
+        return Decimal(str(price))
 
     def _calculate_prices(
         self,

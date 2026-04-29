@@ -215,7 +215,7 @@ async def get_current_price(
             is_stale=price_data.is_stale,
         )
 
-        return ApiResponse.success(
+        return ApiResponse(success=True, 
             data=price_response,
             message=f"Current price for {ticker.upper()}"
         )
@@ -313,7 +313,7 @@ async def get_historical_prices(
             timestamp=datetime.utcnow(),
         )
 
-        return ApiResponse.success(
+        return ApiResponse(success=True, 
             data=history_response,
             message=f"Historical data for {ticker.upper()} ({len(history_points)} points)"
         )
@@ -380,7 +380,7 @@ async def get_fundamentals(
             is_stale=fundamentals.is_stale,
         )
 
-        return ApiResponse.success(
+        return ApiResponse(success=True, 
             data=fundamentals_response,
             message=f"Fundamentals for {ticker.upper()}"
         )
@@ -443,7 +443,7 @@ async def search_symbols(
             count=len(results),
         )
 
-        return ApiResponse.success(
+        return ApiResponse(success=True, 
             data=search_response,
             message=f"Found {len(results)} results for '{q}'"
         )
@@ -611,61 +611,92 @@ async def advanced_symbol_search(
     response: Response,
     q: str = Query(..., min_length=1),
 ):
-    query_clean = q.strip().lower()
-    if not query_clean:
-        return ApiResponse(data=[])
-        
-    cache_key = f'symbol_search:{query_clean}'
-    
-    redis_client = None
     try:
-        redis_gen = get_redis()
-        redis_client = await anext(redis_gen)
-        # Try Redis cache
-        cached = await redis_client.get(cache_key) # type: ignore
-        if cached:
-            results = [SymbolSearchResult(**item) for item in json.loads(cached)]
-            return ApiResponse(data=results)
-    except Exception:
-        pass
-
-    # Fetch from Finnhub
-    finnhub_results = await symbol_lookup(query_clean)
-    
-    # Validate each on Yahoo (max timeout 3.0s per check)
-    async def validate_with_timeout(item):
-        try:
-            val_res = await asyncio.wait_for(validate_symbol_on_yahoo(item.symbol), timeout=3.0)
-            if val_res.valid:
-                return SymbolSearchResult(**item.model_dump(), current_price=val_res.current_price)
-        except Exception:
-            pass
-        return None
+        query_clean = q.strip().lower()
+        if not query_clean:
+            return ApiResponse(success=True, data=[])
+            
+        cache_key = f'symbol_search:{query_clean}'
         
-    validation_tasks = [validate_with_timeout(item) for item in finnhub_results]
-    validated = await asyncio.gather(*validation_tasks)
-    
-    # Filter valid and limit to max 8
-    final_results = [r for r in validated if r is not None][:8]
-    
-    # Cache result if redis available
-    if redis_client:
+        redis_client = None
         try:
-            await redis_client.setex(
-                cache_key,
-                300,
-                json.dumps([r.model_dump() for r in final_results])
-            )
+            redis_gen = get_redis()
+            redis_client = await anext(redis_gen)
+            # Try Redis cache
+            cached = await redis_client.get(cache_key) # type: ignore
+            if cached:
+                results = [SymbolSearchResult(**item) for item in json.loads(cached)]
+                return ApiResponse(success=True, data=results)
         except Exception:
             pass
-        finally:
+
+        # Fetch from Finnhub
+        try:
+            finnhub_results = await symbol_lookup(query_clean)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Finnhub search failed: {e}")
+            finnhub_results = []
+        
+        # Fallback su Yahoo Finance se Finnhub non produce risultati o fallisce
+        if not finnhub_results:
+            import yfinance as yf
+            from src.market_data.schemas.search import FinnhubSymbolResult
             try:
-                await redis_client.close() # type: ignore
+                ticker = yf.Ticker(query_clean.upper())
+                info = await asyncio.to_thread(lambda: ticker.info)
+                if info and 'symbol' in info:
+                    yahoo_item = FinnhubSymbolResult(
+                        symbol=info.get("symbol", query_clean.upper()),
+                        description=info.get("longName", "") or query_clean.upper(),
+                        type=info.get("quoteType", "EQUITY"),
+                    )
+                    finnhub_results = [yahoo_item]
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning("Yahoo fallback search failed: %s", e)
+
+        if not finnhub_results:
+            return ApiResponse(success=True, data=[])
+
+        # Validate each on Yahoo (max timeout 3.0s per check)
+        async def validate_with_timeout(item: FinnhubSymbolResult):
+            try:
+                val_res = await asyncio.wait_for(validate_symbol_on_yahoo(item.symbol), timeout=3.0)
+                if val_res.valid:
+                    return SymbolSearchResult(**item.model_dump(), current_price=val_res.current_price)
             except Exception:
                 pass
-                
-    response.headers['Cache-Control'] = 'public, max-age=300'
-    return ApiResponse(data=final_results)
+            return None
+            
+        validation_tasks = [validate_with_timeout(item) for item in finnhub_results]
+        validated = await asyncio.gather(*validation_tasks)
+        
+        # Filter valid and limit to max 8
+        final_results = [r for r in validated if r is not None][:8]
+        
+        # Cache result if redis available
+        if redis_client:
+            try:
+                await redis_client.setex(
+                    cache_key,
+                    300,
+                    json.dumps([r.model_dump() for r in final_results])
+                )
+            except Exception:
+                pass
+            finally:
+                try:
+                    await redis_client.close() # type: ignore
+                except Exception:
+                    pass
+                    
+        response.headers['Cache-Control'] = 'public, max-age=300'
+        return ApiResponse(success=True, data=final_results)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Errore totale in advanced_symbol_search: {e}")
+        return ApiResponse(success=True, data=[])
 
 @router.get(
     '/symbol-validate',
@@ -676,6 +707,6 @@ async def advanced_symbol_validate(
     symbol: str = Query(..., min_length=1),
 ):
     res = await validate_symbol_on_yahoo(symbol)
-    return ApiResponse(data=res)
+    return ApiResponse(success=True, data=res)
 
 

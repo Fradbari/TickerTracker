@@ -1,7 +1,7 @@
 ## 🤖 AI EXECUTION PROTOCOL (Gemini 3.1 Pro / Copilot)
 1. **NO INVENZIONI:** Se un path non esiste nel manifesto, STOP e chiedi conferma.
 2. **OUTPUT STRICT:** Restituisci SOLO:
-   - Blocchi di codice completi con path file in header
+   - Blocchi di codice completi con path file in header (es. `// FILE: backend/src/models/logs.py`)
    - Comandi shell esatti
    - Niente spiegazioni discorsive, niente "Ecco il codice", niente markdown fuori contesto
 3. **CHAIN OF VERIFICATION:** Prima di generare codice, verifica mentalmente:

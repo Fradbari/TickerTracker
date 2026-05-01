@@ -11,6 +11,12 @@
 4. **CONTEXT BOUNDARY:** Usa massimo 120k tokens per codice+diff. Riserva 50k per contesto repo.
 5. **ERROR HANDLING:** Ogni `fetch` o `await db.commit()` deve avere `try/catch` esplicito con `console.warn` o logging fallback.
 
+> ⚠️ **PREREQUISITO STRUTTURALE (Leggi prima di tutto):**
+> Questo piano assume che la repo abbia già una struttura `backend/` (FastAPI)
+> e `frontend/` (React 19 + Vite). Se stai operando su un progetto
+> HTML standalone o monorepo differente, **FERMATI** e chiedi conferma
+> del mapping reale dei path prima di procedere.
+
 ---
 
 # 🎯 Piano Implementazione Task A: System Logs - Integrazione Eventi Frontend
@@ -28,11 +34,11 @@
 3. `@file:backend/src/shared/router.py` 
 4. `@file:backend/src/shared/infra/database.py` 
 5. `@file:backend/alembic.ini` + `backend/alembic/env.py`
-5b. `@file:backend/alembic/versions/` (lista migration esistenti per evitare conflitti)
-6. `@file:frontend/src/App.tsx` o `Providers.tsx`
-7. `@file:frontend/src/features/admin/components/SystemLogs.tsx` (o equivalente)
-8. `@file:frontend/.env` (per `VITE_API_BASE_URL`)
-9. `@file:docker-compose.yml` (verifica port mapping `8000/3000`)
+6. `@file:backend/alembic/versions/` (lista migration esistenti per evitare conflitti)
+7. `@file:frontend/src/App.tsx` o `Providers.tsx`
+8. `@file:frontend/src/features/admin/components/SystemLogs.tsx` (o equivalente)
+9. `@file:frontend/.env` (per `VITE_API_BASE_URL`)
+10. `@file:docker-compose.yml` (verifica port mapping `8000/3000`)
 
 ---
 
@@ -66,7 +72,13 @@
    # Modifica upgrade()/downgrade() nel file generato se Alembic non ha rilevato il server_default
    alembic upgrade head
    ```
+  > Dopo `--autogenerate`, verifica manualmente che `upgrade()` contenga:
+  > `op.add_column('system_logs', sa.Column('source', sa.String(20), server_default='backend', nullable=False))`
+  > Se Alembic genera solo `nullable=True`, correggi manualmente.
+  
 4. Output richiesto: **solo** il nome del file migration e il blocco `def upgrade()` verificato.
+  > Il file migration avrà naming: `YYYYMMDD_HHMMSS_add_source_col_to_system_logs.py`
+  > Verifica che NON ci siano migration pending (`alembic history`) prima di procedere.
 
 ---
 
@@ -155,7 +167,7 @@ class FrontendLogger {
   window.addEventListener('beforeunload', () => this.flushOnUnload());
   }
 
-  private flushTimer!: ReturnType<typeof setInterval>;
+  private flushTimer: ReturnType<typeof setInterval> | undefined;
   private startAutoFlush() {
     this.flushTimer = setInterval(() => void this.flush(), 5000);
   }
@@ -199,8 +211,10 @@ class FrontendLogger {
         return;
       }
 
-      this.queue = this.queue.slice(batch.length);
+      this.queue.splice(0, batch.length);
     } catch (error) {
+      private retryCount = 0;
+      this.retryCount = Math.min(this.retryCount + 1, 5);
       console.warn('[FrontendLogger] Flush failed, retrying later...', error);
     }
   }
@@ -228,6 +242,8 @@ class FrontendLogger {
       });
       this.queue = [];
     } catch (error) {
+      private retryCount = 0;
+      this.retryCount = Math.min(this.retryCount + 1, 5);
       console.warn('[FrontendLogger] beforeunload flush failed', error);
     }
   }

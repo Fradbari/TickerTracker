@@ -37,10 +37,9 @@
 5. `@file:Standalone-app-v1/backend/alembic.ini` + `backend/alembic/env.py`
 6. `@file:Standalone-app-v1/backend/alembic/versions/` (lista migration esistenti per evitare conflitti)
 7. `@file:Standalone-app-v1/frontend/src/App.tsx` o `Providers.tsx`
-8. `@file:Standalone-app-v1/frontend/src/features/admin/components/SystemLogs.tsx` (o equivalente)
+8. `@file:Standalone-app-v1/frontend/src/features/admin/components/SystemLogs.tsx` (da creare)
 9. `@file:Standalone-app-v1/frontend/.env` (per `VITE_API_BASE_URL`)
 10. `@file:Standalone-app-v1/docker-compose.yml` (verifica port mapping `8000/3000`)
-11. `@file:Standalone-app-v1/backend/src/models/logs.py`
 
 ---
 
@@ -83,7 +82,7 @@
    - Estendi `FrontendLogPayload` con i nuovi campi oppure crea `FrontendLogIn`
      come schema alternativo nello stesso file
    - NON creare un nuovo router separato (evita conflitti su `/api/logs/frontend`)
-2. Schema: `@file:backend/src/schemas/logs.py`
+2. Schema: `@file:backend/src/shared/schemas/logs.py`
    ```python
    from datetime import datetime, timezone
    from typing import Any, Literal, Optional
@@ -215,7 +214,6 @@ class FrontendLogger {
 
       this.queue.splice(0, batch.length);
     } catch (error) {
-      this.retryCount = Math.min(this.retryCount + 1, 5);
       console.warn('[FrontendLogger] Flush failed, retrying later...', error);
     }
   }
@@ -243,7 +241,7 @@ class FrontendLogger {
       });
       this.queue = [];
     } catch (error) {
-      this.retryCount = Math.min(this.retryCount + 1, 5);
+      const delay = this.retryDelay.shift() ?? 1000;
       console.warn('[FrontendLogger] beforeunload flush failed', error);
     }
   }

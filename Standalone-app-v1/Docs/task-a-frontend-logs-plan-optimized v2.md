@@ -94,8 +94,6 @@
    from datetime import datetime, timezone
    from typing import Any, Literal, Optional
 
-   from backend.src.schemas.logs import FrontendLogIn
-
    from pydantic import BaseModel, Field
 
     class FrontendLogIn(BaseModel):
@@ -108,6 +106,9 @@
    ```
 3. Endpoint:
    ```python
+
+    from backend.src.models.logs import LogTable
+
    @router.post("/frontend", status_code=202, tags=["internal-logs"])
    async def ingest_frontend_logs(
        payload: list[FrontendLogIn],
@@ -163,6 +164,8 @@ class FrontendLogger {
   private readonly maxBatch = 20;
   private readonly maxQueue = 100;
   private readonly apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+
+  private retryCount = 0;
 
   constructor() {
   this.startAutoFlush();
@@ -260,7 +263,6 @@ export const logger = new FrontendLogger();
 
 ## 🔹 Step 4: Admin Viewer (`SystemLogs.tsx`)
 ⚠️ PREREQUISITO: Verifica che l'endpoint esistente `GET /api/logs` accetti il query param `source`. 
-Se non supporta il filtro, usa `params.set('page', '1')` e filtra lato frontend con `data.filter(l => filterSource === 'all' || l.source === filterSource)`.
 
 > 🔧 WORKAROUND TEMPORANEO: Il filtro client-side genera trasferimento dati inutile.
 > Richiedi all'utente di aggiornare il backend per supportare `?source=` prima di andare in produzione.

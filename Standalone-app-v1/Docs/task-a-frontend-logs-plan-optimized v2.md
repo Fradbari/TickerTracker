@@ -94,6 +94,8 @@
    from datetime import datetime, timezone
    from typing import Any, Literal, Optional
 
+   from backend.src.schemas.logs import FrontendLogIn
+
    from pydantic import BaseModel, Field
 
     class FrontendLogIn(BaseModel):
@@ -161,7 +163,6 @@ class FrontendLogger {
   private readonly maxBatch = 20;
   private readonly maxQueue = 100;
   private readonly apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
-  private retryCount = 0;
 
   constructor() {
   this.startAutoFlush();
@@ -266,7 +267,9 @@ Se non supporta il filtro, usa `params.set('page', '1')` e filtra lato frontend 
 
 1. Query con filtro:
    ```tsx
-   const { data, isLoading, refetch } = useQuery({
+    const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+
+    const { data, isLoading, refetch } = useQuery({
      queryKey: ['logs', filterSource],
      queryFn: async () => {
        const params = new URLSearchParams();
@@ -281,7 +284,7 @@ Se non supporta il filtro, usa `params.set('page', '1')` e filtra lato frontend 
        return response.json();
      },
      refetchInterval: 10000,
-   });
+    });
    ```
 2. UI Filter: Dropdown `<select>` con valori `['all', 'backend', 'frontend', 'system']` che aggiorna `filterSource` state.
 3. Render riga frontend:

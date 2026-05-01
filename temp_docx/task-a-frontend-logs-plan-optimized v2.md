@@ -26,8 +26,9 @@
 1. `@file:backend/src/main.py` (registrazione router)
 2. `@file:backend/src/api/routers/*.py` (struttura esistente)
 3. `@file:backend/src/schemas/logs.py`
-4. `@file:backend/src/models/logs.py` (o equivalente)
+4. `@file:backend/src/models/logs.py` → verifica il nome esatto della classe modello (es. `SystemLog`, `LogEntry`, `LogTable`)
 5. `@file:backend/alembic.ini` + `backend/alembic/env.py`
+5b. `@file:backend/alembic/versions/` (lista migration esistenti per evitare conflitti)
 6. `@file:frontend/src/App.tsx` o `Providers.tsx`
 7. `@file:frontend/src/features/admin/components/SystemLogs.tsx` (o equivalente)
 8. `@file:frontend/.env` (per `VITE_API_BASE_URL`)
@@ -71,7 +72,7 @@
    ```
 2. Schema: `@file:backend/src/schemas/logs.py`
    ```python
-   from datetime import datetime
+   from datetime import datetime, timezone
    from typing import Literal, Optional
 
    from pydantic import BaseModel, Field
@@ -81,7 +82,7 @@
       level: Literal["info", "warn", "error", "action"]
       component: str = Field(max_length=100)
       message: str = Field(max_length=500)
-      metadata: dict = Field(default_factory=dict)
+      metadata: dict[str, Any] = Field(default_factory=dict)
       user_id: Optional[str] = None
    ```
 3. Endpoint:
@@ -149,6 +150,7 @@ class FrontendLogger {
   window.addEventListener('beforeunload', () => this.flushOnUnload());
   }
 
+  private flushTimer!: ReturnType<typeof setInterval>;
   private startAutoFlush() {
     this.flushTimer = setInterval(() => void this.flush(), 5000);
   }
@@ -228,7 +230,6 @@ class FrontendLogger {
 
 export const logger = new FrontendLogger();
 
-window.addEventListener('beforeunload', () => logger.flushOnUnload());
 ```
 
 ---
@@ -266,6 +267,11 @@ Se non supporta il filtro, usa `params.set('page', '1')` e filtra lato frontend 
    )}
    ```
 4. Integrazione flush globale in `frontend/src/App.tsx` o `Providers.tsx`:
+  // In App.tsx o Providers.tsx (una sola volta, al mount globale)
+  import { logger } from '@/shared/services/frontendLogger';
+  // Il logger si auto-inizializza all'import; nessun useEffect necessario.
+  // Per destroy al cleanup (opzionale in SPA):
+  // useEffect(() => () => logger.destroy(), []);
 
 5. Usage example:
    ```tsx

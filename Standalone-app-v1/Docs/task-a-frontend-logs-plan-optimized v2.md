@@ -53,12 +53,6 @@
   → Admin Log Viewer (filter: source)
 ```
 
-> ⚠️ PRE-DECISIONE ARCHITETTURALE: I log attuali usano file-based persistence
-> (`/app/logs/app.log`). Prima di procedere con Alembic, conferma con l'utente:
-> - Opzione A: Persisti i log frontend su DB (richiede nuovo modello ORM + migration)
-> - Opzione B: Usa structlog esistente anche per frontend (zero migration, modifica solo schema)
-> Il piano procede con Opzione A solo su conferma esplicita.
-
 ---
 
 ## 🔹 Step 1: DB Schema & Alembic
@@ -107,7 +101,7 @@
 3. Endpoint:
    ```python
 
-    from backend.src.models.logs import LogTable
+    from src.models.logs import LogTable
 
    @router.post("/frontend", status_code=202, tags=["internal-logs"])
    async def ingest_frontend_logs(
@@ -165,7 +159,7 @@ class FrontendLogger {
   private readonly maxQueue = 100;
   private readonly apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
-  private retryCount = 0;
+  private readonly retryDelay = [1000, 2000, 4000, 8000, 16000];
 
   constructor() {
   this.startAutoFlush();

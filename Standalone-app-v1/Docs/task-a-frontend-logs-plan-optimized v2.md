@@ -364,22 +364,3 @@ Se non supporta il filtro, usa `params.set('page', '1')` e filtra lato frontend 
    ```
 
 ---
-
-## ❓ Domande di Verifica (Rispondi prima di procedere)
-1. Esiste già una tabella `system_logs` o `audit_events`? Se sì, qual è il path del modello SQLAlchemy?
-2. Il frontend gira con volume mount (`-v ./frontend/src:/app/src`) o richiede rebuild Docker a ogni modifica TS?
-3. L'endpoint `/api/logs/frontend` deve essere autenticato o pubblico? Si consiglia `internal` o header `X-Source: frontend` se dietro reverse proxy.
-4. Il viewer log attuale è in `frontend/src/features/admin/components/SystemLogs.tsx` o altro path?
-5. Ci sono vincoli di rate limiting lato backend per questo endpoint? Es. Redis-based `100 req/min` per IP.
-
-📌 *Una volta ricevute le risposte, genererò il diff esatto e i comandi di esecuzione ottimizzati per il tuo ambiente.*
-
----
-
-## 🔍 Note per l'Uso in Copilot
-- Incolla il file intero in una chat di Copilot e aggiungi:
-  ```text
-  Segui passo-passo. Fermati se un file ha path diverso o se incontri ambiguità. Usa solo il budget context indicato.
-  ```
-- Se Copilot perde il focus, usa `/clear` e incolla solo la sezione rilevante, es. `## 🔹 Step 2: Backend Router & Schema`.
-- I comandi `py` e Docker sono parametrizzati per l'ambiente indicato. Conferma se il venv si chiama diversamente, es. `venv` vs `.venv`.

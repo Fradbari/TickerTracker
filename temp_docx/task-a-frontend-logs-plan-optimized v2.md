@@ -28,17 +28,19 @@
 
 ## 📦 CONTEXT MANIFEST (Da caricare in Copilot prima di eseguire)
 > ⚠️ **REGOLA FERREA:** Se un file non è in questo elenco, IGNORALO. Non inventare path. Usa `@file:` syntax di Copilot.
+> ⚠️ ROOT OPERATIVA: `Standalone-app-v1/`. Tutti i path sono relativi a questa cartella.
 
-1. `@file:backend/src/main.py` (registrazione router)
-2. `@file:backend/src/shared/api/logs.py` 
-3. `@file:backend/src/shared/router.py` 
-4. `@file:backend/src/shared/infra/database.py` 
-5. `@file:backend/alembic.ini` + `backend/alembic/env.py`
-6. `@file:backend/alembic/versions/` (lista migration esistenti per evitare conflitti)
-7. `@file:frontend/src/App.tsx` o `Providers.tsx`
-8. `@file:frontend/src/features/admin/components/SystemLogs.tsx` (o equivalente)
-9. `@file:frontend/.env` (per `VITE_API_BASE_URL`)
-10. `@file:docker-compose.yml` (verifica port mapping `8000/3000`)
+1. `@file:Standalone-app-v1/backend/src/main.py` (registrazione router)
+2. `@file:Standalone-app-v1/backend/src/shared/api/logs.py` 
+3. `@file:Standalone-app-v1/backend/src/shared/router.py` 
+4. `@file:Standalone-app-v1/backend/src/shared/infra/database.py` 
+5. `@file:Standalone-app-v1/backend/alembic.ini` + `backend/alembic/env.py`
+6. `@file:Standalone-app-v1/backend/alembic/versions/` (lista migration esistenti per evitare conflitti)
+7. `@file:Standalone-app-v1/frontend/src/App.tsx` o `Providers.tsx`
+8. `@file:Standalone-app-v1/frontend/src/features/admin/components/SystemLogs.tsx` (o equivalente)
+9. `@file:Standalone-app-v1/frontend/.env` (per `VITE_API_BASE_URL`)
+10. `@file:Standalone-app-v1/docker-compose.yml` (verifica port mapping `8000/3000`)
+11. `@file:Standalone-app-v1/backend/src/models/logs.py`
 
 ---
 
@@ -134,6 +136,7 @@
 ---
 
 ## 🔹 Step 3: Frontend Logger Service
+> Non fare hardcore di localhost:8000 nel codice produzione solo nel .env.example
 1. Crea: `frontend/src/shared/services/frontendLogger.ts`
 2. Implementa queue + periodic flush senza URL hardcoded: usa `VITE_API_BASE_URL`.
 3. Requisiti tecnici:
@@ -157,7 +160,8 @@ class FrontendLogger {
   private queue: LogEntry[] = [];
   private readonly maxBatch = 20;
   private readonly maxQueue = 100;
-  private readonly apiBase = import.meta.env.VITE_API_BASE_URL ?? '';
+  private readonly apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+  private retryCount = 0;
 
   constructor() {
   this.startAutoFlush();
@@ -213,7 +217,6 @@ class FrontendLogger {
 
       this.queue.splice(0, batch.length);
     } catch (error) {
-      private retryCount = 0;
       this.retryCount = Math.min(this.retryCount + 1, 5);
       console.warn('[FrontendLogger] Flush failed, retrying later...', error);
     }
@@ -242,7 +245,6 @@ class FrontendLogger {
       });
       this.queue = [];
     } catch (error) {
-      private retryCount = 0;
       this.retryCount = Math.min(this.retryCount + 1, 5);
       console.warn('[FrontendLogger] beforeunload flush failed', error);
     }
@@ -258,6 +260,9 @@ export const logger = new FrontendLogger();
 ## 🔹 Step 4: Admin Viewer (`SystemLogs.tsx`)
 ⚠️ PREREQUISITO: Verifica che l'endpoint esistente `GET /api/logs` accetti il query param `source`. 
 Se non supporta il filtro, usa `params.set('page', '1')` e filtra lato frontend con `data.filter(l => filterSource === 'all' || l.source === filterSource)`.
+
+> 🔧 WORKAROUND TEMPORANEO: Il filtro client-side genera trasferimento dati inutile.
+> Richiedi all'utente di aggiornare il backend per supportare `?source=` prima di andare in produzione.
 
 1. Query con filtro:
    ```tsx
@@ -305,16 +310,17 @@ Se non supporta il filtro, usa `params.set('page', '1')` e filtra lato frontend 
 
 ## 🔹 Step 5: Test & Validazione
 ```bash
-# Backend venv
-py -m venv .venv
-.venv\Scripts\activate 
-# oppure: source .venv/bin/activate          # macOS/Linux
+  # Backend venv
+  py -m venv .venv
+  .venv\Scripts\activate 
 
-cd backend
-uvicorn src.main:app --reload
+  # oppure: source .venv/bin/activate          # macOS/Linux
 
-# Frontend Docker, se non in dev mode con volume mount
-docker compose up --build frontend
+  cd backend
+  uvicorn src.main:app --reload
+
+  # Frontend Docker, se non in dev mode con volume mount
+  docker compose up --build frontend
 ```
 
 **Verifica Manuale:**

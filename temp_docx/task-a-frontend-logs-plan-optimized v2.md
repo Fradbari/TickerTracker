@@ -24,9 +24,9 @@
 > ⚠️ **REGOLA FERREA:** Se un file non è in questo elenco, IGNORALO. Non inventare path. Usa `@file:` syntax di Copilot.
 
 1. `@file:backend/src/main.py` (registrazione router)
-2. `@file:backend/src/api/routers/*.py` (struttura esistente)
-3. `@file:backend/src/schemas/logs.py`
-4. `@file:backend/src/models/logs.py` → verifica il nome esatto della classe modello (es. `SystemLog`, `LogEntry`, `LogTable`)
+2. `@file:backend/src/shared/api/logs.py` 
+3. `@file:backend/src/shared/router.py` 
+4. `@file:backend/src/shared/infra/database.py` 
 5. `@file:backend/alembic.ini` + `backend/alembic/env.py`
 5b. `@file:backend/alembic/versions/` (lista migration esistenti per evitare conflitti)
 6. `@file:frontend/src/App.tsx` o `Providers.tsx`
@@ -44,6 +44,12 @@
   → DB table: system_logs (source='frontend')
   → Admin Log Viewer (filter: source)
 ```
+
+> ⚠️ PRE-DECISIONE ARCHITETTURALE: I log attuali usano file-based persistence
+> (`/app/logs/app.log`). Prima di procedere con Alembic, conferma con l'utente:
+> - Opzione A: Persisti i log frontend su DB (richiede nuovo modello ORM + migration)
+> - Opzione B: Usa structlog esistente anche per frontend (zero migration, modifica solo schema)
+> Il piano procede con Opzione A solo su conferma esplicita.
 
 ---
 
@@ -65,15 +71,14 @@
 ---
 
 ## 🔹 Step 2: Backend Router & Schema
-1. Crea `@file:backend/src/api/routers/frontend_logs.py`
-   ```python
-    from backend.src.schemas.logs import FrontendLogIn
-    from backend.src.models.logs import LogTable 
-   ```
+1. Modifica `@file:backend/src/shared/api/logs.py` (file ESISTENTE):
+   - Estendi `FrontendLogPayload` con i nuovi campi oppure crea `FrontendLogIn`
+     come schema alternativo nello stesso file
+   - NON creare un nuovo router separato (evita conflitti su `/api/logs/frontend`)
 2. Schema: `@file:backend/src/schemas/logs.py`
    ```python
    from datetime import datetime, timezone
-   from typing import Literal, Optional
+   from typing import Any, Literal, Optional
 
    from pydantic import BaseModel, Field
 
@@ -267,11 +272,13 @@ Se non supporta il filtro, usa `params.set('page', '1')` e filtra lato frontend 
    )}
    ```
 4. Integrazione flush globale in `frontend/src/App.tsx` o `Providers.tsx`:
-  // In App.tsx o Providers.tsx (una sola volta, al mount globale)
-  import { logger } from '@/shared/services/frontendLogger';
-  // Il logger si auto-inizializza all'import; nessun useEffect necessario.
-  // Per destroy al cleanup (opzionale in SPA):
-  // useEffect(() => () => logger.destroy(), []);
+   ```tsx
+    // In App.tsx o Providers.tsx (una sola volta, al mount globale)
+    import { logger } from '@/shared/services/frontendLogger';
+    // Il logger si auto-inizializza all'import; nessun useEffect necessario.
+    // Per destroy al cleanup (opzionale in SPA):
+    // useEffect(() => () => logger.destroy(), []);
+   ```
 
 5. Usage example:
    ```tsx
@@ -283,7 +290,8 @@ Se non supporta il filtro, usa `params.set('page', '1')` e filtra lato frontend 
 ## 🔹 Step 5: Test & Validazione
 ```bash
 # Backend venv
-py -m venv .venv && .venv\Scriptsctivate  # Windows
+py -m venv .venv
+.venv\Scripts\activate 
 # oppure: source .venv/bin/activate          # macOS/Linux
 
 cd backend

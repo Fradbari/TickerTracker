@@ -35,11 +35,10 @@
 1. `@file:Standalone-app-v1/backend/src/main.py` (registrazione router)
 2. `@file:Standalone-app-v1/backend/src/shared/api/logs.py` 
 3. `@file:Standalone-app-v1/backend/src/shared/router.py` 
-4. `@file:Standalone-app-v1/backend/src/shared/infra/database.py` 
-5. `@file:Standalone-app-v1/frontend/src/App.tsx` o `Providers.tsx`
-6. `@file:Standalone-app-v1/frontend/src/features/admin/components/SystemLogs.tsx` (da creare)
-7. `@file:Standalone-app-v1/frontend/.env` (per `VITE_API_BASE_URL`)
-8. `@file:Standalone-app-v1/docker-compose.yml` (verifica port mapping `8000/3000`)
+4. `@file:Standalone-app-v1/frontend/src/App.tsx` (integrazione import logger al mount)
+5. `@file:Standalone-app-v1/frontend/src/features/admin/components/SystemLogs.tsx` (da creare)
+6. `@file:Standalone-app-v1/frontend/.env` (per `VITE_API_BASE_URL`)
+7. `@file:Standalone-app-v1/docker-compose.yml` (verifica port mapping `8000/3000`)
 
 ---
 
@@ -74,27 +73,11 @@ ORM `LogTable`. Il backend attuale scrive i log su file (`/app/logs/app.log`)
 via structlog. Lo Step 1 (Alembic migration) e lo Step 2 (endpoint con
 `db.add_all(records)`) devono essere RISCRITTI per usare structlog.
 
-1. Modifica `@file:backend/src/shared/api/logs.py` (file ESISTENTE):
-   - Estendi `FrontendLogPayload` con i nuovi campi oppure crea `FrontendLogIn`
-     come schema alternativo nello stesso file
+1. Modifica `@file:Standalone-app-v1/backend/src/shared/api/logs.py` (file ESISTENTE):
+   - Sostituisci `FrontendLogPayload` con `FrontendLogIn` definita direttamente in
+     questo file (NON creare `schemas/logs.py` separato)
    - NON creare un nuovo router separato (evita conflitti su `/api/logs/frontend`)
-2. Crea il **nuovo file** `backend/src/shared/schemas/logs.py` (NON usa `@file:` perché il file non esiste ancora — usare `@file:` implica che esista già):
-
-   ```python
-   from datetime import datetime, timezone
-   from typing import Any, Literal, Optional
-
-   from pydantic import BaseModel, Field
-
-    class FrontendLogIn(BaseModel):
-      timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-      level: Literal["info", "warn", "error", "action"]
-      component: str = Field(max_length=100)
-      message: str = Field(max_length=500)
-      metadata: dict[str, Any] = Field(default_factory=dict)
-      user_id: Optional[str] = None
-   ```
-3. Endpoint:
+2. Endpoint:
 ⚠️ Il router logs è GIÀ registrato in main.py (riga: app.include_router(logs_router)). NON aggiungere nuovamente include_router per questo modulo. Modificare solo il contenuto di logs.py senza toccare main.py.
 
    ```python
@@ -117,20 +100,22 @@ via structlog. Lo Step 1 (Alembic migration) e lo Step 2 (endpoint con
 
         for entry in payload:
             log_func = getattr(logger, entry.level if entry.level != "action" else "info", logger.info)
+            safe_meta = {k: v for k, v in entry.metadata.items()
+                        if k not in ("source", "component", "user_id", "timestamp", "message")}
             log_func(
                 entry.message,
                 source="frontend",
                 component=entry.component,
                 user_id=entry.user_id,
                 timestamp=entry.timestamp.isoformat(),
-                **entry.metadata,
+                **safe_meta,
             )
-
+            
         return {"status": "accepted", "count": len(payload)}
    ```
-4. ~~Registra il router in `main.py`~~ — Il router logs è **già registrato** in
+3. ~~Registra il router in `main.py`~~ — Il router logs è **già registrato** in
    `main.py` alla riga `app.include_router(logs_router)`. NON modificare `main.py`.
-5. Se il progetto usa autenticazione obbligatoria, applica una delle due strategie:
+4. Se il progetto usa autenticazione obbligatoria, applica una delle due strategie:
    - `Depends(get_current_user)` per endpoint protetto
    - Header interno validato, es. `X-Source: frontend`, se dietro reverse proxy
 
@@ -291,6 +276,10 @@ Dopo aver creato SystemLogs.tsx, importarlo e renderizzarlo in AdminDashboard.ts
      },
      refetchInterval: 10000,
     });
+
+    const filteredLogs = (data?.data ?? []).filter(
+      (l: { source?: string }) => filterSource === 'all' || l.source === filterSource
+      );
    ```
 2. UI Filter: Dropdown `<select>` con valori `['all', 'backend', 'frontend', 'system']` che aggiorna `filterSource` state.
 3. Render riga frontend:
@@ -361,7 +350,9 @@ Dopo aver creato SystemLogs.tsx, importarlo e renderizzarlo in AdminDashboard.ts
 2. **No Global Changes:** Non toccare auth, routing generale, componenti UI non log-related.
 3. **TypeScript Strict:** Usa `interface` dove possibile. Evita `any`; preferisci `Record<string, unknown>`.
 4. **Error Handling:** Catch esplicito per fetch errors; fallback a `console.warn`; mai crash UI.
-5. **DB Safety:** Ogni `await db.commit()` deve avere rollback in `except`.
+5. **Log Safety:** Ogni chiamata structlog deve essere in `try/except`
+   con `logger.warning` in caso di errore. Mai propagare eccezioni
+   dal layer di logging verso l'utente finale.
 6. **Commit Message:**
    ```bash
    git commit -m "feat(logging): implement frontend event ingestion & admin viewer filter"

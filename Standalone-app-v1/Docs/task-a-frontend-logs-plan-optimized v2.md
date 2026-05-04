@@ -9,7 +9,9 @@
    - Le dipendenze sono installate? → Pydantic v2, React Query v5, SQLAlchemy 2.0+
    - L'autenticazione è gestita? → Usa token localStorage o bypass interno
 4. **CONTEXT BOUNDARY:** Usa massimo 120k tokens per codice+diff. Riserva 50k per contesto repo.
-5. **ERROR HANDLING:** Ogni `fetch` o `await db.commit()` deve avere `try/catch` esplicito con `console.warn` o logging fallback.
+5. **Log Safety:** Ogni chiamata structlog deve essere in `try/except`
+   con `console.warn` o `logger.warning` in caso di errore. Mai propagare
+   eccezioni dal layer di logging verso l'utente finale.
 
 > ⚠️ **PREREQUISITO STRUTTURALE (Leggi prima di tutto):**
 > Questo piano assume che la repo abbia già una struttura `backend/` (FastAPI)
@@ -34,12 +36,10 @@
 2. `@file:Standalone-app-v1/backend/src/shared/api/logs.py` 
 3. `@file:Standalone-app-v1/backend/src/shared/router.py` 
 4. `@file:Standalone-app-v1/backend/src/shared/infra/database.py` 
-5. `@file:Standalone-app-v1/backend/alembic.ini` + `backend/alembic/env.py`
-6. `@file:Standalone-app-v1/backend/alembic/versions/` (lista migration esistenti per evitare conflitti)
-7. `@file:Standalone-app-v1/frontend/src/App.tsx` o `Providers.tsx`
-8. `@file:Standalone-app-v1/frontend/src/features/admin/components/SystemLogs.tsx` (da creare)
-9. `@file:Standalone-app-v1/frontend/.env` (per `VITE_API_BASE_URL`)
-10. `@file:Standalone-app-v1/docker-compose.yml` (verifica port mapping `8000/3000`)
+5. `@file:Standalone-app-v1/frontend/src/App.tsx` o `Providers.tsx`
+6. `@file:Standalone-app-v1/frontend/src/features/admin/components/SystemLogs.tsx` (da creare)
+7. `@file:Standalone-app-v1/frontend/.env` (per `VITE_API_BASE_URL`)
+8. `@file:Standalone-app-v1/docker-compose.yml` (verifica port mapping `8000/3000`)
 
 ---
 
@@ -47,9 +47,9 @@
 ```text
 [Frontend Component] → frontendLogger.ts (queue + flush)
   → POST /api/logs/frontend (FastAPI)
-  → Pydantic validation → SQLAlchemy persistence
-  → DB table: system_logs (source='frontend')
-  → Admin Log Viewer (filter: source)
+  → Pydantic validation (FrontendLogIn)
+  → structlog → file /app/logs/app.log (source='frontend')
+  → Admin Log Viewer (filtro client-side su campo source)
 ```
 
 ---
@@ -344,8 +344,8 @@ Dopo aver creato SystemLogs.tsx, importarlo e renderizzarlo in AdminDashboard.ts
 ---
 
 ## ✅ Acceptance Criteria
-- [ ] Endpoint `POST /api/logs/frontend` accetta batch e persiste in DB.
-- [ ] `source` column distingue `frontend`, `backend`, `system`.
+- [ ] Endpoint `POST /api/logs/frontend` accetta batch e scrive su file log via structlog.
+- [ ] Ogni log frontend ha campo `source: "frontend"` nel JSON strutturato.
 - [ ] Frontend logger non blocca main thread: queue async + fetch non blocking.
 - [ ] Flush automatico ogni 5s o 20 eventi, più `beforeunload`.
 - [ ] Degradazione elegante: se backend down, queue non cresce oltre 100 items, drop oldest.

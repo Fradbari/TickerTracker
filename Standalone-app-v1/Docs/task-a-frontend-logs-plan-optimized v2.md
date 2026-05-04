@@ -53,27 +53,18 @@
 ```
 
 ---
+## 🔹 Step 1: Aggiornamento Schema Pydantic in `logs.py`
+> ⚠️ Il progetto usa logging su file via structlog (NON database/ORM/Alembic).
+> NON esiste `backend/src/models/logs.py`, nessuna tabella `system_logs`,
+> nessuna migration da eseguire. Ignora qualsiasi istruzione Alembic.
 
-## 🔹 Step 1: DB Schema & Alembic
-1. Verifica path modello: `@file:backend/src/models/logs.py`
-2. Aggiungi colonna:
-   ```python
-   source = Column(String(20), nullable=False, server_default="backend")
-   ```
-3. Genera migration ESATTA:
-   ```bash
-   cd backend
-   alembic revision --autogenerate -m "add_source_col_to_system_logs"
-   # Modifica upgrade()/downgrade() nel file generato se Alembic non ha rilevato il server_default
-   alembic upgrade head
-   ```
-  > Dopo `--autogenerate`, verifica manualmente che `upgrade()` contenga:
-  > `op.add_column('system_logs', sa.Column('source', sa.String(20), server_default='backend', nullable=False))`
-  > Se Alembic genera solo `nullable=True`, correggi manualmente.
-  
-4. Output richiesto: **solo** il nome del file migration e il blocco `def upgrade()` verificato.
-  > Il file migration avrà naming: `YYYYMMDD_HHMMSS_add_source_col_to_system_logs.py`
-  > Verifica che NON ci siano migration pending (`alembic history`) prima di procedere.
+1. Apri il file ESISTENTE `@file:Standalone-app-v1/backend/src/shared/api/logs.py`
+2. Sostituisci la classe `FrontendLogPayload` con il nuovo schema `FrontendLogIn`:
+   - Rimuovi i campi `trace_id` e `meta`
+   - Aggiungi i campi `timestamp`, `component`, `metadata`, `user_id`
+   - Il campo `level` diventa `Literal["info", "warn", "error", "action"]`
+3. Aggiorna la funzione `receive_frontend_logs` per accettare `list[FrontendLogIn]`
+   e scrivere ogni entry tramite structlog con `source="frontend"`
 
 ---
 
@@ -87,9 +78,7 @@ via structlog. Lo Step 1 (Alembic migration) e lo Step 2 (endpoint con
    - Estendi `FrontendLogPayload` con i nuovi campi oppure crea `FrontendLogIn`
      come schema alternativo nello stesso file
    - NON creare un nuovo router separato (evita conflitti su `/api/logs/frontend`)
-2. Schema: `@file:backend/src/shared/schemas/logs.py`
-⚠️ Il file `backend/src/shared/schemas/logs.py` NON ESISTE ancora.
-Va CREATO. Istruzione corretta: "Crea il nuovo file schemas/logs.py con il seguente contenuto:" (non usare @file: syntax che implica che esista già).
+2. Crea il **nuovo file** `backend/src/shared/schemas/logs.py` (NON usa `@file:` perché il file non esiste ancora — usare `@file:` implica che esista già):
 
    ```python
    from datetime import datetime, timezone
@@ -109,32 +98,38 @@ Va CREATO. Istruzione corretta: "Crea il nuovo file schemas/logs.py con il segue
 ⚠️ Il router logs è GIÀ registrato in main.py (riga: app.include_router(logs_router)). NON aggiungere nuovamente include_router per questo modulo. Modificare solo il contenuto di logs.py senza toccare main.py.
 
    ```python
+    from datetime import datetime, timezone
+    from typing import Any, Literal, Optional
+    from pydantic import BaseModel, Field
 
-    from src.models.logs import LogTable
+    class FrontendLogIn(BaseModel):
+        timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+        level: Literal["info", "warn", "error", "action"]
+        component: str = Field(max_length=100)
+        message: str = Field(max_length=500)
+        metadata: dict[str, Any] = Field(default_factory=dict)
+        user_id: Optional[str] = None
 
-   @router.post("/frontend", status_code=202, tags=["internal-logs"])
-   async def ingest_frontend_logs(
-       payload: list[FrontendLogIn],
-       db: AsyncSession = Depends(get_db),
-       # Bypass auth se dietro proxy interno, altrimenti usa Depends(get_current_user)
-   ):
-       if len(payload) > 50:
-           raise HTTPException(400, "Batch too large. Max 50.")
+    @router.post("/frontend", status_code=202, tags=["internal-logs"])
+    async def ingest_frontend_logs(payload: list[FrontendLogIn]):
+        if len(payload) > 50:
+            raise HTTPException(400, "Batch too large. Max 50.")
 
-       try:
-           records = [LogTable(**log.model_dump(), source="frontend") for log in payload]
-           db.add_all(records)
-           await db.commit()
-       except Exception:
-           await db.rollback()
-           raise
+        for entry in payload:
+            log_func = getattr(logger, entry.level if entry.level != "action" else "info", logger.info)
+            log_func(
+                entry.message,
+                source="frontend",
+                component=entry.component,
+                user_id=entry.user_id,
+                timestamp=entry.timestamp.isoformat(),
+                **entry.metadata,
+            )
 
-       return {"status": "accepted", "count": len(records)}
+        return {"status": "accepted", "count": len(payload)}
    ```
-4. Registra il router in `@file:backend/src/main.py` o nel registry router esistente:
-   ```python
-   app.include_router(frontend_logs.router, prefix="/api/logs")
-   ```
+4. ~~Registra il router in `main.py`~~ — Il router logs è **già registrato** in
+   `main.py` alla riga `app.include_router(logs_router)`. NON modificare `main.py`.
 5. Se il progetto usa autenticazione obbligatoria, applica una delle due strategie:
    - `Depends(get_current_user)` per endpoint protetto
    - Header interno validato, es. `X-Source: frontend`, se dietro reverse proxy
@@ -273,6 +268,9 @@ Dopo aver creato SystemLogs.tsx, importarlo e renderizzarlo in AdminDashboard.ts
 > 🔧 WORKAROUND TEMPORANEO: Il filtro client-side genera trasferimento dati inutile.
 > Richiedi all'utente di aggiornare il backend per supportare `?source=` prima di andare in produzione.
 
+> ⚠️ Il backend attuale ignora `?source=`. Il filtro per `source` va applicato
+> CLIENT-SIDE sui dati ricevuti: `const filtered = data?.data?.filter(l => filterSource === 'all' || l.source === filterSource)`
+
 1. Query con filtro:
    ```tsx
     const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
@@ -337,11 +335,9 @@ Dopo aver creato SystemLogs.tsx, importarlo e renderizzarlo in AdminDashboard.ts
 **Verifica Manuale:**
 1. Apri `localhost:3000`, esegui azioni loggate: click, form submit, error console.
 2. Testa endpoint da Swagger/OpenAPI: `http://localhost:8000/docs`.
-3. Query DB:
-   ```sql
-   SELECT source, COUNT(*)
-   FROM system_logs
-   GROUP BY source;
+3. Verifica nel file di log:
+   ```bash
+   grep '"source":"frontend"' /app/logs/app.log | wc -l
    ```
 4. Admin UI: filtra `source=frontend`, verifica timestamp e metadata.
 

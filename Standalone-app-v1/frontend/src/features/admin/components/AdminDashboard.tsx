@@ -5,6 +5,8 @@ import { Database, Settings, RefreshCw, Power } from 'lucide-react'
 import { AdminSettings, PriceIntervalSettings, GDriveSettings, FinnhubSettings } from './AdminSettings'
 import { SystemStatusCards } from './SystemStatusCards'
 
+import { SystemLogs } from './SystemLogs'
+
 export function AdminDashboard() {
   const { data: backendStats, isLoading, isError } = useBackendStats()
 
@@ -59,6 +61,13 @@ export function AdminDashboard() {
       
       <SystemStatusCards />
 
+      <section className="mt-6">
+        <h3 className="text-lg font-semibold mb-3">Log di sistema</h3>
+        <div className="h-[600px]">
+          <SystemLogs />
+        </div>
+      </section>
+      
       <AdminSettings />
       <PriceIntervalSettings />
       <GDriveSettings />

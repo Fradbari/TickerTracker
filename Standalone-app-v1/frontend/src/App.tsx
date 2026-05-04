@@ -7,7 +7,13 @@ import { AdminDashboard } from './features/admin/components/AdminDashboard'
 import { InsertEstimate } from './features/estimates/components/InsertEstimate'
 import { SystemLogViewer } from './shared/components/SystemLogViewer'
 
+import { frontendLogger } from './shared/services/frontendLogger';
+import { useEffect } from 'react'
+
 function App() {
+  useEffect(() => {
+    return () => frontendLogger.destroy();
+  }, []);
   return (
     <ErrorBoundary>
       <SystemLogViewer>
@@ -23,7 +29,9 @@ function App() {
         </RootLayout>
       </SystemLogViewer>
     </ErrorBoundary>
+    
   )
 }
+
 
 export default App

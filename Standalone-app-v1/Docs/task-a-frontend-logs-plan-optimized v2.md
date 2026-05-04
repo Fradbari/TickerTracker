@@ -78,11 +78,19 @@
 ---
 
 ## 🔹 Step 2: Backend Router & Schema
+⚠️ ATTENZIONE: Il progetto NON usa una tabella `system_logs` in DB né un modello
+ORM `LogTable`. Il backend attuale scrive i log su file (`/app/logs/app.log`)
+via structlog. Lo Step 1 (Alembic migration) e lo Step 2 (endpoint con
+`db.add_all(records)`) devono essere RISCRITTI per usare structlog.
+
 1. Modifica `@file:backend/src/shared/api/logs.py` (file ESISTENTE):
    - Estendi `FrontendLogPayload` con i nuovi campi oppure crea `FrontendLogIn`
      come schema alternativo nello stesso file
    - NON creare un nuovo router separato (evita conflitti su `/api/logs/frontend`)
 2. Schema: `@file:backend/src/shared/schemas/logs.py`
+⚠️ Il file `backend/src/shared/schemas/logs.py` NON ESISTE ancora.
+Va CREATO. Istruzione corretta: "Crea il nuovo file schemas/logs.py con il seguente contenuto:" (non usare @file: syntax che implica che esista già).
+
    ```python
    from datetime import datetime, timezone
    from typing import Any, Literal, Optional
@@ -98,6 +106,8 @@
       user_id: Optional[str] = None
    ```
 3. Endpoint:
+⚠️ Il router logs è GIÀ registrato in main.py (riga: app.include_router(logs_router)). NON aggiungere nuovamente include_router per questo modulo. Modificare solo il contenuto di logs.py senza toccare main.py.
+
    ```python
 
     from src.models.logs import LogTable
@@ -254,7 +264,11 @@ export const logger = new FrontendLogger();
 ---
 
 ## 🔹 Step 4: Admin Viewer (`SystemLogs.tsx`)
-⚠️ PREREQUISITO: Verifica che l'endpoint esistente `GET /api/logs` accetti il query param `source`. 
+⚠️ L'endpoint GET /api/logs legge da file /app/logs/app.log (non da DB).
+Il parametro `source` non è supportato. Occorre:
+Aggiungere filtro `source` nella lettura del file log (cerca "source" nel JSON): soluzione rapida senza DB
+Dopo aver creato SystemLogs.tsx, importarlo e renderizzarlo in AdminDashboard.tsx (file esistente in features/admin/components/) come tab o sezione separata.
+
 
 > 🔧 WORKAROUND TEMPORANEO: Il filtro client-side genera trasferimento dati inutile.
 > Richiedi all'utente di aggiornare il backend per supportare `?source=` prima di andare in produzione.

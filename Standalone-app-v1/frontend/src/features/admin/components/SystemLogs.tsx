@@ -139,9 +139,16 @@ export function SystemLogs() {
                 {log.timestamp && (
                   <span>{new Date(log.timestamp).toLocaleString()}</span>
                 )}
-                <span className="bg-gray-700 px-1 rounded">
-                  {log.source ?? 'backend'}
-                </span>
+                {log.source && (
+                  <span className="bg-gray-700 px-1 rounded">
+                    {log.source}
+                  </span>
+                )}
+                {log.source === 'frontend' && (
+                  <span title={JSON.stringify(log.metadata || log)} className="cursor-help text-blue-500">
+                    🖥️
+                  </span>
+                )}
                 {log.component && (
                   <span className="bg-blue-900 px-1 rounded text-blue-300">
                     {log.component}

@@ -5,7 +5,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.estimates.domain.entities import Direction, Estimate, EstimateStatus
+from src.estimates.domain.entities import EstimateDirection as Direction, Estimate, EstimateStatus
 from src.main import app
 from src.market_data.domain.entities import Ticker
 from src.market_data.domain.market_data import MarketData

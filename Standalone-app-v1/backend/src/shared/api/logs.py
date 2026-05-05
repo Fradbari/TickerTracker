@@ -23,7 +23,7 @@ class FrontendLogIn(BaseModel):
     user_id: Optional[str] = None
 
 
-@router.post('/frontend', status_code=202)
+@router.post('/frontend', status_code=202, tags=["internal-logs"])
 async def ingest_frontend_logs(payload: list[FrontendLogIn]):
     if len(payload) > 50:
         raise HTTPException(400, "Batch too large. Max 50.")

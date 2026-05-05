@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pydantic import ValidationError as PydanticValidationError
 
-from src.estimates.domain.entities import Direction, Estimate, EstimateStatus
+from src.estimates.domain.entities import EstimateDirection as Direction, Estimate, EstimateStatus
 from src.estimates.domain.events import EstimateEvent, EstimateEventType
 from src.estimates.schemas.commands import CloseEstimateCommand, CreateEstimateCommand
 from src.estimates.services.estimate_service import EstimateService

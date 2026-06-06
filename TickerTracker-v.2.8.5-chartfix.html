@@ -53,12 +53,11 @@
     <script type="importmap">
     {
       "imports": {
-        "react": "https://aistudiocdn.com/react@^19.2.1",
-        "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.1/client",
-        "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
-        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
-        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-        "react/": "https://aistudiocdn.com/react@^19.2.1/"
+        "react": "https://aistudiocdn.com/react@19.2.1",
+        "react-dom/client": "https://aistudiocdn.com/react-dom@19.2.1/client",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@1.31.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@19.2.1/",
+        "react/": "https://aistudiocdn.com/react@19.2.1/"
       }
     }
     </script>
@@ -118,7 +117,6 @@
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useRef, useCallback, useMemo, createContext, useContext } from 'react';
         import { createRoot } from 'react-dom/client';
-        import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Line, ComposedChart, PieChart, Pie, AreaChart, Area } from 'recharts';
         import { GoogleGenAI } from "@google/genai";
 
         // --- CONSTANTS ---
@@ -211,6 +209,183 @@
         };
         
         const useToast = () => useContext(ToastContext);
+
+        // --- RENDER SAFETY + NATIVE SVG CHARTS ---
+        // I grafici sono implementati con SVG nativo per evitare dipendenze runtime Recharts/React-context.
+        class RootErrorBoundary extends React.Component {
+          constructor(props) {
+            super(props);
+            this.state = { hasError: false, message: '' };
+          }
+          static getDerivedStateFromError(error) {
+            return { hasError: true, message: error?.message || 'Errore rendering applicazione' };
+          }
+          componentDidCatch(error, info) {
+            console.error('Root rendering error:', error, info);
+          }
+          clearLocalStateAndReload = async () => {
+            try {
+              localStorage.clear();
+              if (window.indexedDB?.deleteDatabase) indexedDB.deleteDatabase('TickerTrackerProDB');
+            } catch (error) {
+              console.warn('Reset storage fallback failed:', error);
+            }
+            setTimeout(() => location.reload(), 300);
+          };
+          render() {
+            if (this.state.hasError) {
+              return (
+                <div className="min-h-screen bg-background text-white flex items-center justify-center p-6">
+                  <div className="max-w-xl glass rounded-2xl p-6 border border-red-500/30 text-center space-y-4">
+                    <div className="text-5xl">🛠️</div>
+                    <h1 className="text-2xl font-bold">Ripristino interfaccia richiesto</h1>
+                    <p className="text-gray-300">L'app ha intercettato un errore di rendering invece di lasciare lo schermo vuoto.</p>
+                    <pre className="text-left text-xs bg-black/30 p-3 rounded-lg overflow-auto text-red-200">{this.state.message}</pre>
+                    <button onClick={this.clearLocalStateAndReload} className="px-5 py-3 rounded-xl bg-red-600 hover:bg-red-500 font-bold">Pulisci dati locali e ricarica</button>
+                    <p className="text-xs text-gray-400">Dopo il reset potrai ripristinare nuovamente il backup.</p>
+                  </div>
+                </div>
+              );
+            }
+            return this.props.children;
+          }
+        }
+
+        const ChartEmptyState = ({ label = 'Nessun dato disponibile' }) => (
+          <div className="h-full min-h-[180px] flex flex-col items-center justify-center rounded-xl border border-white/10 bg-black/20 text-gray-400 p-4 text-center">
+            <div className="text-3xl mb-2">📊</div>
+            <div className="font-medium">{label}</div>
+          </div>
+        );
+
+        const truncateLabel = (value, max = 10) => {
+          const text = String(value || 'N/A');
+          return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+        };
+
+        const SimpleAIProfitBarChart = ({ data = [] }) => {
+          const chartData = (Array.isArray(data) ? data : [])
+            .map(item => ({ name: String(item?.name || 'N/A'), profit: toFiniteNumber(item?.profit, 0) }))
+            .filter(item => item.name);
+
+          if (chartData.length === 0) return <ChartEmptyState label="Nessuna performance AI disponibile" />;
+
+          const width = 760;
+          const height = 220;
+          const pad = { top: 18, right: 24, bottom: 48, left: 58 };
+          const plotW = width - pad.left - pad.right;
+          const plotH = height - pad.top - pad.bottom;
+          const maxAbs = Math.max(1, ...chartData.map(item => Math.abs(item.profit)));
+          const zeroY = pad.top + plotH / 2;
+          const slot = plotW / chartData.length;
+          const barW = Math.max(14, Math.min(46, slot * 0.55));
+
+          return (
+            <svg className="w-full h-full" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Performance per AI">
+              <defs>
+                <linearGradient id="profitPositive" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#34d399" stopOpacity="0.95" />
+                  <stop offset="100%" stopColor="#059669" stopOpacity="0.75" />
+                </linearGradient>
+                <linearGradient id="profitNegative" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#fb7185" stopOpacity="0.95" />
+                  <stop offset="100%" stopColor="#e11d48" stopOpacity="0.75" />
+                </linearGradient>
+              </defs>
+              {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
+                const y = pad.top + plotH * ratio;
+                return <line key={idx} x1={pad.left} x2={width - pad.right} y1={y} y2={y} stroke="#ffffff14" strokeDasharray={idx === 2 ? '0' : '4 4'} />;
+              })}
+              <line x1={pad.left} x2={width - pad.right} y1={zeroY} y2={zeroY} stroke="#94a3b8" strokeOpacity="0.45" />
+              <text x={pad.left - 10} y={pad.top + 5} textAnchor="end" fill="#94a3b8" fontSize="11">€{formatFixed(maxAbs, 0, '0')}</text>
+              <text x={pad.left - 10} y={zeroY + 4} textAnchor="end" fill="#94a3b8" fontSize="11">0</text>
+              <text x={pad.left - 10} y={pad.top + plotH} textAnchor="end" fill="#94a3b8" fontSize="11">-€{formatFixed(maxAbs, 0, '0')}</text>
+              {chartData.map((item, index) => {
+                const x = pad.left + slot * index + (slot - barW) / 2;
+                const barH = Math.max(2, Math.abs(item.profit) / maxAbs * (plotH / 2 - 8));
+                const y = item.profit >= 0 ? zeroY - barH : zeroY;
+                const fill = item.profit >= 0 ? 'url(#profitPositive)' : 'url(#profitNegative)';
+                return (
+                  <g key={`${item.name}-${index}`}>
+                    <rect x={x} y={y} width={barW} height={barH} rx="5" fill={fill}>
+                      <title>{`${item.name}: €${formatFixed(item.profit, 2, '0.00')}`}</title>
+                    </rect>
+                    <text x={x + barW / 2} y={item.profit >= 0 ? y - 6 : y + barH + 14} textAnchor="middle" fill={item.profit >= 0 ? '#6ee7b7' : '#fda4af'} fontSize="10" fontWeight="700">
+                      {item.profit >= 0 ? '+' : ''}{formatFixed(item.profit, 0, '0')}
+                    </text>
+                    <text x={x + barW / 2} y={height - 20} textAnchor="middle" fill="#a5b4fc" fontSize="11">{truncateLabel(item.name, 8)}</text>
+                  </g>
+                );
+              })}
+            </svg>
+          );
+        };
+
+        const SimplePerformanceOverviewChart = ({ data = [] }) => {
+          const chartData = (Array.isArray(data) ? data : [])
+            .map(item => ({ name: String(item?.name || 'N/A'), profit: toFiniteNumber(item?.profit, 0), success: toFiniteNumber(item?.success, 0) }))
+            .filter(item => item.name);
+
+          if (chartData.length === 0) return <ChartEmptyState label="Nessun dato statistico disponibile" />;
+
+          const width = 860;
+          const height = 260;
+          const pad = { top: 22, right: 74, bottom: 54, left: 64 };
+          const plotW = width - pad.left - pad.right;
+          const plotH = height - pad.top - pad.bottom;
+          const maxAbsProfit = Math.max(1, ...chartData.map(item => Math.abs(item.profit)));
+          const slot = plotW / chartData.length;
+          const barW = Math.max(14, Math.min(42, slot * 0.45));
+          const zeroY = pad.top + plotH / 2;
+          const yProfit = (profit) => zeroY - (profit / maxAbsProfit) * (plotH / 2 - 10);
+          const ySuccess = (success) => pad.top + plotH - (Math.max(0, Math.min(100, success)) / 100) * plotH;
+          const linePoints = chartData.map((item, index) => `${pad.left + slot * index + slot / 2},${ySuccess(item.success)}`).join(' ');
+
+          return (
+            <svg className="w-full h-full" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Performance overview AI">
+              {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
+                const y = pad.top + plotH * ratio;
+                return <line key={idx} x1={pad.left} x2={width - pad.right} y1={y} y2={y} stroke="#ffffff14" strokeDasharray={idx === 2 ? '0' : '4 4'} />;
+              })}
+              <line x1={pad.left} x2={width - pad.right} y1={zeroY} y2={zeroY} stroke="#94a3b8" strokeOpacity="0.45" />
+              <text x={pad.left - 12} y={pad.top + 4} textAnchor="end" fill="#94a3b8" fontSize="11">€{formatFixed(maxAbsProfit, 0, '0')}</text>
+              <text x={pad.left - 12} y={zeroY + 4} textAnchor="end" fill="#94a3b8" fontSize="11">0</text>
+              <text x={pad.left - 12} y={pad.top + plotH} textAnchor="end" fill="#94a3b8" fontSize="11">-€{formatFixed(maxAbsProfit, 0, '0')}</text>
+              <text x={width - pad.right + 12} y={pad.top + 4} fill="#818cf8" fontSize="11">100%</text>
+              <text x={width - pad.right + 12} y={pad.top + plotH} fill="#818cf8" fontSize="11">0%</text>
+              {chartData.map((item, index) => {
+                const x = pad.left + slot * index + (slot - barW) / 2;
+                const y = item.profit >= 0 ? yProfit(item.profit) : zeroY;
+                const barH = Math.max(2, Math.abs(yProfit(item.profit) - zeroY));
+                return (
+                  <g key={`${item.name}-${index}`}>
+                    <rect x={x} y={y} width={barW} height={barH} rx="5" fill={item.profit >= 0 ? '#10b981cc' : '#ef4444cc'}>
+                      <title>{`${item.name}: P&L €${formatFixed(item.profit, 2, '0.00')} • Success ${formatFixed(item.success, 1, '0.0')}%`}</title>
+                    </rect>
+                    <text x={x + barW / 2} y={height - 24} textAnchor="middle" fill="#a5b4fc" fontSize="11">{truncateLabel(item.name, 8)}</text>
+                  </g>
+                );
+              })}
+              <polyline points={linePoints} fill="none" stroke="#818cf8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              {chartData.map((item, index) => {
+                const cx = pad.left + slot * index + slot / 2;
+                const cy = ySuccess(item.success);
+                return (
+                  <g key={`success-${item.name}-${index}`}>
+                    <circle cx={cx} cy={cy} r="4.5" fill="#c4b5fd" stroke="#4f46e5" strokeWidth="2">
+                      <title>{`${item.name}: Success ${formatFixed(item.success, 1, '0.0')}%`}</title>
+                    </circle>
+                    <text x={cx} y={cy - 9} textAnchor="middle" fill="#c4b5fd" fontSize="10" fontWeight="700">{formatFixed(item.success, 0, '0')}%</text>
+                  </g>
+                );
+              })}
+              <g transform={`translate(${pad.left}, ${height - 5})`}>
+                <rect width="10" height="10" fill="#10b981cc" rx="2" /><text x="16" y="9" fill="#94a3b8" fontSize="11">P&L</text>
+                <line x1="70" x2="86" y1="5" y2="5" stroke="#818cf8" strokeWidth="3" /><text x="92" y="9" fill="#94a3b8" fontSize="11">Success Rate</text>
+              </g>
+            </svg>
+          );
+        };
 
         // --- SERVICES ---
         let currentProxyIndex = 0;
@@ -1091,22 +1266,7 @@
                 <div className="glass rounded-2xl p-6">
                   <h3 className="text-lg font-bold mb-4 text-gray-300">Performance per AI</h3>
                   <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={stats.aiPerf}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-                        <XAxis dataKey="name" stroke="#8888aa" fontSize={12} />
-                        <YAxis stroke="#8888aa" />
-                        <Tooltip 
-                          contentStyle={{ backgroundColor: '#16213e', borderColor: '#ffffff20' }}
-                          formatter={(value) => [`€${value.toFixed(2)}`, 'P&L']}
-                        />
-                        <Bar dataKey="profit" radius={[4, 4, 0, 0]}>
-                          {stats.aiPerf.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.profit >= 0 ? '#00b09b' : '#ea1e63'} fillOpacity={0.8} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <SimpleAIProfitBarChart data={stats.aiPerf} />
                   </div>
                 </div>
 
@@ -2406,21 +2566,7 @@
             <div className="space-y-8 animate-fade-in">
               <div className="glass p-6 rounded-2xl h-80">
                 <h3 className="text-gray-400 mb-4 font-bold">📊 Performance Overview</h3>
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-                    <XAxis dataKey="name" stroke="#8888aa" />
-                    <YAxis yAxisId="left" stroke="#8888aa" />
-                    <YAxis yAxisId="right" orientation="right" stroke="#667eea" unit="%" />
-                    <Tooltip contentStyle={{ backgroundColor: '#16213e', borderColor: '#ffffff20' }} />
-                    <Bar yAxisId="left" dataKey="profit" name="P&L" radius={[4, 4, 0, 0]}>
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.profit >= 0 ? '#00b09b' : '#ea1e63'} fillOpacity={0.7} />
-                      ))}
-                    </Bar>
-                    <Line yAxisId="right" type="monotone" dataKey="success" name="Success Rate" stroke="#667eea" strokeWidth={3} dot={{ fill: '#667eea' }} />
-                  </ComposedChart>
-                </ResponsiveContainer>
+                <SimplePerformanceOverviewChart data={chartData} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -3034,19 +3180,25 @@
           const handleSaveKey = (type) => { if (type === 'finnhub') localStorage.setItem('finnhubApiKey', finnhubKey); else if (type === 'gemini') localStorage.setItem('geminiApiKey', geminiKey); }; const handleClearData = async () => { if (confirm('CANCELLARE TUTTO?')) { try { setEstimates([]); setLogs([]); setChatMessages([defaultChatMessage]); await clearAppIndexedDB(); } catch (error) { console.error('Errore reset storage', error); } localStorage.clear(); location.reload(); } }; const handleDownloadLogs = () => { const text = logs.map(l => `[${new Date(l.timestamp).toLocaleString()}] [${l.type.toUpperCase()}] ${l.ticker ? `[${l.ticker}] ` : ''}${l.action || l.message}${l.detail ? ` - ${l.detail}` : ''}`).join('\n'); const blob = new Blob([text], { type: 'text/plain' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `logs_${Date.now()}.txt`; a.click(); };
           const getAppData = useCallback(async () => { const artifacts = await idbGetAll(ARTIFACT_STORE); return { version: '4.3.1-idb-perf-logux-chatfix', timestamp: new Date().toISOString(), estimates, logs, chatMessages, artifacts, storageDiagnostics, config: { finnhubKey, geminiKey, gasUrl: localStorage.getItem('gasUrl') || '', autoRefresh, yahooCookie: localStorage.getItem('yahooCookie') || '', yahooCrumb: localStorage.getItem('yahooCrumb') || '', defaultSettings: localStorage.getItem('defaultSettings') || '' } }; }, [estimates, logs, chatMessages, storageDiagnostics, finnhubKey, geminiKey, autoRefresh]);
           const downloadBackup = async () => { const payload = await getAppData(); const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'stock_tracker_backup_complete.json'; a.click(); };
-          const applyRestoredData = async (data) => { try { const restoredEstimatesRaw = Array.isArray(data.estimates) ? data.estimates : []; const restoredLogs = Array.isArray(data.logs) ? data.logs.map((entry, index) => normalizeLogEntry(entry, index)) : []; const restoredChatMessages = Array.isArray(data.chatMessages) && data.chatMessages.length > 0 ? data.chatMessages : [defaultChatMessage]; await idbClearStore(ARTIFACT_STORE); let restoredEstimates = restoredEstimatesRaw.map(stripHistoricalPayloadFromEstimate); if (Array.isArray(data.artifacts) && data.artifacts.length > 0) for (const artifact of data.artifacts) await idbSet(ARTIFACT_STORE, artifact); else restoredEstimates = await compactEstimatesAndArtifacts(restoredEstimatesRaw); await idbSet(KV_STORE, restoredEstimates, 'estimates'); await idbSet(KV_STORE, restoredLogs, 'logs'); await idbSet(KV_STORE, restoredChatMessages, 'chatMessages'); await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: false }, 'storageMeta'); skipNextEstimatePersistRef.current += 1; skipNextLogsPersistRef.current += 1; skipNextChatPersistRef.current += 1; setEstimates(Array.isArray(restoredEstimates) ? restoredEstimates.map(stripHistoricalPayloadFromEstimate) : []); setLogs(restoredLogs); setChatMessages(restoredChatMessages); if (data.config) { if (data.config.finnhubKey !== undefined) { setFinnhubKey(data.config.finnhubKey || ''); if (data.config.finnhubKey) localStorage.setItem('finnhubApiKey', data.config.finnhubKey); else localStorage.removeItem('finnhubApiKey'); } if (data.config.geminiKey !== undefined) { setGeminiKey(data.config.geminiKey || ''); if (data.config.geminiKey) localStorage.setItem('geminiApiKey', data.config.geminiKey); else localStorage.removeItem('geminiApiKey'); } if (data.config.gasUrl !== undefined) { if (data.config.gasUrl) localStorage.setItem('gasUrl', data.config.gasUrl); else localStorage.removeItem('gasUrl'); } if (data.config.autoRefresh !== undefined) setAutoRefresh(Number(data.config.autoRefresh) || 0); if (data.config.yahooCookie !== undefined) { if (data.config.yahooCookie) localStorage.setItem('yahooCookie', data.config.yahooCookie); else localStorage.removeItem('yahooCookie'); } if (data.config.yahooCrumb !== undefined) { if (data.config.yahooCrumb) localStorage.setItem('yahooCrumb', data.config.yahooCrumb); else localStorage.removeItem('yahooCrumb'); } if (data.config.defaultSettings) localStorage.setItem('defaultSettings', data.config.defaultSettings); } await refreshStorageDiagnostics({ estimates: restoredEstimates, logs: restoredLogs, chatMessages: restoredChatMessages }); return true; } catch (error) { console.error('Errore applyRestoredData', error); return false; } };
+          const applyRestoredData = async (data) => { try { const restoredEstimatesRaw = Array.isArray(data.estimates) ? data.estimates : []; const restoredLogs = Array.isArray(data.logs) ? data.logs.map((entry, index) => normalizeLogEntry(entry, index)) : []; const restoredChatMessages = Array.isArray(data.chatMessages) && data.chatMessages.length > 0 ? data.chatMessages : [defaultChatMessage]; await idbClearStore(KV_STORE); await idbClearStore(ARTIFACT_STORE); let restoredEstimates = restoredEstimatesRaw.map(stripHistoricalPayloadFromEstimate); if (Array.isArray(data.artifacts) && data.artifacts.length > 0) for (const artifact of data.artifacts) await idbSet(ARTIFACT_STORE, artifact); else restoredEstimates = await compactEstimatesAndArtifacts(restoredEstimatesRaw); await idbSet(KV_STORE, restoredEstimates, 'estimates'); await idbSet(KV_STORE, restoredLogs, 'logs'); await idbSet(KV_STORE, restoredChatMessages, 'chatMessages'); await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: false }, 'storageMeta'); skipNextEstimatePersistRef.current += 1; skipNextLogsPersistRef.current += 1; skipNextChatPersistRef.current += 1; setEstimates(Array.isArray(restoredEstimates) ? restoredEstimates.map(stripHistoricalPayloadFromEstimate) : []); setLogs(restoredLogs); setChatMessages(restoredChatMessages); if (data.config) { if (data.config.finnhubKey !== undefined) { setFinnhubKey(data.config.finnhubKey || ''); if (data.config.finnhubKey) localStorage.setItem('finnhubApiKey', data.config.finnhubKey); else localStorage.removeItem('finnhubApiKey'); } if (data.config.geminiKey !== undefined) { setGeminiKey(data.config.geminiKey || ''); if (data.config.geminiKey) localStorage.setItem('geminiApiKey', data.config.geminiKey); else localStorage.removeItem('geminiApiKey'); } if (data.config.gasUrl !== undefined) { if (data.config.gasUrl) localStorage.setItem('gasUrl', data.config.gasUrl); else localStorage.removeItem('gasUrl'); } if (data.config.autoRefresh !== undefined) setAutoRefresh(Number(data.config.autoRefresh) || 0); if (data.config.yahooCookie !== undefined) { if (data.config.yahooCookie) localStorage.setItem('yahooCookie', data.config.yahooCookie); else localStorage.removeItem('yahooCookie'); } if (data.config.yahooCrumb !== undefined) { if (data.config.yahooCrumb) localStorage.setItem('yahooCrumb', data.config.yahooCrumb); else localStorage.removeItem('yahooCrumb'); } if (data.config.defaultSettings) localStorage.setItem('defaultSettings', data.config.defaultSettings); } await refreshStorageDiagnostics({ estimates: restoredEstimates, logs: restoredLogs, chatMessages: restoredChatMessages }); return true; } catch (error) { console.error('Errore applyRestoredData', error); return false; } };
           const handleRestore = (e) => { const file = e.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = async (ev) => { try { const data = JSON.parse(ev.target.result); if (await applyRestoredData(data)) addLog('Backup locale ripristinato', 'success', { category: 'cloud', action: 'Backup ripristinato', detail: file.name, event: 'restore' }); else addLog('Errore struttura backup', 'error', { category: 'error', action: 'Restore fallito', detail: file.name }); } catch (error) { alert('Errore nel file di backup'); } }; reader.readAsText(file); }; const onDriveRestore = async (data) => { if (await applyRestoredData(data)) addLog('Backup cloud ripristinato', 'success', { category: 'cloud', action: 'Backup cloud ripristinato', detail: 'Google Drive', event: 'restore' }); else addLog('Errore restore Cloud', 'error', { category: 'error', action: 'Restore cloud fallito', detail: 'Google Drive' }); }; const compactStorage = useCallback(async () => { const compacted = await compactEstimatesAndArtifacts(estimates); skipNextEstimatePersistRef.current += 1; setEstimates(compacted); await idbSet(KV_STORE, compacted, 'estimates'); await idbSet(KV_STORE, { version: APP_STORAGE_VERSION, migratedAt: new Date().toISOString(), migratedFromLocalStorage: false }, 'storageMeta'); await refreshStorageDiagnostics({ estimates: compacted }); addLog('Compattazione storage eseguita', 'success', { category: 'storage', action: 'Compattazione storage', detail: `${compacted.length} stime ottimizzate` }); return compacted; }, [estimates, refreshStorageDiagnostics, addLog]);
           const tabs = [{ id: 'dashboard', icon: '🏠', label: 'Dashboard' }, { id: 'input', icon: '📊', label: 'Inserimento' }, { id: 'estimates', icon: '📈', label: 'Stime' }, { id: 'stats', icon: '📉', label: 'Global Stats' }, { id: 'chat', icon: '💬', label: 'IA Chat' }, { id: 'logs', icon: '📝', label: 'Log' }, { id: 'settings', icon: '⚙️', label: 'Setup' }]; const btnClass = 'px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-0.5'; const activeTabClass = 'bg-gradient-to-r from-accent-blue to-accent-purple text-white shadow-lg shadow-accent-blue/30'; const inactiveTabClass = 'text-gray-400 hover:text-white hover:bg-white/5'; if (!storageReady) return <div className="min-h-screen bg-background text-gray-200 flex items-center justify-center"><div className="glass rounded-2xl p-8 text-center space-y-3"><div className="text-4xl animate-spin">⏳</div><div className="text-xl font-bold text-white">Inizializzazione archivio locale</div><div className="text-sm text-gray-400">Migrazione dati verso IndexedDB in corso...</div></div></div>; return <div className="min-h-screen bg-background text-gray-200 pb-20"><MobileNav activeTab={activeTab} setActiveTab={setActiveTab} isOpen={mobileMenuOpen} setIsOpen={setMobileMenuOpen} /><header className="pt-8 pb-4 px-4 text-center"><h1 className="text-3xl md:text-4xl font-bold gradient-text mb-1">AI Stock Tracker Pro</h1><p className="text-gray-500 text-sm">Monitoraggio performance modelli predittivi • Storage v{APP_STORAGE_VERSION}</p></header><PortfolioWidget estimates={estimates} /><div className="container mx-auto px-4 mb-6"><div className="hidden md:flex flex-wrap justify-center gap-2 border-b border-gray-800 pb-4">{tabs.map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`${btnClass} ${activeTab === tab.id ? activeTabClass : inactiveTabClass}`}>{tab.icon} {tab.label}</button>)}</div></div><main className="container mx-auto px-4 max-w-6xl">{activeTab === 'dashboard' && <Dashboard estimates={estimates} switchTab={setActiveTab} />}{activeTab === 'input' && <EstimateForm onAdd={handleAddEstimate} onRemove={handleRemoveEstimate} onLog={addLog} finnhubKey={finnhubKey} isOnline={!!finnhubKey} switchTab={setActiveTab} estimates={estimates} />}{activeTab === 'estimates' && <EstimateList estimates={estimates} onUpdateEstimate={handleUpdateEstimate} onBulkUpdateEstimates={applyBulkEstimateUpdates} onRemove={handleRemoveEstimate} onLog={addLog} autoRefresh={autoRefresh} setAutoRefresh={setAutoRefresh} />}{activeTab === 'stats' && <Stats estimates={estimates} />}{activeTab === 'chat' && <Chatbot geminiKey={geminiKey} estimates={estimates} messages={chatMessages} setMessages={setChatMessages} onClear={handleClearChat} />}{activeTab === 'logs' && <Logs logs={logs} onClear={() => setLogs([])} onDownload={handleDownloadLogs} />}{activeTab === 'settings' && <Settings finnhubKey={finnhubKey} setFinnhubKey={setFinnhubKey} geminiKey={geminiKey} setGeminiKey={setGeminiKey} onSaveKey={handleSaveKey} downloadBackup={downloadBackup} handleRestore={handleRestore} handleClearData={handleClearData} getAppData={getAppData} onDriveRestore={onDriveRestore} onLog={addLog} storageDiagnostics={storageDiagnostics} refreshStorageDiagnostics={refreshStorageDiagnostics} compactStorage={compactStorage} />}</main></div>;
         };
 
         // Wrap App with ToastProvider        // Wrap App with ToastProvider
         const AppWithToast = () => (
-          <ToastProvider>
-            <App />
-          </ToastProvider>
+          <RootErrorBoundary>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </RootErrorBoundary>
         );
 
-        const root = createRoot(document.getElementById('root'));
+        const rootElement = document.getElementById('root');
+        if (!rootElement) {
+          throw new Error('Elemento root non trovato nel documento HTML');
+        }
+        const root = createRoot(rootElement);
         root.render(<AppWithToast />);
     </script>
 </body>

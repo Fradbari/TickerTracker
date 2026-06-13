@@ -176,3 +176,66 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 --- 
 
 *This CLAUDE.md is intended to give future instances of Claude Code a concise yet comprehensive starting point for productive work in this repository.*
+
+## PROJECT STATUS & REQUIREMENTS ANALYSIS (Updated: 2026-06-13)
+
+### Overview
+This repository represents a significant evolution from the original monolithic HTML implementation (TickerTracker-v.2.8.5-chartfix.html) to a modern microservices architecture using Domain-Driven Design, CQRS, and Event Sourcing patterns. The current Standalone-app-v1 implements a robust backend with substantial frontend development remaining.
+
+### Implementation Status vs Original Requirements
+
+#### ✅ WELL IMPLEMENTED (Meets or Exceeds Requirements)
+- **Core Architecture**: DDD with bounded contexts (estimates, market_data, sync, analytics, shared)
+- **CQRS & Event Sourcing**: Fully implemented with materialized view for sub-5ms dashboard queries
+- **Decimal Precision**: Correct implementation in both backend (Python Decimal) and frontend (decimal.js)
+- **Database**: PostgreSQL 16 + Redis 7 with Docker Compose orchestration
+- **Google Drive Sync**: Reliable Outbox pattern with retry logic and dead letter handling
+- **Background Jobs**: APScheduler for market data refresh, target checking, view refresh
+- **Security**: Comprehensive middleware (headers, CORS, rate limiting, API key auth, encryption)
+- **Observability**: Structured logging, correlation IDs, Prometheus metrics, health checks
+- **API Design**: Standardized ApiResponse pattern, comprehensive input validation
+- **Testing**: Strong unit test coverage for backend domain objects and services
+
+#### ⚠️ PARTIALLY IMPLEMENTED
+- **Frontend MVP**: Architecture established but key components missing:
+  * Ticker search dropdown (TASK 4.9)
+  * Close estimate modal (TASK 4.10) 
+  * Portfolio dashboard KPIs & recent estimates (TASK 4.11)
+  * Performance chart (TASK 4.12)
+  * Router & responsive layout (TASK 4.16)
+  * Shared UI components (TASK 4.5b)
+- **Backend Analytics**: Domain models exist but API routes/services not implemented
+- **Market Data Providers**: Yahoo Finance implemented; others as stubs only
+- **User Authentication**: RBAC models defined but API integration incomplete
+
+#### ❌ SIGNIFICANT GAPS (Per Original Vision)
+1. **AI Chat Endpoint**: No `/api/chat/message` for LLM integration with portfolio context
+2. **Intraday Exit Logic**: Currently checks closing prices only; requirements specify checking intraday high/low for exit conditions between updates
+3. **Advanced Statistics**: Missing calculations for:
+   - Positive estimates where price dropped below entry during period
+   - Profitable vs non-profitable by time vs % separately
+   - Detailed AI-name-grouped metrics as specified
+4. **Configuration Backup/Restore**: No explicit UI/API for backing up/restoring app configuration (API keys, settings)
+5. **Log Viewer/Downloader**: Structured logging exists but no UI/download for debugging logs
+6. **Update Optimization Feedback**: Need to verify/track that same-ticker estimates are grouped for single API call during updates
+7. **AI Model Version Default**: Logic to default to largest version number in recent estimates not verified
+8. **Real-time Update Feedback**: Visual progress indication during API updates to prevent user confusion
+
+### Critical Architectural Patterns to Preserve
+1. **Decimal Precision**: Never use float/number for financial calculations
+2. **API Centralization**: All API calls via `shared/api/client.ts` (no direct fetch/Axios)
+3. **Feature Isolation**: Zero cross-feature imports; communication only through `shared/`
+4. **Component Reusability**: UI components in `shared/components/`
+5. **Error Handling**: Consistent use of `AppErrorBoundary` and `useNotify()`
+6. **Validation**: Zod v4 with `string().refine()` pattern for numeric inputs
+
+### Recommended Immediate Focus Areas
+1. **Frontend MVP Completion**: Tasks 4.5b, 4.9, 4.10, 4.11, 4.12, 4.16
+2. **Backend Analytics Implementation**: API routes/services for AI chat functionality
+3. **Enhanced Exit Logic**: Intraday high/low checking for exit conditions
+4. **Advanced Statistics**: Implement required statistical calculations per vision
+5. **Configuration Management**: Backup/restore UI/API for app settings
+6. **Debugging Tools**: Log viewer/downloader functionality
+7. **Progress Tracking**: Update AGENTS.md files to reflect actual implementation status
+
+This analysis serves as a knowledge base for understanding what has been implemented, what remains to be done, and the architectural principles that have guided this project's evolution from the original vision to its current state.

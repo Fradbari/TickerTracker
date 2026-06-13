@@ -1,0 +1,9 @@
+{
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "claude-code-setup@claude-plugins-official": true,
+    "frontend-design@awesome-claude-plugins": true,
+    "artifacts-builder@awesome-claude-plugins": true,
+    "senior-frontend@awesome-claude-plugins": true
+  }
+}

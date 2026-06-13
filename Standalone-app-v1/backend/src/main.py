@@ -2,10 +2,16 @@
 TickerTracker Backend - FastAPI Application Entry Point
 
 Configures:
-- FastAPI application
-- Security middleware (headers, CORS, rate limiting)
-- Health check routes
-- All bounded context routers
+- FastAPI application with DDD/CQRS architecture
+- Security middleware (headers, CORS, rate limiting) in specific order
+- Health check routes (both at root and /api for compatibility)
+- All bounded context routers (estimates, market-data, sync, admin, metrics, etc.)
+- Background services (APScheduler for jobs, price update loop)
+- Exception handling for database timeouts and generic errors
+- Lifespan events for startup/shutdown tasks (candle backfill, background loops)
+
+The application follows Clean Architecture principles with strict layer separation:
+API → Services → Repositories → Domain
 """
 
 from fastapi import FastAPI, Request
@@ -35,20 +41,28 @@ settings = get_settings()
 
 # Configure structured JSON logging BEFORE creating the app so that all
 # subsequent log calls (including FastAPI startup) are formatted correctly.
+# This ensures consistent logging format across the entire application lifecycle.
 configure_logging(log_level=settings.LOG_LEVEL)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # TASK 4 (Prima): Esegui il backfill delle candele all'avvio garantendo il dato
-    # Implementazione reale nel file di Task 4.
+    """
+    Application lifespan manager.
+    Handles startup and shutdown tasks for background services.
+    """
+    # TASK 4 (Prima): Execute candle backfill on startup to ensure initial market data
+    # This populates the database with historical candles for immediate charting
     await candle_service.backfill_candles_on_startup()
-    
-    # TASK 3B (Dopo): Looping parallelo asincrono
+
+    # TASK 3B (Dopo): Start asynchronous price update loop
+    # This loop periodically fetches latest market data for all tracked tickers
+    # We store the task reference to cancel it cleanly on shutdown
     loop_task = asyncio.create_task(background_tasks.start_price_loop({"db_session": AsyncSessionLocal}))
     yield
+    # Cancel the background price loop when application shuts down
     loop_task.cancel()
 
-# Create FastAPI application
+# Create FastAPI application with metadata for OpenAPI/Swagger documentation
 app = FastAPI(
     title="TickerTracker Backend",
     description="Trading estimates tracking system with DDD/CQRS architecture",
@@ -64,42 +78,55 @@ app = FastAPI(
         {"name": "admin", "description": "Feature flags e admin"},
         {"name": "metrics", "description": "Prometheus metrics"},
     ],
+    # Swagger UI configuration: hide schemas by default for cleaner interface
     swagger_ui_parameters={"defaultModelsExpandDepth": -1}
 )
 
-# Setup slowapi rate limiter (BEFORE include_router so state is ready)
+# Setup slowapi rate limiter BEFORE including routers
+# This ensures the rate limiter state is initialized before any route definitions
 setup_rate_limiter(app)
 
 # Setup security middleware (adds SecurityMiddleware as outermost layer)
+# This middleware handles security headers, CORS, and other protection measures
 setup_security_middleware(app)
 
-# Add CorrelationIDMiddleware LAST so Starlette places it outermost:
-# execution order → CorrelationID → Security → RequestContext → SlowAPI → app
+# Add CorrelationIDMiddleware LAST so Starlette places it outermost in the middleware stack
+# Execution order of middleware (from outer to inner):
+# 1. CorrelationIDMiddleware (adds request ID for tracing)
+# 2. SecurityMiddleware (adds security headers)
+# 3. RequestContext (FastAPI's built-in)
+# 4. SlowAPI (rate limiting)
+# 5. Application routes
 app.add_middleware(CorrelationIDMiddleware)
 
-# Register routers
-app.include_router(health_routes.router)
-app.include_router(health_routes.router, prefix="/api")  # Bypass nginx intercept
-app.include_router(estimates_router)
-app.include_router(market_data_routes.router)
-app.include_router(sync_router, prefix="/api")
-app.include_router(metrics_router)
-app.include_router(admin_routes.router)
+# Register routers for each bounded context
+# Health routes are registered twice: at root (for Docker/K8s probes) and at /api (for consistency)
+app.include_router(health_routes.router)           # Root level: /health
+app.include_router(health_routes.router, prefix="/api")  # API level: /api/health (bypasses nginx intercept in prod)
 
+# Core business logic routers
+app.include_router(estimates_router)               # /estimates
+app.include_router(market_data_routes.router)      # /market-data
+app.include_router(sync_router, prefix="/api")     # /api/sync (Google Drive synchronization)
+app.include_router(metrics_router)                 # /metrics (Prometheus endpoint)
+app.include_router(admin_routes.router)            # /admin (feature flags and admin endpoints)
+
+# Shared infrastructure routers
 from src.shared.api.logs import router as logs_router
 from src.shared.router import router as shared_tasks_router
-app.include_router(logs_router)
-app.include_router(shared_tasks_router)
+app.include_router(logs_router)                    # /logs (internal logging endpoint)
+app.include_router(shared_tasks_router)            # /tasks (background task management)
 
+# Test routes (only in local/test environments)
 if settings.ENVIRONMENT in ['local', 'test']:
     from src.shared.api import test_routes
-    app.include_router(test_routes.router)  # ✅ [3.6] GET /metrics — Prometheus scrape endpoint
+    app.include_router(test_routes.router)         # /test (includes Prometheus scrape endpoint at /metrics)
 
 # TODO: Register additional bounded context routers
-# - analytics
-
+# - analytics (Phase 2 feature for advanced reporting and insights)
 
 # APScheduler startup/shutdown hooks
+# These events start and stop the background job scheduler
 @app.on_event("startup")
 async def start_scheduler_event():
     app_scheduler.start_scheduler()
@@ -111,7 +138,7 @@ async def shutdown_scheduler_event():
 
 @app.get("/", tags=["root"])
 async def root() -> dict[str, str]:
-    """Root endpoint - API status."""
+    """Root endpoint - returns basic API status and navigation links."""
     return {
         "status": "running",
         "application": "TickerTracker Backend",
@@ -122,20 +149,30 @@ async def root() -> dict[str, str]:
     }
 
 
+# Import placed here to avoid circular import issues with SQLAlchemy
 from sqlalchemy.exc import TimeoutError as SATimeoutError
 
 
 @app.exception_handler(SATimeoutError)
 async def db_timeout_exception_handler(request: Request, exc: SATimeoutError) -> JSONResponse:
-    """Handle database pool exhaustion / timeout."""
+    """Handle database pool exhaustion / timeout.
+
+    Returns 503 Service Unavailable when the database connection pool is exhausted,
+    indicating temporary unavailability due to high load.
+    """
     return JSONResponse(
         status_code=503,
         content={"status": 503, "code": "DB_UNAVAILABLE", "detail": "Service temporally unavailable due to high load"},
     )
 
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Global exception handler for unhandled exceptions."""
+    """Global exception handler for unhandled exceptions.
+
+    In debug mode, re-raises the exception to provide detailed tracebacks.
+    In production, returns a generic 500 error to avoid leaking internal details.
+    """
     if settings.DEBUG:
         raise exc
 

@@ -111,27 +111,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Background scheduling (APScheduler) for jobs like market data sync.
   - Decimal precision for monetary calculations (Python `Decimal` / `decimal.js` on frontend).
 
-- **Backend Development Agent**:
-  For specialized backend work, use the `backend-dev` agent which is pre-configured with TickerTracker v3.0 backend expertise. This agent follows strict architectural guidelines to ensure maintainable, robust implementations.
-
-  When working on backend tasks, invoke the `backend-dev` agent proactively for:
-  - Python/FastAPI development in the `backend/` directory
-  - Domain logic, DDD, CQRS, Event Sourcing implementations
-  - Repository, service, and API endpoint modifications
-  - SQLAlchemy models and Alembic migrations
-  - Pydantic schema validation and data conversion
-  - Backend logging, background jobs, and testing
-  - All modifications to files under `backend/` (excluding frontend, Docker, infrastructure unless explicitly requested)
-
-  The agent enforces:
-  - Mandatory use of `Decimal` for financial calculations (never `float`)
-  - Strict layering: API → Application Service/Command-Query Handler → Repository → Domain → Infrastructure
-  - Standardized `ApiResponse` for all API endpoints
-  - Domain event generation for significant actions
-  - Proper migration handling with Alembic (upgrade/downgrade verification)
-  - Structured logging without exposing secrets
-  - Comprehensive error handling with domain-to-application exception mapping
-
   Workflow when engaged:
   1. Clarify minimal objective if task is ambiguous
   2. Review backend documentation and existing patterns

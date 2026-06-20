@@ -103,7 +103,7 @@ export function useDeleteEstimate() {
  * Placeholder — generic estimate update hook.
  *
  * NOTE: The backend does NOT expose a generic PATCH /api/estimates/:id endpoint
- * in the current MVP plan (Piano-Operativo-v1.7.md). Only closing via
+ * in the current MVP plan (Piano-operativo-v1.7.docx). Only closing via
  * PATCH /api/estimates/:id/close is supported.
  *
  * This hook is reserved for a future task when partial updates (e.g. editing

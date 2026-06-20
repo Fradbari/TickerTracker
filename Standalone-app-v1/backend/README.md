@@ -1406,7 +1406,7 @@ make export-requirements
 ## Link Utili
 
 - [AGENTS.md](./AGENTS.md) - Piano atomico task backend
-- [../Docs/Piano-operativo-v1.4.md](../Docs/Piano-operativo-v1.4.md) - Piano operativo completo
+- [../../docs/Piano-operativo-v1.7.docx](../../docs/Piano-operativo-v1.7.docx) - Piano operativo completo (versione corrente)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
 - [Pydantic Documentation](https://docs.pydantic.dev/)

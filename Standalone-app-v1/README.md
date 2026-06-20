@@ -46,7 +46,7 @@ Standalone-app-v1/
 ├── Docs/               # Documentazione tecnica e test E2E/CI-CD
 ├── scripts/            # Tool di sviluppo e validazione
 ├── AGENTS.md           # Guida principale per lo sviluppo atomico
-└── Piano-Operativo-v1.7.md  # Piano operativo completo
+└── Piano-Operativo-v1.7.docx  # Piano operativo completo
 ```
 
 ---
@@ -240,7 +240,7 @@ Il progetto adotta un approccio **Atomic Development**. Ogni modifica deve esser
    - [backend/AGENTS.md](./backend/AGENTS.md) - Task backend
    - [frontend/AGENTS.md](./frontend/AGENTS.md) - Task frontend
    - [docker/AGENTS.md](./docker/AGENTS.md) - Task Docker
-   - [docs/AGENTS.md](./docs/AGENTS.md) - Task testing e docs
+   - [docs/agents-sprint-fix.md](./docs/agents-sprint-fix.md) - Note di sprint-fix docs; per il workflow task-driven usare root `AGENTS.md`
 
 2. **Standard di Codifica**:
     - **Backend**: Usa sempre `Decimal` per valori monetari. Segui il layering api → services → repositories → domain.
@@ -318,17 +318,17 @@ npm run test           # Vitest
 
 ### Documentazione Tecnica
 
-- **[Piano Operativo v1.7](./Piano-Operativo-v1.7.md)** - Piano completo MVP e Fase 2
+- **[Piano Operativo v1.7](./docs/Piano-operativo-v1.7.docx)** - Piano completo MVP e Fase 2
 - **[AGENTS.md](./AGENTS.md)** - Progress tracker e workflow
 - **Backend API Docs** - http://localhost:8000/docs (quando app è running)
 - **Runbook Operativo** - `Docs/runbook/` (Fase 2)
 
 ### Guide Rapide
 
-- **Architecture**: Vedi sezione "Architettura" in [Piano-Operativo-v1.7.md](./Piano-Operativo-v1.7.md)
+- **Architecture**: Vedi sezione "Architettura" in [Piano-operativo-v1.7.docx](./docs/Piano-operativo-v1.7.docx)
 - **Best Practices**: Consultare "Regole Globali di Sviluppo" in [AGENTS.md](./AGENTS.md)
 - **Task Dependencies**: Vedi "Grafo Dipendenze Completo" in [AGENTS.md](./AGENTS.md)
-- **Database Schema**: Vedi "Struttura Database" in [Piano-Operativo-v1.7.md](./Piano-Operativo-v1.7.md)
+- **Database Schema**: Vedi "Struttura Database" in [Piano-operativo-v1.7.docx](./docs/Piano-operativo-v1.7.docx)
 
 ---
 
@@ -472,7 +472,7 @@ Per segnalare vulnerabilità di sicurezza, contattare privatamente il maintainer
 
 ## 📜 Licenza
 
-Questo progetto è rilasciato sotto licenza MIT. Vedi [LICENSE](../LICENSE) per dettagli.
+Questo progetto è rilasciato come sorgente aperto per uso educativo/personale. Nessun file `LICENSE` è incluso nel repository; ogni dipendenza mantiene la propria licenza dichiarata in `node_modules/`, `.venv/` e nei rispettivi `dist-info`.
 
 ---
 

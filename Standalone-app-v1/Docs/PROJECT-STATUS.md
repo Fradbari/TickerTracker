@@ -1,3 +1,14 @@
+# PROJECT STATUS — Snapshot 2026-06-13
+
+> ⚠️ **STORICO.** Questo documento conserva lo stato del progetto al **2026-06-13** (data originale di `PROJECT_ANALYSIS.md`). I claim in esso contenuti **sono stati in parte smentiti** dal lavoro successivo (vedi "Delta log" in fondo).
+>
+> Per lo stato corrente consultare invece:
+> - root `AGENTS.md` → progress tracker + grafo dipendenze corrente
+> - `Standalone-app-v1/CLAUDE.md` → orientamento sessione + invarianti architetturali correnti
+> - `frontend/AGENTS.md` Regole Fisse + `backend/AGENTS.md` → invarianti per track
+
+---
+
 # TickerTracker Project Analysis
 
 ## Summary of TickerTracker Functionalities
@@ -145,3 +156,33 @@ Based on the current state (40% complete overall, 56% MVP complete):
 Given the strong progress on backend core (100% of MVP backend tasks complete), focus should shift to completing the frontend MVP features and establishing robust testing practices before advancing to Phase 2 authentication and advanced features. This will ensure a solid, testable foundation for the production-ready multi-user version.
 
 *Analysis conducted on: 2026-06-13*
+
+---
+
+## Delta log — smentite e modifiche rispetto al 2026-06-13
+
+Documentate dopo un audit che ha confrontato ogni claim di questo snapshot con il codice e i doc correnti (post-refactor).
+
+### Claim smentiti
+
+| Claim originale (snapshot 2026-06-13) | Stato attuale (verificato) | Evidenza |
+|---|---|---|
+| "AI Chat Endpoint: no `/api/chat/message` for LLM integration" | ❌ **IMPLEMENTATO** | `frontend/src/features/chat-ai/` contiene `useSendChatMessage.ts`, `ChatInterface.tsx`, AGENTS.md con TASK 4.15 |
+| TASK 4.5b, 4.10, 4.11, 4.12, 4.16 come "missing" per frontend MVP | ⚠️ **PARZIALMENTE VERO** | task definiti in `frontend/AGENTS.md:439/778/817/983`, acceptance criteria ancora unchecked. TASK 4.10 aggiornato per essere EstimatesList; non più CloseEstimateModal come nello snapshot originale |
+| "Backend Analytics: domain models exist but API routes/services not implemented" | ⚠️ **STRUTTURALMENTE VERO** | `backend/src/analytics/{api,domain,services,repositories,schemas}/` esistono come scaffolding vuoto, solo `domain/entities.py` ha contenuto |
+| "License: MIT – see LICENSE file at repository root" | ❌ **NESSUN FILE LICENSE** | nessun `LICENSE` né `LICENSE.md` a `Standalone-app-v1/` root |
+| "Consultare AGENTS.md: `backend/AGENTS.md`, `frontend/AGENTS.md`, `docker/AGENTS.md`, `docs/AGENTS.md`" | ❌ **`docs/AGENTS.md` NON ESISTE** | `docs/` contiene solo `Piano-operativo-v1.7.docx`, `agents-sprint-fix.md`, `superpowers/`, `runbook/` |
+| "Consultare `Piano-Operativo-v1.7.md`" | ❌ **SOLO `.docx` ESISTE** | `docs/Piano-operativo-v1.7.md` mai esistito, solo `.docx` (lowercase) |
+
+### Modifiche architetturali avvenute dopo lo snapshot
+
+- **Frontend src layout**: lo snapshot elenca `components/`, `hooks/`, `pages/`, `services/`, `store/`, `utils/`, `locales/` come top-level. Il layout reale è `app/`, `components/{form,layout,ui}/`, `features/{admin,chat-ai,estimates,market-data,portfolio}/`, `shared/{api,components,finance,hooks,i18n,services,types,ui,utils}/`. Vedi `Standalone-app-v1/CLAUDE.md` §"Real Layouts".
+- **CLAUDE.md posizione correzioni**: la sezione "PROJECT STATUS & REQUIREMENTS ANALYSIS" (~60 righe) che era inline in `Standalone-app-v1/CLAUDE.md` è stata rimossa e sostituita da questo file; il nuovo `CLAUDE.md` punta a `PROJECT_ANALYSIS.md` per il riferimento storico.
+- **TASK 4.10**: nello snapshot definito come "CloseEstimateModal"; ridefinito in `frontend/AGENTS.md:208` come "EstimatesList". La modale `CloseEstimateModal` è ora commentata in `frontend/src/features/estimates/index.ts:61` (`TASK 4.10`).
+- **Outbox pattern**: snapshot descriveva Outbox come "planned" (Phase 2). Implementato in `backend/src/infra/outbox/outbox_processor.py` (NON in `backend/src/sync/` come il vecchio CLAUDE.md indicava).
+- **E2E testing foundation**: snapshot lo dava come "mid-term goal". Playwright ora configurato a repo root in `playwright.config.ts` con `e2e/` directory.
+
+### Caveat per rilettori
+
+- Lo stato di TASK 4.9, 4.10, 4.11, 4.12, 4.16 in `frontend/AGENTS.md` è da verificare volta per volta contro la root `AGENTS.md` → progress tracker corrente. Questo snapshot è solo un'istantanea del 2026-06-13.
+- Le "Critical Architectural Patterns to Preserve" elencate nello snapshot sono state riprese e ampliate nel nuovo `Standalone-app-v1/CLAUDE.md` §"Critical Architectural Invariants" (con i link corretti ai file reali come `frontend/src/shared/api/client.ts`, `frontend/src/app/providers/index.tsx`, ecc.).

@@ -1,8 +1,29 @@
   {
-    "hooks": { "PreToolUse": [{
-      "matcher": "Bash",
-      "hooks": [{ "type": "command",
-        "command": "rtk hook claude"
-      }]
-    }]}
+    "hooks": {
+      "PreToolUse": [
+        {
+          "matcher": "Bash",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "rtk hook claude"
+            }
+          ]
+        }
+      ]
+    },
+    "mcpServers": {
+      "token-savior-recall": {
+        "command": "C:\\tools\\token-savior\\.venv\\Scripts\\token-savior.exe",
+        "env": {
+          "WORKSPACE_ROOTS": "C:\\percorso\\del\\tuo\\TickerTracker",
+          "TOKEN_SAVIOR_CLIENT": "claude-code",
+          "TOKEN_SAVIOR_PROFILE": "optimized",
+          "TS_BASH_COMPACT": "1",
+          "TS_BASH_REWRITE": "1"
+        }
+      }
+    }
   }
+
+

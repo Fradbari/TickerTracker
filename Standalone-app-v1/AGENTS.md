@@ -1,6 +1,11 @@
 # Piano Atomico TickerTracker v3.0
 
+> 📘 **Fonti di verità:** [Regole per LLM `./CLAUDE.md`](./CLAUDE.md) | [Progresso globale](AGENTS.md) (questo file) | [Overview progetto `./README.md`](./README.md)
+
 ## Quick Start per LLM
+
+> **Per utenti LLM:** Consulta [`CLAUDE.md`](./CLAUDE.md) prima di iniziare per le regole architetturali e il workflow. Questo file contiene solo il task ledger.
+
 
 **Stai per lavorare su TickerTracker v3.0** - un sistema completo per tracking stime di trading con architettura DDD/CQRS/Event Sourcing.
 

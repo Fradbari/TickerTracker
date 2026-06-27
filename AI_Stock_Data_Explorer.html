@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Stock Data Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body { background-color: #111827; color: #d1d5db; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .chart-container { width: 100%; height: 500px; background-color: #1f2937; border-radius: 0.75rem; padding: 1rem; border: 1px solid #374151; }
+        .stat-card { background-color: #1f2937; border-radius: 0.75rem; padding: 1.5rem; border: 1px solid #374151; }
+        .loader { border: 4px solid #374151; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white">AI Stock Data Explorer</h1>
+            <p class="text-lg text-gray-400 mt-2">Carica i dati di backup e i file CSV per un'analisi approfondita.</p>
+        </header>
+
+        <!-- Sezione di Caricamento File -->
+        <div id="upload-section" class="stat-card mb-8">
+            <h2 class="text-2xl font-semibold text-white mb-4">1. Carica i Dati</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="json-upload" class="block text-sm font-medium text-gray-300 mb-2">Backup Principale (.json)</label>
+                    <input type="file" id="json-upload" accept=".json" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"/>
+                </div>
+                <div>
+                    <label for="csv-upload" class="block text-sm font-medium text-gray-300 mb-2">File Storici per Ticker (.csv)</label>
+                    <input type="file" id="csv-upload" accept=".csv" multiple class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"/>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button id="process-data-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                    Analizza Dati
+                </button>
+            </div>
+        </div>
+
+        <!-- Sezione di Loading -->
+        <div id="loading-section" class="hidden flex-col items-center justify-center text-center my-16">
+            <div class="loader"></div>
+            <p id="loading-status" class="mt-4 text-lg text-gray-300">Elaborazione dati in corso...</p>
+        </div>
+
+        <!-- Dashboard di Analisi -->
+        <div id="dashboard" class="hidden space-y-8">
+            
+            <!-- Controlli Globali -->
+            <div class="stat-card flex flex-wrap items-center justify-between gap-4">
+                <h2 class="text-2xl font-semibold text-white">Dashboard di Analisi</h2>
+                <div>
+                    <label for="benchmark-selector" class="mr-2 text-sm font-medium">Benchmark:</label>
+                    <select id="benchmark-selector" class="bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white">
+                        <option value="^GSPC">S&P 500</option>
+                        <option value="^IXIC">NASDAQ Composite</option>
+                        <option value="FTSEMIB.MI">FTSE MIB (Italia)</option>
+                        <option value="^DJI">Dow Jones Industrial Average</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Sezione 1: Performance Globale -->
+            <div>
+                <h3 class="text-xl font-semibold text-white mb-4">Performance Globale</h3>
+                <div id="pnl-vs-benchmark-chart" class="chart-container"></div>
+            </div>
+
+            <!-- Sezione 2: Analisi delle Stime -->
+            <div>
+                <h3 class="text-xl font-semibold text-white mb-4">Analisi delle Stime</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div id="confidence-vs-pnl-chart" class="chart-container"></div>
+                    <div id="correlation-matrix-chart" class="chart-container"></div>
+                </div>
+            </div>
+
+             <!-- Sezione 3: Performance per Categoria -->
+             <div>
+                <h3 class="text-xl font-semibold text-white mb-4">Performance per Categoria</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div id="pnl-by-sector-chart" class="chart-container"></div>
+                    <div id="pnl-by-ai-chart" class="chart-container"></div>
+                </div>
+            </div>
+
+            <!-- Sezione 4: Analisi per Ticker -->
+            <div>
+                <h3 class="text-xl font-semibold text-white mb-4">Analisi per Ticker</h3>
+                 <div class="stat-card mb-4">
+                    <label for="ticker-selector" class="mr-2 text-sm font-medium">Seleziona un Ticker:</label>
+                    <select id="ticker-selector" class="bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white w-full md:w-auto"></select>
+                </div>
+                <div id="ticker-analysis-chart" class="chart-container" style="height: 600px;"></div>
+                <div id="analyst-trend-chart" class="chart-container mt-8"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// --- UTILITIES ---
+const setLoading = (isLoading, message = 'Elaborazione dati in corso...') => {
+    document.getElementById('loading-section').style.display = isLoading ? 'flex' : 'none';
+    document.getElementById('loading-status').textContent = message;
+    document.getElementById('dashboard').style.display = isLoading ? 'none' : 'block';
+};
+
+const toFiniteNumber = (value, fallback = 0) => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (value === null || value === undefined || value === '') return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+// --- DATA FETCHING & PROCESSING ---
+
+// Funzione per leggere file di testo
+const readFileAsText = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file);
+    });
+};
+
+// Funzione per scaricare dati storici per il benchmark da Yahoo Finance
+const fetchBenchmarkData = async (ticker, range = '5y') => {
+    // Utilizziamo un proxy CORS per evitare problemi di blocco
+    const proxyUrl = 'https://api.allorigins.win/raw?url=';
+    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=${range}&interval=1d`;
+    
+    try {
+        const response = await fetch(`${proxyUrl}${encodeURIComponent(yahooUrl)}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        
+        if (data.chart.error) throw new Error(data.chart.error.description);
+
+        const result = data.chart.result[0];
+        const timestamps = result.timestamp;
+        const prices = result.indicators.adjclose[0].adjclose;
+
+        return timestamps.map((ts, i) => ({
+            date: new Date(ts * 1000).toISOString().split('T')[0],
+            price: prices[i]
+        })).filter(d => d.price !== null);
+
+    } catch (error) {
+        console.error(`Errore nel fetch del benchmark ${ticker}:`, error);
+        alert(`Impossibile scaricare i dati per il benchmark ${ticker}. Controlla la connessione o prova più tardi.`);
+        return [];
+    }
+};
+
+// Funzione principale di elaborazione
+const processData = async () => {
+    const jsonFile = document.getElementById('json-upload').files[0];
+    const csvFiles = document.getElementById('csv-upload').files;
+
+    if (!jsonFile) {
+        alert('Per favore, carica il file di backup JSON.');
+        return;
+    }
+
+    setLoading(true, 'Caricamento file...');
+
+    try {
+        // 1. Leggi e parsa il backup JSON
+        const jsonContent = await readFileAsText(jsonFile);
+        const backupData = JSON.parse(jsonContent);
+        const estimates = backupData.estimates || [];
+
+        // 2. Leggi e parsa tutti i file CSV
+        setLoading(true, `Parsing di ${csvFiles.length} file CSV...`);
+        const csvDataPromises = Array.from(csvFiles).map(async file => {
+            const content = await readFileAsText(file);
+            // Estrai il ticker dal nome del file (es. History_AAPL.csv -> AAPL)
+            const ticker = file.name.replace('History_', '').replace('.csv', '');
+            return { ticker, data: Papa.parse(content, { header: true, skipEmptyLines: true }).data };
+        });
+        const allCsvData = await Promise.all(csvDataPromises);
+        
+        // Mappa i dati CSV per un accesso rapido
+        const historyByTicker = allCsvData.reduce((acc, { ticker, data }) => {
+            acc[ticker] = data;
+            return acc;
+        }, {});
+
+        // 3. Scarica i dati del benchmark
+        const benchmarkTicker = document.getElementById('benchmark-selector').value;
+        setLoading(true, `Download dati benchmark (${benchmarkTicker})...`);
+        const benchmarkData = await fetchBenchmarkData(benchmarkTicker);
+
+        setLoading(true, 'Aggregazione e calcolo delle metriche...');
+
+        // 4. Aggrega e calcola
+        const globalData = {
+            estimates,
+            historyByTicker,
+            benchmarkData,
+            benchmarkTicker
+        };
+        
+        // Popola il selettore dei ticker
+        const availableTickers = Object.keys(historyByTicker).sort();
+        const tickerSelector = document.getElementById('ticker-selector');
+        tickerSelector.innerHTML = availableTickers.map(t => `<option value="${t}">${t}</option>`).join('');
+
+        // 5. Rendi visibili i grafici
+        setLoading(false);
+        renderDashboard(globalData);
+
+        // Aggiungi listener per i selettori
+        document.getElementById('benchmark-selector').onchange = () => processData();
+        document.getElementById('ticker-selector').onchange = () => renderTickerCharts(globalData);
+
+    } catch (error) {
+        setLoading(false);
+        console.error("Errore durante l'elaborazione dei dati:", error);
+        alert("Si è verificato un errore: " + error.message);
+    }
+};
+
+// --- CALCULATION ENGINE ---
+const calculateIndicators = (data) => {
+    const indicators = { sma20: [], sma50: [], bollinger: [], rsi: [] };
+    const rsiPeriod = 14;
+    let gains = [];
+    let losses = [];
+
+    for (let i = 0; i < data.length; i++) {
+        // SMA
+        if (i >= 19) {
+            const sum20 = data.slice(i - 19, i + 1).reduce((s, v) => s + v.close, 0);
+            indicators.sma20.push([data[i].date, sum20 / 20]);
+        }
+        if (i >= 49) {
+            const sum50 = data.slice(i - 49, i + 1).reduce((s, v) => s + v.close, 0);
+            indicators.sma50.push([data[i].date, sum50 / 50]);
+        }
+        // Bollinger Bands
+        if (i >= 19) {
+            const slice = data.slice(i - 19, i + 1).map(v => v.close);
+            const mean = indicators.sma20[indicators.sma20.length - 1][1];
+            const stdDev = Math.sqrt(slice.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / 20);
+            indicators.bollinger.push([data[i].date, mean - 2 * stdDev, mean, mean + 2 * stdDev]);
+        }
+        // RSI
+        if (i > 0) {
+            const change = data[i].close - data[i-1].close;
+            gains.push(change > 0 ? change : 0);
+            losses.push(change < 0 ? -change : 0);
+            if (gains.length > rsiPeriod) {
+                gains.shift();
+                losses.shift();
+                const avgGain = gains.reduce((a,b) => a + b, 0) / rsiPeriod;
+                const avgLoss = losses.reduce((a,b) => a + b, 0) / rsiPeriod;
+                const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+                const rsi = 100 - (100 / (1 + rs));
+                indicators.rsi.push([data[i].date, rsi]);
+            }
+        }
+    }
+    return indicators;
+};
+
+
+// --- CHART RENDERING ---
+
+// Funzione principale per renderizzare tutti i grafici
+const renderDashboard = (globalData) => {
+    renderPnlVsBenchmarkChart(globalData);
+    renderConfidenceVsPnlChart(globalData.estimates);
+    renderCorrelationMatrix(globalData.estimates);
+    renderPnlBySectorChart(globalData.estimates);
+    renderPnlByAiChart(globalData.estimates);
+    renderTickerCharts(globalData); // Renderizza il primo ticker di default
+};
+
+function renderPnlVsBenchmarkChart({ estimates, benchmarkData, benchmarkTicker }) {
+    const chartDom = document.getElementById('pnl-vs-benchmark-chart');
+    const myChart = echarts.init(chartDom);
+
+    // Calcola il P&L cumulativo giornaliero
+    const pnlByDate = {};
+    estimates.forEach(est => {
+        const pnlPerDay = toFiniteNumber(est.profitLoss) / (est.duration || 1);
+        let currentDate = new Date(est.startDate);
+        const endDate = new Date(est.endDate || Date.now());
+
+        while (currentDate <= endDate) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            if (!pnlByDate[dateStr]) pnlByDate[dateStr] = 0;
+            pnlByDate[dateStr] += pnlPerDay;
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+    });
+
+    const sortedDates = Object.keys(pnlByDate).sort();
+    let cumulativePnl = 0;
+    const portfolioData = sortedDates.map(date => {
+        cumulativePnl += pnlByDate[date];
+        return [date, cumulativePnl];
+    });
+
+    // Normalizza i dati del benchmark
+    const firstDate = portfolioData.length > 0 ? portfolioData[0][0] : null;
+    let benchmarkChartData = [];
+    if (firstDate) {
+        const relevantBenchmarkData = benchmarkData.filter(d => d.date >= firstDate);
+        if (relevantBenchmarkData.length > 0) {
+            const firstBenchmarkPrice = relevantBenchmarkData[0].price;
+            benchmarkChartData = relevantBenchmarkData.map(d => {
+                const benchmarkReturn = (d.price - firstBenchmarkPrice) / firstBenchmarkPrice;
+                // Scala il ritorno del benchmark al P&L del portafoglio per confronto visivo
+                const firstPnlValue = portfolioData[0][1] || 0;
+                const totalInvested = estimates.reduce((sum, est) => sum + toFiniteNumber(est.amount), 0) || 1;
+                return [d.date, benchmarkReturn * totalInvested];
+            });
+        }
+    }
+    
+    const option = {
+        title: { text: 'P&L Cumulativo vs. Benchmark', left: 'center', textStyle: { color: '#fff' } },
+        tooltip: { trigger: 'axis', formatter: (params) => {
+            let res = params[0].axisValue + '<br/>';
+            params.forEach(p => {
+                res += `${p.marker} ${p.seriesName}: ${p.value[1].toFixed(2)} €<br/>`;
+            });
+            return res;
+        } },
+        legend: { data: ['Portfolio P&L', `Benchmark (${benchmarkTicker})`], top: 30, textStyle: { color: '#fff' } },
+        xAxis: { type: 'time', axisLabel: { color: '#9ca3af' } },
+        yAxis: { type: 'value', name: 'P&L (€)', axisLabel: { color: '#9ca3af', formatter: '€{value}' } },
+        grid: { left: '10%', right: '10%', bottom: '15%' },
+        series: [
+            {
+                name: 'Portfolio P&L',
+                type: 'line',
+                smooth: true,
+                data: portfolioData,
+                itemStyle: { color: '#10b981' },
+                lineStyle: { width: 3 },
+            },
+            {
+                name: `Benchmark (${benchmarkTicker})`,
+                type: 'line',
+                smooth: true,
+                data: benchmarkChartData,
+                itemStyle: { color: '#3b82f6' },
+                lineStyle: { type: 'dashed' },
+            }
+        ]
+    };
+    myChart.setOption(option);
+}
+
+function renderConfidenceVsPnlChart(estimates) {
+    const chartDom = document.getElementById('confidence-vs-pnl-chart');
+    const myChart = echarts.init(chartDom);
+
+    const aiModels = [...new Set(estimates.map(e => e.aiName))];
+    const series = aiModels.map(ai => {
+        return {
+            name: ai,
+            type: 'scatter',
+            symbolSize: 12,
+            data: estimates.filter(e => e.aiName === ai).map(e => [e.confidence, e.profitLossPercent]),
+        };
+    });
+
+    const option = {
+        title: { text: 'Confidence vs. P&L %', left: 'center', textStyle: { color: '#fff' } },
+        tooltip: {
+            trigger: 'item',
+            formatter: (params) => {
+                const est = estimates.find(e => e.confidence == params.value[0] && e.profitLossPercent == params.value[1]);
+                return `${params.seriesName}<br/>
+                        Ticker: ${est.ticker}<br/>
+                        Confidence: ${params.value[0]}<br/>
+                        P&L: ${params.value[1].toFixed(2)}%`;
+            }
+        },
+        legend: { top: 30, textStyle: { color: '#fff' }, type: 'scroll' },
+        xAxis: { name: 'Confidence Score', type: 'value', min: 0, max: 100, axisLabel: { color: '#9ca3af' } },
+        yAxis: { name: 'P&L %', type: 'value', axisLabel: { color: '#9ca3af', formatter: '{value}%' } },
+        grid: { left: '10%', right: '10%', bottom: '15%' },
+        series: series
+    };
+    myChart.setOption(option);
+}
+
+function renderCorrelationMatrix(estimates) {
+    const chartDom = document.getElementById('correlation-matrix-chart');
+    const myChart = echarts.init(chartDom);
+
+    const data = estimates.map(e => ({
+        pnl: toFiniteNumber(e.profitLossPercent),
+        conf: toFiniteNumber(e.confidence),
+        dur: toFiniteNumber(e.duration),
+        amount: toFiniteNumber(e.amount),
+        is_success: e.status === 'completed-positive' ? 1 : 0
+    }));
+
+    const fields = ['pnl', 'conf', 'dur', 'amount', 'is_success'];
+    const fieldNames = ['P&L %', 'Confidence', 'Duration', 'Amount', 'Success'];
+    const matrix = [];
+
+    for (let i = 0; i < fields.length; i++) {
+        for (let j = 0; j < fields.length; j++) {
+            if (i === j) {
+                matrix.push([i, j, 1]);
+                continue;
+            }
+            const x = data.map(d => d[fields[i]]);
+            const y = data.map(d => d[fields[j]]);
+            const meanX = x.reduce((a, b) => a + b, 0) / x.length;
+            const meanY = y.reduce((a, b) => a + b, 0) / y.length;
+            let numerator = 0;
+            let denX = 0;
+            let denY = 0;
+            for (let k = 0; k < data.length; k++) {
+                numerator += (x[k] - meanX) * (y[k] - meanY);
+                denX += Math.pow(x[k] - meanX, 2);
+                denY += Math.pow(y[k] - meanY, 2);
+            }
+            const correlation = numerator / (Math.sqrt(denX) * Math.sqrt(denY));
+            matrix.push([i, j, isNaN(correlation) ? 0 : correlation]);
+        }
+    }
+
+    const option = {
+        title: { text: 'Matrice di Correlazione', left: 'center', textStyle: { color: '#fff' } },
+        tooltip: {
+            position: 'top',
+            formatter: params => `Correlation (${fieldNames[params.value[0]]}, ${fieldNames[params.value[1]]}): ${params.value[2].toFixed(3)}`
+        },
+        grid: { height: '70%', top: '15%' },
+        xAxis: { type: 'category', data: fieldNames, splitArea: { show: true }, axisLabel: { color: '#9ca3af' } },
+        yAxis: { type: 'category', data: fieldNames, splitArea: { show: true }, axisLabel: { color: '#9ca3af' } },
+        visualMap: {
+            min: -1, max: 1, calculable: true, orient: 'horizontal', left: 'center', bottom: '5%',
+            inRange: { color: ['#ef4444', '#f87171', '#fef2f2', '#dbeafe', '#3b82f6'] },
+            textStyle: { color: '#fff' }
+        },
+        series: [{
+            name: 'Correlation', type: 'heatmap', data: matrix,
+            label: { show: true, formatter: params => params.value[2].toFixed(2) },
+            emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
+        }]
+    };
+    myChart.setOption(option);
+}
+
+function renderPnlBySectorChart(estimates) {
+    const chartDom = document.getElementById('pnl-by-sector-chart');
+    const myChart = echarts.init(chartDom);
+    
+    const pnlBySector = estimates.reduce((acc, est) => {
+        const sector = est.assetProfile?.sector || 'N/A';
+        if (!acc[sector]) acc[sector] = 0;
+        acc[sector] += toFiniteNumber(est.profitLoss);
+        return acc;
+    }, {});
+
+    const sortedSectors = Object.entries(pnlBySector).sort((a, b) => b[1] - a[1]);
+
+    const option = {
+        title: { text: 'P&L per Settore', left: 'center', textStyle: { color: '#fff' } },
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        xAxis: { type: 'category', data: sortedSectors.map(s => s[0]), axisLabel: { color: '#9ca3af', interval: 0, rotate: 30 } },
+        yAxis: { type: 'value', axisLabel: { color: '#9ca3af', formatter: '€{value}' } },
+        grid: { left: '10%', right: '5%', bottom: '25%' },
+        series: [{
+            name: 'P&L',
+            type: 'bar',
+            data: sortedSectors.map(s => ({
+                value: s[1],
+                itemStyle: { color: s[1] >= 0 ? '#10b981' : '#ef4444' }
+            }))
+        }]
+    };
+    myChart.setOption(option);
+}
+
+function renderPnlByAiChart(estimates) {
+    const chartDom = document.getElementById('pnl-by-ai-chart');
+    const myChart = echarts.init(chartDom);
+    
+    const pnlByAi = estimates.reduce((acc, est) => {
+        const aiName = est.aiName || 'N/A';
+        if (!acc[aiName]) acc[aiName] = 0;
+        acc[aiName] += toFiniteNumber(est.profitLoss);
+        return acc;
+    }, {});
+
+    const sortedAis = Object.entries(pnlByAi).sort((a, b) => b[1] - a[1]);
+
+    const option = {
+        title: { text: 'P&L per Modello AI', left: 'center', textStyle: { color: '#fff' } },
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        xAxis: { type: 'category', data: sortedAis.map(s => s[0]), axisLabel: { color: '#9ca3af' } },
+        yAxis: { type: 'value', axisLabel: { color: '#9ca3af', formatter: '€{value}' } },
+        grid: { left: '10%', right: '5%', bottom: '15%' },
+        series: [{
+            name: 'P&L',
+            type: 'bar',
+            data: sortedAis.map(s => ({
+                value: s[1],
+                itemStyle: { color: s[1] >= 0 ? '#10b981' : '#ef4444' }
+            }))
+        }]
+    };
+    myChart.setOption(option);
+}
+
+function renderTickerCharts(globalData) {
+    const ticker = document.getElementById('ticker-selector').value;
+    if (!ticker) return;
+
+    const history = globalData.historyByTicker[ticker];
+    if (!history) {
+        alert(`Nessun dato storico trovato per ${ticker}`);
+        return;
+    }
+
+    renderCandlestickChart(ticker, history, globalData.estimates);
+    renderAnalystTrendChart(ticker, history);
+}
+
+function renderCandlestickChart(ticker, history, estimates) {
+    const chartDom = document.getElementById('ticker-analysis-chart');
+    const myChart = echarts.init(chartDom);
+    myChart.clear();
+
+    const ohlcData = history.map(row => ({
+        date: row.date,
+        open: toFiniteNumber(row.open),
+        close: toFiniteNumber(row.close),
+        low: toFiniteNumber(row.low),
+        high: toFiniteNumber(row.high),
+        volume: toFiniteNumber(row.volume)
+    }));
+
+    const indicators = calculateIndicators(ohlcData);
+    
+    // Marker per eventi e stime
+    const estimateMarkers = estimates.filter(e => e.ticker === ticker).flatMap(est => [
+        { name: `Start ${est.aiName}`, coord: [est.startDate.split('T')[0], est.startPrice], symbol: 'pin', symbolSize: 30, itemStyle: { color: '#3b82f6' } },
+        { name: `End ${est.aiName}`, coord: [(est.endDate || '').split('T')[0], est.endPrice], symbol: 'pin', symbolSize: 30, itemStyle: { color: '#ef4444' } }
+    ]);
+
+    const earningsEvents = history
+        .filter(row => row.earningsDate)
+        .map(row => ({ name: 'Earnings', coord: [row.date, toFiniteNumber(row.close)], symbol: 'diamond', symbolSize: 15, itemStyle: { color: '#f59e0b' } }));
+
+    const dividendEvents = history
+        .filter(row => row.exDividendDate)
+        .map(row => ({ name: 'Dividend', coord: [row.date, toFiniteNumber(row.close)], symbol: 'triangle', symbolSize: 15, itemStyle: { color: '#8b5cf6' } }));
+
+
+    const option = {
+        title: { text: `Analisi Tecnica: ${ticker}`, left: 'center', textStyle: { color: '#fff' } },
+        tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+        legend: { data: ['OHLC', 'SMA 20', 'SMA 50', 'Volume', 'RSI'], top: 30, textStyle: { color: '#fff' } },
+        grid: [
+            { left: '10%', right: '8%', height: '50%' },
+            { left: '10%', right: '8%', top: '65%', height: '10%' },
+            { left: '10%', right: '8%', top: '80%', height: '10%' }
+        ],
+        xAxis: [
+            { type: 'category', data: ohlcData.map(d => d.date), scale: true, axisLine: { onZero: false }, splitLine: { show: false }, axisLabel: { color: '#9ca3af' } },
+            { type: 'category', gridIndex: 1, data: ohlcData.map(d => d.date), axisLabel: { show: false } },
+            { type: 'category', gridIndex: 2, data: ohlcData.map(d => d.date), axisLabel: { show: false } }
+        ],
+        yAxis: [
+            { scale: true, splitArea: { show: true }, axisLabel: { color: '#9ca3af' } },
+            { scale: true, gridIndex: 1, axisLabel: { show: false }, axisTick: { show: false }, axisLine: { show: false }, splitLine: { show: false } },
+            { scale: true, gridIndex: 2, min: 0, max: 100, axisLabel: { color: '#9ca3af' }, splitLine: { lineStyle: { color: '#374151' } } }
+        ],
+        dataZoom: [
+            { type: 'inside', xAxisIndex: [0, 1, 2], start: 80, end: 100 },
+            { show: true, xAxisIndex: [0, 1, 2], type: 'slider', top: '92%', start: 80, end: 100 }
+        ],
+        series: [
+            { name: 'OHLC', type: 'candlestick', data: ohlcData.map(d => [d.open, d.close, d.low, d.high]) },
+            { name: 'SMA 20', type: 'line', data: indicators.sma20, smooth: true, lineStyle: { opacity: 0.8, color: '#f59e0b' } },
+            { name: 'SMA 50', type: 'line', data: indicators.sma50, smooth: true, lineStyle: { opacity: 0.8, color: '#a855f7' } },
+            { name: 'Bollinger', type: 'custom', renderItem: () => {}, data: indicators.bollinger, lineStyle: { opacity: 0.5 } }, // Placeholder for now
+            {
+                name: 'Volume', type: 'bar', xAxisIndex: 1, yAxisIndex: 1,
+                data: ohlcData.map((d, i) => ({
+                    value: d.volume,
+                    itemStyle: { color: d.close > d.open ? '#10b981' : '#ef4444' }
+                }))
+            },
+            {
+                name: 'RSI', type: 'line', xAxisIndex: 2, yAxisIndex: 2, data: indicators.rsi,
+                smooth: true, lineStyle: { color: '#eab308' },
+                markLine: {
+                    silent: true, data: [{ yAxis: 30 }, { yAxis: 70 }],
+                    lineStyle: { color: '#4b5563', type: 'dashed' }
+                }
+            },
+            {
+                type: 'scatter', name: 'Events', data: [...estimateMarkers, ...earningsEvents, ...dividendEvents],
+                label: { show: true, position: 'top', formatter: p => p.name }
+            }
+        ]
+    };
+    myChart.setOption(option);
+}
+
+function renderAnalystTrendChart(ticker, history) {
+    const chartDom = document.getElementById('analyst-trend-chart');
+    const myChart = echarts.init(chartDom);
+    myChart.clear();
+
+    const trendData = history.map(row => ({
+        date: row.date,
+        strongBuy: toFiniteNumber(row.strongBuy),
+        buy: toFiniteNumber(row.buy),
+        hold: toFiniteNumber(row.hold),
+        sell: toFiniteNumber(row.sell),
+        strongSell: toFiniteNumber(row.strongSell),
+    })).filter(d => (d.strongBuy + d.buy + d.hold + d.sell + d.strongSell) > 0);
+
+    const option = {
+        title: { text: `Trend Raccomandazioni Analisti: ${ticker}`, left: 'center', textStyle: { color: '#fff' } },
+        tooltip: { trigger: 'axis', axisPointer: { type: 'cross', label: { backgroundColor: '#6a7985' } } },
+        legend: { data: ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'], top: 30, textStyle: { color: '#fff' } },
+        grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
+        xAxis: { type: 'category', boundaryGap: false, data: trendData.map(d => d.date), axisLabel: { color: '#9ca3af' } },
+        yAxis: { type: 'value', name: 'Numero Analisti', axisLabel: { color: '#9ca3af' } },
+        dataZoom: [
+            { type: 'inside', start: 80, end: 100 },
+            { show: true, type: 'slider', bottom: '5%', start: 80, end: 100 }
+        ],
+        series: [
+            { name: 'Strong Buy', type: 'line', stack: 'Total', areaStyle: {}, emphasis: { focus: 'series' }, data: trendData.map(d => d.strongBuy), itemStyle: { color: '#059669' } },
+            { name: 'Buy', type: 'line', stack: 'Total', areaStyle: {}, emphasis: { focus: 'series' }, data: trendData.map(d => d.buy), itemStyle: { color: '#10b981' } },
+            { name: 'Hold', type: 'line', stack: 'Total', areaStyle: {}, emphasis: { focus: 'series' }, data: trendData.map(d => d.hold), itemStyle: { color: '#f59e0b' } },
+            { name: 'Sell', type: 'line', stack: 'Total', areaStyle: {}, emphasis: { focus: 'series' }, data: trendData.map(d => d.sell), itemStyle: { color: '#f87171' } },
+            { name: 'Strong Sell', type: 'line', stack: 'Total', areaStyle: {}, emphasis: { focus: 'series' }, data: trendData.map(d => d.strongSell), itemStyle: { color: '#ef4444' } },
+        ]
+    };
+    myChart.setOption(option);
+}
+
+// --- EVENT LISTENERS ---
+document.getElementById('process-data-btn').addEventListener('click', processData);
+
+</script>
+</body>
+</html>
+

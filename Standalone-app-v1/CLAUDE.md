@@ -10,7 +10,7 @@ Entry-point onboarding for Claude sessions on TickerTracker v3.0. Standalone Fas
 | `backend-dev` | Any `backend/**` edit, FastAPI/SQLAlchemy/Alembic, Pytest, scheduler/job code | `backend/` |
 | `frontend-dev` | Any `frontend/**` edit, React/TS/Vite, i18n, Zod schemas, Vitest | `frontend/` |
 | `docker-dev` | `docker/**`, compose files, helper scripts, infra-only Docker changes | `docker/` |
-| `docs-dev` | `docs/**`, markdown, runbook updates, PDF/docx conversion | `docs/` (does not exist yet — create it via task-planner) |
+| `docs-dev` | `docs/**`, markdown, runbook updates, PDF/docx conversion | `docs/` |
 | `code-reviewer` | Before any commit or PR; reviews diff for correctness + reuse | diff only |
 | `Explore` | Read-only search/audit across the tree when you need facts, not edits | none |
 

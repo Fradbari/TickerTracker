@@ -9,6 +9,16 @@
               "command": "rtk hook claude"
             }
           ]
+        },
+        {
+          "matcher": "Bash",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "C:\\tools\\token-savior\\.venv\\Scripts\\python.exe -m token_savior.hooks.bash_rewriter_hook",
+              "timeout": 2000
+            }
+          ]
         }
       ]
     },
@@ -16,11 +26,13 @@
       "token-savior-recall": {
         "command": "C:\\tools\\token-savior\\.venv\\Scripts\\token-savior.exe",
         "env": {
-          "WORKSPACE_ROOTS": "C:\\Users\\francesco.dilecce\\OneDrive - LUTECH SPA\\Documenti\\2. PERSONALI\\3. Altro\\Ticker Tracker\\\\",
+          "WORKSPACE_ROOTS": "C:\\Users\\francesco.dilecce\\OneDrive - LUTECH SPA\\Documenti\\2. PERSONALI\\3. Altro\\Ticker Tracker",
           "TOKEN_SAVIOR_CLIENT": "claude-code",
           "TOKEN_SAVIOR_PROFILE": "optimized",
           "TS_BASH_COMPACT": "1",
-          "TS_BASH_REWRITE": "1"
+          "TS_BASH_REWRITE": "1",
+          //"TS_AUTO_EXTRACT": "1",
+          //"TS_API_KEY": "la-tua-chiave-anthropic"
         }
       }
     }

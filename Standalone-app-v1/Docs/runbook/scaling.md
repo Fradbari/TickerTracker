@@ -26,5 +26,8 @@ In questa configurazione, Nginx non agisce nativamente come bilanciatore di cari
 Lo scheduler **NON DEVE ESSERE SCALATO** a meno che non si utilizzi uno store per lock distribuiti (come Redis lock per APScheduler). In sua assenza, se scalato causerà invii multipli dei task programmati (come i backup) che opereranno in collisione.
 Attualmente mantenere `replicas: 1`.
 
+## Riferimento implementativo (dev)
+Per il tuning del connection pooling (`pool_size`, `max_overflow`, diagnostica `/health/pool`): [`../../backend/docs/CONNECTION-POOL.md`](../../backend/docs/CONNECTION-POOL.md).
+
 ## Contatti ed Escalation
 Vedi [CONTACTS.md](CONTACTS.md) per l'escalation path in caso di congestione o saturazione nodi.

@@ -28,5 +28,8 @@ curl -X POST http://localhost/api/admin/feature-flags \
      -d '{"USE_STALE_CACHE": false}'
 ```
 
+## Riferimento implementativo (dev)
+Per il pattern del Market Data Provider (cache Redis, retry/backoff, fallback stale): [`../../backend/docs/MARKET_DATA_PROVIDER.md`](../../backend/docs/MARKET_DATA_PROVIDER.md).
+
 ## Contatti ed Escalation
 In caso di unblocco necessario delle cache o supporto sui Feature Flag, fare riferimento a [CONTACTS.md](CONTACTS.md).

@@ -28,5 +28,11 @@ Gli allarmi vengono gestiti via Alertmanager. Verificare gli alert pendenti inte
 curl -s http://alertmanager:9093/api/v2/alerts | jq
 ```
 
+## Riferimenti implementativi (dev)
+Questo runbook descrive *come consumare* l'osservabilità in produzione. Per i dettagli implementativi:
+- Metriche Prometheus: [`../../backend/docs/METRICS.md`](../../backend/docs/METRICS.md)
+- Logging strutturato JSON + correlation ID: [`../../backend/docs/LOGGING.md`](../../backend/docs/LOGGING.md)
+- Endpoint di health (`/health`, `/health/ready`, `/health/pool`): [`../../backend/docs/HEALTH.md`](../../backend/docs/HEALTH.md)
+
 ## Contatti ed Escalation
 Vedi [CONTACTS.md](CONTACTS.md) per i riferimenti di escalation in caso di comportamenti anomali persistenti.

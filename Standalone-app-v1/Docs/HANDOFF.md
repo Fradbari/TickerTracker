@@ -1,5 +1,7 @@
 # HANDOFF.md — Documentation Refactor Session
 
+> ✅ **ESEGUITO 2026-06-28** — I task A–D (archiviazione log `TASK_*`, slim `backend/README.md` 1482→227 righe, verifica `frontend/README.md`) sono stati completati in una sessione successiva di armonizzazione docs. Questo file è trattenuto come **riferimento storico**, non come istruzione attiva.
+
 **Data creazione:** 2026-06-22
 **Branch lavoro:** `vibe-nemotron`
 **Stato HEAD (expected):** `c756154` o successivo

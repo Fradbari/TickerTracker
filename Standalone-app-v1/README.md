@@ -35,18 +35,16 @@ L'applicazione segue i principi del Clean Architecture e separazione dei ruoli (
 
 ```bash
 Standalone-app-v1/
-├── backend/            # Codice sorgente Python/FastAPI
-│   ├── src/            # Core logic (Domain, Services, API)
-│   ├── infra/          # Integrazioni esterne (Yahoo, Drive, DB)
-│   └── tests/          # Unit e Integration tests
-├── frontend/           # Codice sorgente React/TypeScript
-│   ├── src/            # Features, components e hooks
-│   └── tests/          # Component e Unit tests
-├── Docker/             # Configurazioni Docker e AGENTS specifici
-├── Docs/               # Documentazione tecnica e test E2E/CI-CD
-├── scripts/            # Tool di sviluppo e validazione
-├── AGENTS.md           # Guida principale per lo sviluppo atomico
-└── Piano-Operativo-v1.7.docx  # Piano operativo completo
+├── CLAUDE.md           # Entry point sessione + invarianti architetturali
+├── AGENTS.md           # Task ledger + Progress Tracker (fonte di verità)
+├── backend/            # Python/FastAPI (src/, alembic/, tests/, docs/)
+│   └── docs/           # Deep-dive tecnici (dev): API, SECURITY, PAGINATION, ...
+├── frontend/           # React 18/TypeScript (src/features|shared|app)
+├── docker/             # Compose/Dockerfile + docker/AGENTS.md
+├── docs/               # Runbook (ops), PROJECT-STATUS, HANDOFF, + docs/AGENTS.md
+├── e2e/                # Suite Playwright (playwright.config.ts alla root)
+├── scripts/            # Tool di sviluppo (validate_dependencies.py, ...)
+└── docker-compose*.yml # base / dev / prod
 ```
 
 ---
@@ -316,100 +314,39 @@ npm run test           # Vitest
 
 ## 📚 Documentazione
 
-### Documentazione Tecnica
+### Mappa della documentazione
 
-- **[Piano Operativo v1.7](./docs/Piano-operativo-v1.7.docx)** - Piano completo MVP e Fase 2
-- **[AGENTS.md](./AGENTS.md)** - Progress tracker e workflow
-- **Backend API Docs** - http://localhost:8000/docs (quando app è running)
-- **Runbook Operativo** - `Docs/runbook/` (Fase 2)
+- **[CLAUDE.md](./CLAUDE.md)** — entry point di sessione + invarianti architetturali
+- **[AGENTS.md](./AGENTS.md)** — task ledger + Progress Tracker (fonte di verità sullo stato)
+- **Track docs (Testing/CI-CD/Runbook)** — [`docs/AGENTS.md`](./docs/AGENTS.md)
+- **Backend deep-dive (dev)** — [`backend/docs/`](./backend/docs/) (API, SECURITY, PAGINATION, ALEMBIC, ...)
+- **Runbook operativi (ops)** — [`docs/runbook/`](./docs/runbook/) (startup, recovery, outage, monitoring)
+- **Backend API Docs** — http://localhost:8000/docs (quando l'app è running)
+- **[Piano Operativo v1.7](./docs/Piano-operativo-v1.7.docx)** — business plan MVP e Fase 2 (`.docx`)
 
 ### Guide Rapide
 
-- **Architecture**: Vedi sezione "Architettura" in [Piano-operativo-v1.7.docx](./docs/Piano-operativo-v1.7.docx)
-- **Best Practices**: Consultare "Regole Globali di Sviluppo" in [AGENTS.md](./AGENTS.md)
-- **Task Dependencies**: Vedi "Grafo Dipendenze Completo" in [AGENTS.md](./AGENTS.md)
-- **Database Schema**: Vedi "Struttura Database" in [Piano-operativo-v1.7.docx](./docs/Piano-operativo-v1.7.docx)
+- **Architecture / Best Practices**: [CLAUDE.md](./CLAUDE.md) → Critical Architectural Invariants
+- **Task Dependencies**: "Grafo Dipendenze Completo" in [AGENTS.md](./AGENTS.md)
+- **Database Schema**: [CLAUDE.md](./CLAUDE.md) + [`backend/docs/ESTIMATE_SUMMARY_VIEW.md`](./backend/docs/ESTIMATE_SUMMARY_VIEW.md)
 
 ---
 
-## 📊 Roadmap
+## 📊 Roadmap & Stato del Progetto
 
-### ✅ Phase 1: Foundation & Core Setup (8/8 task completati ✨)
+> **Fonte di verità unica**: il Progress Tracker ufficiale (MVP + Fase 2, statistiche, dipendenze) vive in [AGENTS.md](./AGENTS.md). Le tabelle di avanzamento qui sono state rimosse per evitare duplicazioni e dati incoerenti.
 
-| Task | Descrizione | Status | Tests |
-|------|-----------|--------|-------|
-| 1.1 | Setup Struttura Layer Backend | ✅ COMPLETATO | - |
-| 1.2 | Modello Risposta API Standard | ✅ COMPLETATO | - |
-| 1.3 | Value Object Money | ✅ COMPLETATO | 36 ✓ |
-| 1.4 | Value Object Percentage | ✅ COMPLETATO | 39 ✓ |
-| 1.5 | Value Object PriceTarget | ✅ COMPLETATO | 41 ✓ |
-| 1.6 | Configurazione Ambienti | ✅ COMPLETATO | 27 ✓ |
-| 1.7 | Middleware Sicurezza | ✅ COMPLETATO | 16 ✓ |
-| 1.8 | Setup decimal.js Frontend | ✅ COMPLETATO | - |
+**Fasi ad alto livello:**
+- **MVP — Ambiente Locale Single-User**: app funzionante localmente per 1 utente, senza autenticazione (backend core + dati, API estimates, market data & cache, sync Drive & scheduler, frontend estimates/portfolio, compose locale). Dettaglio task: [`AGENTS.md`](./AGENTS.md).
+- **Fase 2 — Produzione Multi-User**: deploy produzione con auth, osservabilità, sicurezza (RBAC, pattern outbox, security middleware, metrics, runbook, E2E + CI/CD). Dettaglio task: [`AGENTS.md`](./AGENTS.md).
 
-### ✅ MVP - Ambiente Locale Single-User (46 task)
+### 🗄️ Database Schema
 
-**Obiettivo:** App funzionante localmente per 1 utente, senza autenticazione.
+PostgreSQL 16. Tabelle core: `tickers`, `market_data`, `estimates`, `estimate_events`, `ai_model_runs`, `sync_jobs`, `users`, `roles`, `user_roles`. Materialized view CQRS `estimate_summary_view` (refresh concorrente, query < 5ms).
 
-- Sezione 1: Setup & Fondamenta (8 task) - **8/8 completati**
-- Sezione 2: Backend Core & Data (20 task) - **10/20 completati**
-  - ✅ TASK 2.1: Modello Ticker
-  - ✅ TASK 2.3: Modello MarketData
-  - ✅ TASK 2.4: Modello Estimate
-  - ✅ TASK 2.5: Modello EstimateEvent
-  - ✅ TASK 2.6: Modello SyncJob
-  - ✅ TASK 2.7: Modelli User & Role (RBAC)
-  - ✅ TASK 2.8: Modello AiModelRun
-  - ✅ TASK 2.10: Setup Alembic & Migrazione Iniziale (10 tabelle create)
-  - ✅ TASK 2.11: Materialized View per CQRS - Estimate Summary (query < 5ms)
-  - ✅ TASK 2.12: Repository Estimate + Paginazione cursor-based
-  - 🚧 Altri task backend in progress...
-- Sezione 4: Frontend Setup & Features (13 task)
-- Sezione 5: Testing & CI/CD Base (5 task)
-
-**Status:** 18/46 completati (39.1% ✨)
-
-**Total Test Coverage**: 159+ tests passing ✅
-
-### 🗄️ Database Schema (Task 2.10)
-
-Il database PostgreSQL 16 include le seguenti tabelle:
-
-**Core Tables:**
-- `tickers` - Informazioni ticker (symbol, name, exchange, asset_type)
-- `market_data` - Dati storici OHLCV (open, high, low, close, volume)
-- `estimates` - Stime di trading (target_price, stop_loss, direction, soft delete)
-- `estimate_events` - Event sourcing per audit trail completo
-- `ai_model_runs` - Tracciamento esecuzioni AI (tokens, latency, cost)
-- `sync_jobs` - Sincronizzazione Google Drive (status, checksum)
-- `users` - Utenti sistema (email, hashed_password, is_active)
-- `roles` - Ruoli RBAC (ADMIN, USER, READONLY)
-- `user_roles` - Relazione many-to-many User <-> Role
-
-**Materialized Views (Task 2.11):**
-- `estimate_summary_view` - View CQRS per query ottimizzate dashboard
-  - Pre-calcola: current_price, current_pnl, current_pnl_percent, days_open, risk_level
-  - Performance: 3-5ms per query (target < 50ms) ✅
-  - Supporto concurrent refresh: zero-downtime updates
-
-**Migrazioni:**
-- Alembic configurato con supporto asyncpg
-- Migrazione iniziale: `f9f513c6220d` (schema completo)
-- Materialized view: `e97b3b8578e1` (CQRS pattern)
-- Documentazione: [backend/ALEMBIC_SETUP_COMPLETED.md](./backend/ALEMBIC_SETUP_COMPLETED.md)
-- Materialized View Guide: [backend/docs/ESTIMATE_SUMMARY_VIEW.md](./backend/docs/ESTIMATE_SUMMARY_VIEW.md)
-
-### 🚧 Fase 2 - Produzione Multi-User (19 task)
-
-**Obiettivo:** Deploy produzione con auth, osservabilità, sicurezza.
-
-- Auth & Advanced Backend (6 task)
-- Sicurezza & Observability (11 task)
-- Frontend Advanced (3 task)
-- Testing & CI/CD Completo (9 task)
-- Docker & Deployment (2 task)
-
-**Status:** 0/19 completati (0%)
+- Workflow migrazioni Alembic + migrazioni correnti: [`backend/docs/ALEMBIC.md`](./backend/docs/ALEMBIC.md)
+- Dettagli materialized view (CQRS): [`backend/docs/ESTIMATE_SUMMARY_VIEW.md`](./backend/docs/ESTIMATE_SUMMARY_VIEW.md)
+- Invarianti architetturali (Decimal, CQRS, outbox): [`CLAUDE.md`](./CLAUDE.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Entry-point onboarding for Claude sessions on TickerTracker v3.0. Standalone FastAPI backend (Python 3.11+, Poetry, DDD/CQRS/Event Sourcing) + React 19/Vite frontend. PostgreSQL 16 + Redis. Root `AGENTS.md` is the canonical atomic-task ledger — this file is a session cheatsheet, not a task source.
+Entry-point onboarding for Claude sessions on TickerTracker v3.0. Standalone FastAPI backend (Python 3.11+, Poetry, DDD/CQRS/Event Sourcing) + React 18/Vite frontend. PostgreSQL 16 + Redis. Root `AGENTS.md` is the canonical atomic-task ledger — this file is a session cheatsheet, not a task source.
 
 ## Sub-agent Roster (delegate, don't do it yourself)
 
@@ -73,7 +73,6 @@ These are opinion-level rules, not derivable from the code. Violating them break
 ## Things That Were Wrong Before — Do Not Perpetuate
 
 - No `LICENSE` file at repo root (only sub-package licenses exist).
-- `docs/AGENTS.md` does not exist. The "Docs" link in root `AGENTS.md` is a stale placeholder.
 - `docs/Piano-operativo-v1.7.md` does not exist; only `docs/Piano-operativo-v1.7.docx` does.
 - `AppErrorBoundary` is mounted by `app/providers/index.tsx`, not by `App.tsx` or `main.tsx`.
 - Outbox + dead-letter logic is in `backend/src/infra/outbox/`, not `backend/src/sync/`.
@@ -83,7 +82,7 @@ These are opinion-level rules, not derivable from the code. Violating them break
 - **Backend commands:** see `backend/Makefile` (`make <target>`) and `backend/pyproject.toml` scripts.
 - **Frontend commands:** see `frontend/package.json` scripts (`dev`, `build`, `preview`, `test`, `test:coverage`, `lint`, `type-check`).
 - **Root AGENTS.md (task ledger + dependency graph + Progress Tracker):** `AGENTS.md` at repo root.
-- **Per-section agent memory:** `backend/AGENTS.md`, `frontend/AGENTS.md`, `docker/AGENTS.md`. (`docs/AGENTS.md` is referenced but does not exist.)
+- **Per-section agent memory:** `backend/AGENTS.md`, `frontend/AGENTS.md`, `docker/AGENTS.md`, `docs/AGENTS.md`. Each section `AGENTS.md` back-links here.
 - **Dependency validator:** `python scripts/validate_dependencies.py` from repo root.
 
 ## Doc Ownership Map
@@ -96,8 +95,10 @@ These are opinion-level rules, not derivable from the code. Violating them break
 | Backend invariants / completed-task history | backend agent memory | `backend/AGENTS.md` |
 | Frontend invariants / completed-task history | frontend agent memory | `frontend/AGENTS.md` |
 | Docker surface details | docker agent memory | `docker/AGENTS.md` |
-| Project status snapshot (was ~60 lines here) | sibling PROJECT_ANALYSIS.md | `PROJECT_ANALYSIS.md` |
-| Operational runbooks | docs/runbook/ | `docs/runbook/` |
+| Testing / CI-CD / runbook ownership | docs agent memory | `docs/AGENTS.md` |
+| Backend deep-dive tech docs (audience: dev) | backend/docs/ | `backend/docs/` |
+| Operational runbooks (audience: ops) | docs/runbook/ | `docs/runbook/` |
+| Project status snapshot (historical 2026-06-13 + Delta log) | docs/ | `docs/PROJECT-STATUS.md` |
 | Piano operativo (business plan, docx) | docs/ | `docs/Piano-operativo-v1.7.docx` |
 
 If something here contradicts a file on disk, the file on disk wins — update this file.

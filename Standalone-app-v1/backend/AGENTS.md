@@ -1,5 +1,7 @@
 # Backend - Core Application Logic
 
+> ↗ Invarianti architetturali e workflow atomico: vedi [`../CLAUDE.md`](../CLAUDE.md) · Progress Tracker globale e grafo dipendenze: vedi [`../AGENTS.md`](../AGENTS.md)
+
 ## Scope
 Questa sezione contiene SOLO task per il backend Python/FastAPI:
 - Bounded context: `estimates/`, `market_data/`, `sync/`, `analytics/`, `shared/`
@@ -9,9 +11,9 @@ Questa sezione contiene SOLO task per il backend Python/FastAPI:
 - Configurazione (pydantic-settings)
 
 **Non modificare**:
-- File di Docker/compose (vedi `Docker/AGENTS.md`)
-- File di test/CI (vedi `Docs/AGENTS.md`)
-- Codice frontend (vedi `Frontend/AGENTS.md`)
+- File di Docker/compose (vedi [`../docker/AGENTS.md`](../docker/AGENTS.md))
+- File di test/CI (vedi [`../docs/AGENTS.md`](../docs/AGENTS.md))
+- Codice frontend (vedi [`../frontend/AGENTS.md`](../frontend/AGENTS.md))
 
 ---
 

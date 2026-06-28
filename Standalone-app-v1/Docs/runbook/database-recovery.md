@@ -30,5 +30,8 @@ cd Standalone-app-v1/
 docker compose -f docker-compose.prod.yml exec -T db pg_restore -c -U tt_prod_user -d tickertracker_prod < backup.sql
 ```
 
+## Riferimento implementativo (dev)
+Per i dettagli della crittografia at-rest (Fernet, `EncryptedString`, rotazione chiavi, `BACKUP_ENCRYPTION_KEY`): [`../../backend/docs/ENCRYPTION.md`](../../backend/docs/ENCRYPTION.md).
+
 ## Contatti ed Escalation
 Per assistenza tecnica al database, fare riferimento ai DB Admin o DevOps su [CONTACTS.md](CONTACTS.md).

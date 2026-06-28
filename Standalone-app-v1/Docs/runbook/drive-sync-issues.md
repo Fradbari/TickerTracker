@@ -31,5 +31,8 @@ cd Standalone-app-v1/
 docker compose -f docker-compose.prod.yml exec db psql -U tt_prod_user -d tickertracker_prod -c "SELECT * FROM sync_operations WHERE status = 'FAILED';"
 ```
 
+## Riferimento implementativo (dev)
+Per il meccanismo del pattern Outbox, i job APScheduler (retry, dead-letter, idempotenza) e gli stati `FAILED`/`PENDING`: [`../../backend/docs/SCHEDULER.md`](../../backend/docs/SCHEDULER.md).
+
 ## Contatti ed Escalation
 Per supporto con le credenziali API di Google Cloud, consultare [CONTACTS.md](CONTACTS.md).

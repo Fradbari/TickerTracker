@@ -1,5 +1,7 @@
 # AGENTS — docker
 
+> ↗ Invarianti architetturali e workflow atomico: vedi [`../CLAUDE.md`](../CLAUDE.md) · Progress Tracker globale e grafo dipendenze: vedi [`../AGENTS.md`](../AGENTS.md)
+
 ID: TASK 2.2
 Area: docker
 Fase: MVP

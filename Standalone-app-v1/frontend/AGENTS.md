@@ -1,5 +1,7 @@
 # Frontend - React UI & UX
 
+> ↗ Invarianti architetturali e workflow atomico: vedi [`../CLAUDE.md`](../CLAUDE.md) · Progress Tracker globale e grafo dipendenze: vedi [`../AGENTS.md`](../AGENTS.md)
+
 ## Scope
 Questa sezione contiene SOLO task per il frontend React/TypeScript:
 - Feature modules: `features/estimates/`, `features/portfolio/`, `features/market-data/`, `features/chat-ai/`
@@ -8,9 +10,9 @@ Questa sezione contiene SOLO task per il frontend React/TypeScript:
 - Configurazione: Vite, TailwindCSS, React Query, React Hook Form
 
 **Non modificare**:
-- File di backend (vedi `Backend/AGENTS.md`)
-- File di Docker/compose (vedi `Docker/AGENTS.md`)
-- File di test/CI (vedi `Docs/AGENTS.md`)
+- File di backend (vedi [`../backend/AGENTS.md`](../backend/AGENTS.md))
+- File di Docker/compose (vedi [`../docker/AGENTS.md`](../docker/AGENTS.md))
+- File di test/CI (vedi [`../docs/AGENTS.md`](../docs/AGENTS.md))
 
 ---
 

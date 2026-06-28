@@ -32,10 +32,10 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 ### Prima di Iniziare
 1. **Leggi la sezione appropriata** in base al tuo task:
-   - 🐍 **Backend/AGENTS.md** → API, domain logic, database, sync
-   - ⚛️ **Frontend/AGENTS.md** → React UI, components, forms, charts
-   - 🐳 **Docker/AGENTS.md** → Containerizzazione, compose, deployment
-   - 📚 **Docs/AGENTS.md** → Testing, CI/CD, documentazione
+   - 🐍 [`backend/AGENTS.md`](./backend/AGENTS.md) → API, domain logic, database, sync
+   - ⚛️ [`frontend/AGENTS.md`](./frontend/AGENTS.md) → React UI, components, forms, charts
+   - 🐳 [`docker/AGENTS.md`](./docker/AGENTS.md) → Containerizzazione, compose, deployment
+   - 📚 [`docs/AGENTS.md`](./docs/AGENTS.md) → Testing, CI/CD, documentazione, runbook
 
 2. **Rispetta i boundary**: Non modificare file fuori dalla tua sezione
 3. **Segui i microstep**: Ogni task ha step atomici e verificabili
@@ -61,7 +61,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 #### Sezione 2: Backend Core & Data (21/21 completati)
 - [x] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
-- [x] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
+- [x] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in docker/AGENTS.md)*
 - [x] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker
 - [x] **TASK 2.4** - Definizione Modello SQLAlchemy - Estimate
 - [x] **TASK 2.5** - Definizione Modello SQLAlchemy - EstimateEvent
@@ -148,8 +148,8 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 5.17** - Creare Script Migrazione Dati v2.4 → v3.0
 
 #### Docker & Deployment (2/2)
-- [x] **TASK 3.12** - Setup Docker Compose Ambiente Locale *(in Docker/AGENTS.md)*
-- [x] **TASK 5.14** - Creare Dockerfile Multi-Stage *(in Docker/AGENTS.md)*
+- [x] **TASK 3.12** - Setup Docker Compose Ambiente Locale *(in docker/AGENTS.md)*
+- [x] **TASK 5.14** - Creare Dockerfile Multi-Stage *(in docker/AGENTS.md)*
 
 ---
 
@@ -167,32 +167,36 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 ```
 Standalone-app-v1/
-├── AGENTS.md (questo file)
+├── CLAUDE.md              ← entry point + invarianti architetturali
+├── AGENTS.md              ← questo file (task ledger + Progress Tracker)
+├── README.md              ← Quick Start / docker-compose
 ├── backend/
-│   ├── AGENTS.md → 33 task backend (MVP + Fase 2)
-│   ├── src/
-│   │   ├── estimates/
-│   │   ├── market_data/
-│   │   ├── sync/
-│   │   ├── analytics/
-│   │   ├── shared/
-│   │   └── infra/
-│   └── tests/
+│   ├── AGENTS.md          ← task Python/FastAPI (↩ back-link a CLAUDE.md)
+│   ├── src/  (estimates/, market_data/, sync/, analytics/, shared/, infra/)
+│   ├── alembic/           ← migrazioni DB
+│   ├── tests/
+│   └── docs/              ← deep-dive tecnici (dev): API, SECURITY, PAGINATION, ...
 │
 ├── frontend/
-│   ├── AGENTS.md → 17 task frontend (MVP + Fase 2)
-│   ├── src/
-│   │   ├── features/
-│   │   ├── shared/
-│   │   └── app/
+│   ├── AGENTS.md          ← task React/TS (↩ back-link a CLAUDE.md)
+│   ├── src/  (features/, shared/, app/)
 │   └── tests/
 │
-├── Docker/
-│   └── AGENTS.md → 3 task Docker
+├── docker/
+│   └── AGENTS.md          ← task container (↩ back-link a CLAUDE.md)
 │
-└── Docs/
-    └── AGENTS.md → 14 task CI/CD & Docs
+├── docs/
+│   ├── AGENTS.md          ← task Testing/CI-CD/Docs (↩ back-link a CLAUDE.md)
+│   ├── runbook/           ← procedure operative (ops)
+│   ├── PROJECT-STATUS.md  ← snapshot storico + Delta log
+│   └── HANDOFF.md         ← resoconti sessione (storico)
+│
+├── e2e/                   ← suite Playwright (config alla root)
+├── scripts/               ← validate_dependencies.py, ...
+└── docker-compose*.yml    ← base / dev / prod
 ```
+
+> ⚠️ I dettagli task e completed-task history vivono nei singoli `AGENTS.md` di sezione. Non esistono più `AGENTS.md` nelle sottocartelle profonde (rimossi come duplicati stale).
 
 ---
 
@@ -250,7 +254,7 @@ Standalone-app-v1/
 
 ## Link Diretti alle Sezioni
 
-### 🐍 [Backend/AGENTS.md](./backend/AGENTS.md)
+### 🐍 [backend/AGENTS.md](./backend/AGENTS.md)
 **Scope**: Python/FastAPI, Domain Logic, Database, API, Sync Drive
 - Sezione 1: Linee guida trasversali (7 task)
 - Sezione 2: Backend & Data (26 task)
@@ -264,8 +268,8 @@ Standalone-app-v1/
 
 ---
 
-### ⚛️ [Frontend/AGENTS.md](./frontend/AGENTS.md)
-**Scope**: React 19, TypeScript, TailwindCSS, React Query
+### ⚛️ [frontend/AGENTS.md](./frontend/AGENTS.md)
+**Scope**: React 18, TypeScript, TailwindCSS, React Query
 - Sezione 1: Setup (1 task)
 - Sezione 4: Frontend & UX (16 task)
 
@@ -277,7 +281,7 @@ Standalone-app-v1/
 
 ---
 
-### 🐳 [Docker/AGENTS.md](./Docker/AGENTS.md)
+### 🐳 [docker/AGENTS.md](./docker/AGENTS.md)
 **Scope**: Containerizzazione, Compose, Deployment
 - Setup containers backend/frontend/postgres
 - Healthchecks e restart policies
@@ -286,13 +290,14 @@ Standalone-app-v1/
 
 ---
 
-### 📚 [Docs/AGENTS.md](./Docs/AGENTS.md)
-**Scope**: Testing, CI/CD, Documentazione
+### 📚 [docs/AGENTS.md](./docs/AGENTS.md)
+**Scope**: Testing, CI/CD, Documentazione, Runbook
 - Test unitari (pytest, vitest)
 - Test integrazione
 - Test E2E (Playwright)
 - CI/CD pipeline (GitHub Actions)
 - Documentazione API (OpenAPI)
+- Ownership runbook operativi (`docs/runbook/`)
 
 ---
 

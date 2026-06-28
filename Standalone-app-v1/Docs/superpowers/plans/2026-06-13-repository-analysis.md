@@ -1,5 +1,7 @@
 # TickerTracker Repository Analysis - June 13, 2026
 
+> ⚠️ **SUPERSEDED** — Questo documento è un'analisi storica al 2026-06-13 e **non riflette lo stato corrente**. La fonte di verità per lo stato del progetto è il Progress Tracker in [`../../AGENTS.md`](../../AGENTS.md) (con relativo Delta log delle claim smentite in [`../../PROJECT-STATUS.md`](../../PROJECT-STATUS.md)). Trattenuto in `superpowers/plans/` come riferimento storico.
+
 ## Executive Summary
 
 This analysis compares the original requirements for TickerTracker (as specified in the user's initial vision) with the current implementation status in the Standalone-app-v1 repository. The backend shows strong progress with many MVP and Fase 2 tasks completed, while the frontend has significant gaps in MVP feature completion.

@@ -1,20 +1,19 @@
 # TickerTracker Frontend
 
-TypeScript/React frontend for TickerTracker v3.0, a sophisticated trading system with precise financial calculations using `decimal.js` for IEEE 754-safe arithmetic.
+> ↗ Entry point di progetto e invarianti architetturali: vedi [`../CLAUDE.md`](../CLAUDE.md) · Task ledger frontend e completed-task history: vedi [`AGENTS.md`](AGENTS.md)
 
-## ✅ Test Results
+TypeScript/React 18 frontend for TickerTracker v3.0, a sophisticated trading system with precise financial calculations using `decimal.js` for IEEE 754-safe arithmetic.
 
-**All 95 tests passing** (as of 2025-02-01):
-- ✅ **Money Operations**: 47 tests (100% coverage)
-- ✅ **Percentage Operations**: 48 tests (98.3% coverage)
-- ✅ **Overall Coverage**: 92.08% statement coverage
-- ✅ **IEEE 754 Fix Verified**: 0.1 + 0.2 = 0.3 exactly ✓
+## Testing
 
-Run tests with:
 ```bash
-npm run test           # All tests
-npm run test:coverage  # With coverage report (target: 80%+ ✓ ACHIEVED)
+npm run test           # Vitest (jsdom) — NB: senza --run entra in watch, in CI usa test:coverage
+npm run test:coverage  # con coverage report (target: 80%+)
+npm run lint           # ESLint
+npm run type-check     # TypeScript
 ```
+
+> Stato/avanzamento dei task e coverage ufficiale: [`AGENTS.md`](AGENTS.md) Progress Tracker (fonte di verità unica).
 
 ## 💰 Calcoli Finanziari (OBBLIGATORIO)
 
@@ -188,10 +187,7 @@ npm run preview      # Preview production build locally
 
 ### 5. Testing
 
-```bash
-npm run test           # Run all tests with Vitest
-npm run test:coverage  # Run with coverage report (target: 80%+)
-```
+Vedi la sezione [Testing](#testing) in cima — comandi e coverage. Avanzamento ufficiale in [`AGENTS.md`](AGENTS.md).
 
 ---
 

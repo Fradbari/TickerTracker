@@ -634,6 +634,308 @@ SELECT * FROM estimate_summary_view WHERE status = 'OPEN' ORDER BY created_at DE
 
 ---
 
+ID: TASK 2.12
+Area: estimates
+Fase: MVP
+Dipendenze: TASK 2.5, TASK 2.10
+
+## TASK 2.12: Creazione Repository Estimate
+
+**Descrizione:** Implementare repository per accesso dati Estimate.
+
+**Microstep:**
+1. Creare `backend/src/estimates/repositories/estimate_repository.py`
+2. Definire classe `EstimateRepository` (iniettare async session factory)
+3. Metodi: `create`, `get_by_id`, `get_all(filters, pagination)`, `update`, `soft_delete`, `get_active_by_ticker`
+4. Usare async/await per tutte le operazioni
+
+**Acceptance Criteria:**
+- [x] CRUD funzionante
+- [x] Paginazione cursor-based
+- [x] Filtri applicati correttamente
+- [x] Soft delete imposta flag, non cancella
+- [x] Transazioni gestite
+
+**Stato:** ✅ COMPLETATO
+
+---
+
+ID: TASK 2.13
+Area: market_data
+Fase: MVP
+Dipendenze: TASK 2.6, TASK 2.10
+
+## TASK 2.13: Creazione Repository MarketData
+
+**Descrizione:** Implementare repository per accesso dati MarketData.
+
+**Microstep:**
+1. Creare `backend/src/market_data/repositories/market_data_repository.py`
+2. Metodi: `upsert_daily` (ON CONFLICT UPDATE), `get_history`, `get_latest_price`, `get_latest_prices_batch` (window function anti-N+1), `get_aggregated` (1D/1W/1M)
+
+**Acceptance Criteria:**
+- [x] Upsert non crea duplicati
+- [x] Query batch evita N+1
+- [x] Aggregazioni lato Python per flessibilità
+- [x] Performance accettabile per 10 anni di dati
+
+**Stato:** ✅ COMPLETATO
+
+---
+
+ID: TASK 2.14
+Area: estimates
+Fase: MVP
+Dipendenze: TASK 2.12
+
+## TASK 2.14: Creazione Service EstimateService
+
+**Descrizione:** Service layer per orchestrazione business logic stime.
+
+**Microstep:**
+1. Creare `backend/src/estimates/services/estimate_service.py`
+2. Iniettare `EstimateRepository`, `MarketDataProvider`, `EventPublisher`
+3. `create_estimate`: valida, recupera prezzo corrente, calcola target/stop da percentuali, crea Estimate, pubblica ESTIMATE_CREATED
+4. `update_estimate`, `close_estimate`, `check_and_update_targets`
+
+**Acceptance Criteria:**
+- [x] Validazione input completa
+- [x] Eventi pubblicati per ogni operazione
+- [x] Transazione atomica (DB + evento)
+- [x] Errori business → eccezioni tipizzate
+
+**Stato:** ✅ COMPLETATO (2026-02-14)
+
+---
+
+ID: TASK 2.15
+Area: estimates
+Fase: MVP
+Dipendenze: TASK 2.6, TASK 2.12
+
+## TASK 2.15: Creazione Service EstimateHistoryService (Event Sourcing)
+
+**Descrizione:** Service per ricostruzione stato storico stime (event sourcing).
+
+**Microstep:**
+1. Creare `backend/src/estimates/services/estimate_history_service.py`
+2. Iniettare `EstimateEventRepository`
+3. `get_state_at(id, at_time)`: replay eventi fino al timestamp
+4. `get_audit_trail(id)`, `get_changes_between(id, start, end)`
+
+**Acceptance Criteria:**
+- [x] Stato ricostruito correttamente per qualsiasi timestamp
+- [x] Audit trail completo e ordinato
+- [x] Performance accettabile
+
+**Stato:** ✅ COMPLETATO (2026-02-14)
+
+---
+
+ID: TASK 2.16
+Area: estimates
+Fase: MVP
+Dipendenze: TASK 2.14
+
+## TASK 2.16: Creazione API Router Estimates
+
+**Descrizione:** Endpoint REST per gestione stime.
+
+**Microstep:**
+1. Creare `backend/src/estimates/api/routes.py` (router FastAPI, prefix `/api/estimates`)
+2. Endpoint: `POST /`, `GET /` (filtri: status, ticker, date_range, ai_model), `GET /{id}`, `PATCH /{id}`, `DELETE /{id}` (chiusura), `GET /{id}/history` (audit trail)
+3. Tutti restituiscono `ApiResponse`; dependency injection per services
+
+**Acceptance Criteria:**
+- [x] Endpoint documentati OpenAPI
+- [x] Request validation Pydantic
+- [x] Response conforme `ApiResponse`
+- [x] Codici errore appropriati (400, 404, 500)
+- [x] Filtri combinabili
+
+**Stato:** ✅ COMPLETATO (2026-02-14)
+
+---
+
+ID: TASK 2.17
+Area: market_data
+Fase: MVP
+Dipendenze: -
+
+## TASK 2.17: Creazione API Router Market Data
+
+**Descrizione:** Endpoint REST per dati di mercato.
+
+**Microstep:**
+1. Creare `backend/src/market_data/api/routes.py` (router FastAPI, prefix `/api/market`)
+2. Endpoint: `GET /price/{ticker}`, `GET /history/{ticker}` (start_date, end_date, interval), `GET /fundamentals/{ticker}`, `GET /search` (q, max 10 risultati)
+3. Caching headers (Cache-Control)
+
+**Acceptance Criteria:**
+- [x] Prezzi con metadata (source, timestamp, stale flag)
+- [x] History supporta aggregazione 1D/1W/1M
+- [x] Search ordinato per rilevanza
+- [x] Cache headers corretti
+
+> Nota: gli endpoint leggono i dati tramite `MarketDataProvider` (TASK 2.18–2.19), senza dipendere direttamente da yfinance.
+
+**Stato:** ✅ COMPLETATO
+
+---
+
+ID: TASK 2.18
+Area: market_data
+Fase: MVP
+Dipendenze: TASK 2.17
+
+## TASK 2.18: Definizione MarketDataProvider Astratto
+
+**Descrizione:** Interfaccia `MarketDataProvider` per disaccoppiare la business logic dalla sorgente dati (Yahoo oggi, altri provider domani).
+
+**Microstep:**
+1. Creare `backend/src/market_data/domain/providers.py` (Protocol/classe astratta)
+2. Metodi: `get_current_price`, `get_historical_prices`, `get_fundamentals`, `search_symbol`
+3. Definire dataclass `PriceData`, `FundamentalsData`
+4. Aggiornare servizi per dipendere da `MarketDataProvider` via DI
+5. Stub per provider futuri (`FinnhubMarketDataProvider`, ecc. con `NotImplementedError`)
+
+**Acceptance Criteria:**
+- [x] Tutta la logica di mercato usa `MarketDataProvider` (no yfinance diretto)
+- [x] `MarketDataService` riceve il provider via DI FastAPI
+- [x] Test con `FakeMarketDataProvider` senza chiamate esterne
+
+**Stato:** ✅ COMPLETATO (2026-02-14)
+
+---
+
+ID: TASK 2.19
+Area: market_data
+Fase: MVP
+Dipendenze: TASK 2.18
+
+## TASK 2.19: Caching & Backoff per MarketDataProvider
+
+**Descrizione:** Ridurre chiamate a Yahoo/Finnhub e gestire timeouts/rate-limit con cache in-memory + backoff.
+
+**Microstep:**
+1. Creare `backend/src/infra/cache/memory_cache.py` (cache LRU/TTL per-item)
+2. Creare `CachedMarketDataProvider` (wrapper che implementa `MarketDataProvider`)
+3. TTL differenziati: prezzi correnti 60s, storico 1h, fundamentals 24h
+4. Backoff esponenziale su TimeoutError/429/5xx (max N retry), fallback a dati "stale" con `is_stale=True`
+5. Configurare TTL/retry via Settings; usare `CachedMarketDataProvider` come default DI
+
+**Acceptance Criteria:**
+- [x] Chiamate ripetute entro TTL non generano chiamate esterne
+- [x] Su timeout/rate-limit usa dato in cache (no errore 500 immediato)
+- [x] Test coprono: cache hit/miss, stale fallback, backoff
+
+**Stato:** ✅ COMPLETATO (2026-02-14)
+
+---
+
+ID: TASK 2.20
+Area: infra
+Fase: MVP
+Dipendenze: -
+
+## TASK 2.20: Implementazione Google Drive Client
+
+**Descrizione:** Client per interazione con Google Drive API.
+
+**Microstep:**
+1. Creare `backend/src/infra/drive/client.py` (classe `GoogleDriveClient`, async via `run_in_executor`)
+2. Autenticazione Service Account da Settings
+3. Metodi: `list_files`, `download_file`, `upload_file`, `update_file`, `create_temp_file`, `delete_file`
+4. Logging + metriche; timeout configurabile; eccezioni tipizzate
+
+**Acceptance Criteria:**
+- [x] Autenticazione con Service Account
+- [x] CRUD funzionante
+- [x] Errori API → eccezioni tipizzate
+- [x] Timeout configurabile
+
+**Stato:** ✅ COMPLETATO (16 test)
+
+---
+
+ID: TASK 2.21
+Area: sync
+Fase: MVP
+Dipendenze: TASK 2.20
+
+## TASK 2.21: Implementazione CSV Parser Legacy
+
+**Descrizione:** Parser bidirezionale per formato CSV legacy TickerTracker.
+
+**Microstep:**
+1. Creare `backend/src/sync/infra/csv_parser.py` (classe `LegacyCsvParser`)
+2. `parse_estimates_csv`: gestisce UTF-8 BOM, mappa 120+ colonne legacy
+3. `export_estimate_to_csv_row`, `parse_history_csv`, `export_history_to_csv`
+4. Documentazione mapping colonne (`COLUMN_MAPPING.md`)
+
+**Acceptance Criteria:**
+- [x] Parse di file reali legacy senza errori
+- [x] Round-trip parse → export → parse produce stessi dati
+- [x] Colonne mancanti con default sensati
+- [x] Encoding gestito correttamente
+
+**Stato:** ✅ COMPLETATO (30 test)
+
+---
+
+ID: TASK 2.22
+Area: sync
+Fase: MVP
+Dipendenze: TASK 2.21
+
+## TASK 2.22: Implementazione Sync Service
+
+**Descrizione:** Service per sincronizzazione bidirezionale con Google Drive.
+
+**Microstep:**
+1. Creare `backend/src/sync/services/sync_service.py` (classe `SyncService`)
+2. Iniettare: `GoogleDriveClient`, `LegacyCsvParser`, repository Estimate/MarketData/SyncJob
+3. `run_initial_import()`: scarica JSON+CSV da Drive, importa nel DB, crea SyncJob
+4. `sync_estimate_to_drive(id)`: esporta in CSV, aggiorna Drive con pattern file temporaneo, checksum
+5. `run_daily_history_sync()`: aggiorna History_*.csv per ticker attivi
+6. Conflict resolution: last-writer-wins con logging
+
+**Acceptance Criteria:**
+- [x] Import idempotente (no duplicati)
+- [x] Export con file temporaneo per atomicità
+- [x] Checksum verificato dopo ogni operazione
+- [x] Conflitti loggati
+
+**Stato:** ✅ COMPLETATO (14 test)
+
+---
+
+ID: TASK 2.23
+Area: sync / tests
+Fase: MVP
+Dipendenze: TASK 2.22
+
+## TASK 2.23: Test Retrocompatibilità Backup & History Legacy
+
+**Descrizione:** Validare la piena retrocompatibilità con i file legacy (backup JSON e `History_*.csv`) prodotti dalla versione HTML+GAS.
+
+**Microstep:**
+1. Creare `backend/tests/e2e/test_legacy_compatibility.py`
+2. Fixture con backup JSON + CSV reali in `tests/fixtures/legacy/`
+3. `test_import_backup_json_roundtrip`: import → export simulato → verifica valori chiave
+4. `test_import_history_csv_roundtrip`: parse → importa → export → verifica OHLC/date
+5. `test_sync_estimate_to_drive_does_not_break_legacy_file_format`: colonne obbligatorie presenti e ordinate
+
+**Acceptance Criteria:**
+- [x] Import+export JSON non perde stime né cambia valori chiave
+- [x] Import+export CSV produce stessi OHLC/date
+- [x] File generati leggibili dallo script HTML+GAS originale
+- [x] E2E eseguibili localmente senza Drive reale (mocks/fixtures)
+
+**Stato:** ✅ COMPLETATO (17 test)
+
+---
+
 ID: TASK 2.24
 Area: backend/infra
 Fase: MVP

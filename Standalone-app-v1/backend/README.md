@@ -69,7 +69,7 @@ FINNHUB_API_KEY=<key>                # opzionale, Fase 2
 docker compose up -d db redis
 ```
 
-Per il setup Docker completo (backend + frontend + db + redis) vedi [`../README.md`](../README.md) e [`../docker/AGENTS.md`](../docker/AGENTS.md).
+Per il setup Docker completo (backend + frontend + db + redis) vedi [`../README.md`](../README.md) e [`../Docker/AGENTS.md`](../Docker/AGENTS.md).
 
 ## Avvio Backend (Sviluppo Locale)
 
@@ -219,8 +219,8 @@ alembic upgrade head
 - ↗ Entry point progetto: [`../CLAUDE.md`](../CLAUDE.md)
 - Task ledger + completed-task history: [`AGENTS.md`](AGENTS.md)
 - Setup Docker / Quick Start globale: [`../README.md`](../README.md)
-- Docker track: [`../docker/AGENTS.md`](../docker/AGENTS.md)
-- Runbook operativi (produzione): [`../docs/runbook/`](../docs/runbook/)
+- Docker track: [`../Docker/AGENTS.md`](../Docker/AGENTS.md)
+- Runbook operativi (produzione): [`../Docs/runbook/`](../Docs/runbook/)
 
 ## Licenza
 

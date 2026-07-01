@@ -16,7 +16,7 @@ Questa sezione contiene i task per il **track docs**: testing, CI/CD, documentaz
 **Non modificare (fuori scope — track diversi):**
 - Codice backend → [`../backend/AGENTS.md`](../backend/AGENTS.md)
 - Codice frontend → [`../frontend/AGENTS.md`](../frontend/AGENTS.md)
-- Docker/compose → [`../docker/AGENTS.md`](../docker/AGENTS.md)
+- Docker/compose → [`../Docker/AGENTS.md`](../Docker/AGENTS.md)
 - TASK 5.12 (Feature Flags) e 5.13 (Backup DB) → vivono in `backend/AGENTS.md`
 - TASK 5.14 (Dockerfile multi-stage) → vive in `docker/AGENTS.md`
 
@@ -235,6 +235,6 @@ Dipendenze: TASK 2.23
 - ↗ Task ledger globale + Progress Tracker: [`../AGENTS.md`](../AGENTS.md)
 - ⚙️ Deep-dive tecnici backend (dev): [`../backend/docs/`](../backend/docs/)
 - 🚑 Runbook operativi (ops): [`runbook/`](runbook/)
-- 🐳 Docker track: [`../docker/AGENTS.md`](../docker/AGENTS.md)
+- 🐳 Docker track: [`../Docker/AGENTS.md`](../Docker/AGENTS.md)
 - 🐍 Backend track: [`../backend/AGENTS.md`](../backend/AGENTS.md)
 - ⚛️ Frontend track: [`../frontend/AGENTS.md`](../frontend/AGENTS.md)

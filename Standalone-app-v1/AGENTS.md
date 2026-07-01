@@ -34,8 +34,8 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 1. **Leggi la sezione appropriata** in base al tuo task:
    - 🐍 [`backend/AGENTS.md`](./backend/AGENTS.md) → API, domain logic, database, sync
    - ⚛️ [`frontend/AGENTS.md`](./frontend/AGENTS.md) → React UI, components, forms, charts
-   - 🐳 [`docker/AGENTS.md`](./docker/AGENTS.md) → Containerizzazione, compose, deployment
-   - 📚 [`docs/AGENTS.md`](./docs/AGENTS.md) → Testing, CI/CD, documentazione, runbook
+   - 🐳 [`Docker/AGENTS.md`](./Docker/AGENTS.md) → Containerizzazione, compose, deployment
+   - 📚 [`Docs/AGENTS.md`](./Docs/AGENTS.md) → Testing, CI/CD, documentazione, runbook
 
 2. **Rispetta i boundary**: Non modificare file fuori dalla tua sezione
 3. **Segui i microstep**: Ogni task ha step atomici e verificabili
@@ -61,7 +61,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 #### Sezione 2: Backend Core & Data (21/21 completati)
 - [x] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
-- [x] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in docker/AGENTS.md)*
+- [x] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
 - [x] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker
 - [x] **TASK 2.4** - Definizione Modello SQLAlchemy - Estimate
 - [x] **TASK 2.5** - Definizione Modello SQLAlchemy - EstimateEvent
@@ -148,8 +148,8 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 5.17** - Creare Script Migrazione Dati v2.4 → v3.0
 
 #### Docker & Deployment (2/2)
-- [x] **TASK 3.12** - Setup Docker Compose Ambiente Locale *(in docker/AGENTS.md)*
-- [x] **TASK 5.14** - Creare Dockerfile Multi-Stage *(in docker/AGENTS.md)*
+- [x] **TASK 3.12** - Setup Docker Compose Ambiente Locale *(in Docker/AGENTS.md)*
+- [x] **TASK 5.14** - Creare Dockerfile Multi-Stage *(in Docker/AGENTS.md)*
 
 ---
 
@@ -281,7 +281,7 @@ Standalone-app-v1/
 
 ---
 
-### 🐳 [docker/AGENTS.md](./docker/AGENTS.md)
+### 🐳 [Docker/AGENTS.md](./Docker/AGENTS.md)
 **Scope**: Containerizzazione, Compose, Deployment
 - Setup containers backend/frontend/postgres
 - Healthchecks e restart policies
@@ -290,7 +290,7 @@ Standalone-app-v1/
 
 ---
 
-### 📚 [docs/AGENTS.md](./docs/AGENTS.md)
+### 📚 [Docs/AGENTS.md](./Docs/AGENTS.md)
 **Scope**: Testing, CI/CD, Documentazione, Runbook
 - Test unitari (pytest, vitest)
 - Test integrazione

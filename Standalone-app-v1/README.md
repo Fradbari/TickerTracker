@@ -40,8 +40,8 @@ Standalone-app-v1/
 ├── backend/            # Python/FastAPI (src/, alembic/, tests/, docs/)
 │   └── docs/           # Deep-dive tecnici (dev): API, SECURITY, PAGINATION, ...
 ├── frontend/           # React 18/TypeScript (src/features|shared|app)
-├── docker/             # Compose/Dockerfile + docker/AGENTS.md
-├── docs/               # Runbook (ops), PROJECT-STATUS, HANDOFF, + docs/AGENTS.md
+├── docker/             # Compose/Dockerfile + Docker/AGENTS.md
+├── docs/               # Runbook (ops), PROJECT-STATUS, HANDOFF, + Docs/AGENTS.md
 ├── e2e/                # Suite Playwright (playwright.config.ts alla root)
 ├── scripts/            # Tool di sviluppo (validate_dependencies.py, ...)
 └── docker-compose*.yml # base / dev / prod
@@ -237,8 +237,8 @@ Il progetto adotta un approccio **Atomic Development**. Ogni modifica deve esser
    - [AGENTS.md principale](./AGENTS.md) - Progress tracker globale
    - [backend/AGENTS.md](./backend/AGENTS.md) - Task backend
    - [frontend/AGENTS.md](./frontend/AGENTS.md) - Task frontend
-   - [docker/AGENTS.md](./docker/AGENTS.md) - Task Docker
-   - [docs/agents-sprint-fix.md](./docs/agents-sprint-fix.md) - Note di sprint-fix docs; per il workflow task-driven usare root `AGENTS.md`
+   - [Docker/AGENTS.md](./Docker/AGENTS.md) - Task Docker
+   - [Docs/agents-sprint-fix.md](./Docs/agents-sprint-fix.md) - Note di sprint-fix docs; per il workflow task-driven usare root `AGENTS.md`
 
 2. **Standard di Codifica**:
     - **Backend**: Usa sempre `Decimal` per valori monetari. Segui il layering api → services → repositories → domain.
@@ -318,11 +318,11 @@ npm run test           # Vitest
 
 - **[CLAUDE.md](./CLAUDE.md)** — entry point di sessione + invarianti architetturali
 - **[AGENTS.md](./AGENTS.md)** — task ledger + Progress Tracker (fonte di verità sullo stato)
-- **Track docs (Testing/CI-CD/Runbook)** — [`docs/AGENTS.md`](./docs/AGENTS.md)
+- **Track docs (Testing/CI-CD/Runbook)** — [`Docs/AGENTS.md`](./Docs/AGENTS.md)
 - **Backend deep-dive (dev)** — [`backend/docs/`](./backend/docs/) (API, SECURITY, PAGINATION, ALEMBIC, ...)
-- **Runbook operativi (ops)** — [`docs/runbook/`](./docs/runbook/) (startup, recovery, outage, monitoring)
+- **Runbook operativi (ops)** — [`Docs/runbook/`](./Docs/runbook/) (startup, recovery, outage, monitoring)
 - **Backend API Docs** — http://localhost:8000/docs (quando l'app è running)
-- **[Piano Operativo v1.7](./docs/Piano-operativo-v1.7.docx)** — business plan MVP e Fase 2 (`.docx`)
+- **[Piano Operativo v1.7](./Docs/Piano-operativo-v1.7.docx)** — business plan MVP e Fase 2 (`.docx`)
 
 ### Guide Rapide
 

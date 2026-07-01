@@ -11,8 +11,8 @@ Questa sezione contiene SOLO task per il frontend React/TypeScript:
 
 **Non modificare**:
 - File di backend (vedi [`../backend/AGENTS.md`](../backend/AGENTS.md))
-- File di Docker/compose (vedi [`../docker/AGENTS.md`](../docker/AGENTS.md))
-- File di test/CI (vedi [`../docs/AGENTS.md`](../docs/AGENTS.md))
+- File di Docker/compose (vedi [`../Docker/AGENTS.md`](../Docker/AGENTS.md))
+- File di test/CI (vedi [`../Docs/AGENTS.md`](../Docs/AGENTS.md))
 
 ---
 

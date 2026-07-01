@@ -1,9 +1,9 @@
 # Stato di avanzamento — Piano-di-lavoro.md
 
 > **Attenzione:** questo file **non è** `Docs/HANDOFF.md`. `HANDOFF.md` è uno degli oggetti che il Piano-di-lavoro migra e poi elimina (M5) — resta invariato finché M2/M5 non lo toccano secondo il piano. Questo file è la sintesi di continuità cross-sessione richiesta esplicitamente dall'utente, aggiornata ad ogni milestone.
-> **Ultimo aggiornamento:** 2026-07-01, subito dopo il completamento e commit di M1.
+> **Ultimo aggiornamento:** 2026-07-01, subito dopo il completamento e commit di M2.
 > **Branch:** `vibe-claude` (nessun branch nuovo creato, per vincolo esplicito).
-> **HEAD al momento della scrittura:** `a82a3c0` — `docs: normalize link casing to top-level Docs/ and Docker/ (M1)`.
+> **HEAD al momento della scrittura:** `20d7f2e` — `docs: migrate Sprint-UX, BUG-4 fold, analytics delta into ledgers (M2)`.
 
 ---
 
@@ -28,14 +28,14 @@ Modalità di esecuzione scelta dall'utente: **milestone-by-milestone** — si es
 |---|---|---|
 | M0 — Setup + baseline | ✅ Completata | (nessun commit dedicato — dati di baseline riportati sotto) |
 | M1 — Normalizzazione casing link | ✅ Completata e committata | `a82a3c0` |
-| M2 — Migrazione contenuti | ⬜ Da iniziare | — |
+| M2 — Migrazione contenuti | ✅ Completata e committata | `20d7f2e` |
 | M3 — CLAUDE.md fonte unica | ⬜ Da iniziare | — |
 | M4 — Gerarchia AGENTS.md + link sweep | ⬜ Da iniziare | — |
 | M5 — Cleanup (git rm 5 file) | ⬜ Da iniziare | — |
 | M6 — Verifica finale | ⬜ Da iniziare | — |
 | M7 — Tuning modelli agenti | ⬜ Da iniziare | — |
 
-**Prossima milestone da eseguire: M2.**
+**Prossima milestone da eseguire: M3.**
 
 ## 4. File modificati, creati, eliminati o da verificare
 
@@ -48,6 +48,15 @@ Modalità di esecuzione scelta dall'utente: **milestone-by-milestone** — si es
 - `Standalone-app-v1/Docs/AGENTS.md` — 2 link ricasati
 
 Totale: 6 file, 23 occorrenze link corrette (display backtick + target).
+
+**Modificati e committati (M2, commit `20d7f2e`) — solo aggiunte, 0 cancellazioni, 89 insertions:**
+- `Standalone-app-v1/AGENTS.md` — nuova §"🎯 Sprint UX" (checklist 4 task C/D/B/A) dopo Statistiche Progresso
+- `Standalone-app-v1/frontend/AGENTS.md` — nuova §"SPRINT UX" con microstep TASK C/D/B/A + file target `.tsx`/`.ts` (AppStatusBar, EstimateForm, InsertEstimate, AdminSettings, frontendLogger)
+- `Standalone-app-v1/backend/AGENTS.md` — nuova §"SPRINT UX (backend)": flag `finnhub_key_configured`, endpoint `POST /api/logs/frontend`, timestamp Yahoo su status
+- `Standalone-app-v1/backend/README.md` — nuova §"Troubleshooting (sviluppo locale)" (fold BUG-4; path stale `AI Studio` NON migrato → grep=0; pin obsoleti scartati)
+- `Standalone-app-v1/CLAUDE.md` — 1 bullet su analytics scaffolding vuoto sotto heading esistente "Things That Were Wrong Before"
+
+Esecuzione via **3 subagent `docs-dev` paralleli** (file-set disgiunti). Done-criterion M2 ri-verificati dal thread principale con grep indipendenti: root `TASK [CDBA]`=4 ✅, frontend `TASK [CDBA]`=4 ✅, frontend filename-target=13 ✅, backend regex (finnhub/logs/Yahoo) PASS ✅, `AI Studio`=0 ✅.
 
 **Creati in questa sessione (fuori dal piano, per continuità cross-sessione):**
 - `Standalone-app-v1/Docs/Piano-di-lavoro.md` (questo passaggio)
@@ -106,6 +115,7 @@ Totale: 6 file, 23 occorrenze link corrette (display backtick + target).
 - **Commit `acd2a58` ("chore: remove temp_estimate_body.json to clean up unused files") comparso in cronologia indipendentemente da questo piano.** Al momento del check iniziale di sessione (system-prompt gitStatus), l'HEAD era `e3d2ee9` e il file risultava come cancellazione non committata (`D` nel working tree). Alle verifiche raw-git eseguite durante M0 di questa sessione, il commit `acd2a58` era già presente in cronologia (tra `e3d2ee9` e `a82a3c0`) e il file risultava assente da HEAD/index/disco. **Non ho creato io questo commit** in questa sessione — non ho mai eseguito `git add`/`git commit` su quel file. Causa non accertata (possibile azione utente fuori sessione, o processo/hook automatico). **Effetto pratico sul piano:** l'azione condizionale di M5 per `temp_estimate_body.json` risulta già un no-op (il file è già rimosso); va comunque ri-verificata al momento di eseguire M5, per idempotenza, ma non richiede più intervento.
 - **Due set di link rotti pre-esistenti** scoperti durante la discovery di M1 (non casing, target realmente mancante): `Docker/README.md` righe 11/368/369 → `TASK_2_2_IMPLEMENTATION_SUMMARY.md`, `TASK_2_2_STATUS_REPORT.md`; `backend/src/sync/infra/README.md:179` → `TASK_2.21_COMPLETION_REPORT.md`. Nessuno di questi target esiste nella repo. Aggiunta una nota in coda a M4 del `Piano-di-lavoro.md` per includerli nel link-sweep — non ancora risolti.
 - **`$BASE` (baseline lista M0) salvata in `/tmp/tt_md_baseline.txt`** tramite il tool Bash di questa sessione (Git Bash su Windows mappa `/tmp` su disco reale). Una nuova sessione/finestra **potrebbe non avere accesso allo stesso path** se gira in un ambiente/sandbox diverso: da verificare all'avvio della prossima sessione, rigenerando la baseline con lo stesso comando se il file non risulta presente (il conteggio N=61 e la lista dei 5 file attesi in rimozione sono comunque riportati per esteso in questo documento e nel piano, quindi rigenerabili senza perdita di informazione).
+- **[NEW, scoperta in M2] Incoerenza in `CLAUDE.md` §"Real Layouts" (backend)**: descrive il backend come `domain/`, `application/`, `infrastructure/`, `api/`, `shared/`, ma su disco il layout reale è **bounded-context-first** (`estimates/`, `market_data/`, `sync/`, `analytics/`, `shared/`, `infra/`) — coerente con la Struttura Progetto in `backend/README.md` e con `backend/AGENTS.md`. Segnalata dall'agente docs-dev durante M2 (verifica `analytics/`). **Fuori scope M2** (M2 aggiunge solo il bullet analytics); **candidata a correzione in M3** (CLAUDE.md fonte unica), da valutare insieme al fix Doc Map.
 
 ## 9. Vincoli espliciti
 
@@ -130,13 +140,13 @@ Totale: 6 file, 23 occorrenze link corrette (display backtick + target).
 7. **M1** eseguita e committata (`a82a3c0`): 6 file, 23 occorrenze di link ricasate da `docs/`/`docker/` a `Docs/`/`Docker/`. Verificato: 0 link lowercase residui verso le top-level (solo falsi-positivi attesi su `backend/docs/`, non toccati, più i 2 set di link rotti pre-esistenti annotati in §8).
 8. Auto-correzione di un primo tentativo di commit fallito (§7), senza lasciare stato sporco su `vibe-claude`.
 9. Creazione di questo pacchetto di continuità cross-sessione (`Docs/Piano-di-lavoro.md` + questo file).
+10. **M2** eseguita e committata (`20d7f2e`): migrazione contenuti senza cancellazioni. Sprint-UX (4 task) → root/frontend/backend `AGENTS.md`; fold BUG-4 (Troubleshooting) → `backend/README.md`; delta analytics → `CLAUDE.md`. Orchestrazione via 3 subagent `docs-dev` paralleli su file-set disgiunti; done-criterion ri-verificati dal thread principale (grep quantità+qualità tutti PASS) prima del commit.
 
 ## 11. Azioni ancora mancanti
 
 Nell'ordine previsto dal piano:
 
-- **M2** — Migrazione contenuti (nessuna cancellazione): Sprint-UX (4 task) trasposto in root `AGENTS.md` + `frontend/AGENTS.md` + `backend/AGENTS.md`; fold ragionato di `backend/SETUP_GUIDE.md` in `backend/README.md` (scartando il path stale); delta validi di `PROJECT-STATUS.md` spostati sotto l'heading esistente in `CLAUDE.md`.
-- **M3** — `CLAUDE.md` come fonte unica: fix Doc Map (casing, riferimenti a file che M5 rimuoverà), verifica roster agenti. **Non** toccare la riga React (già corretta a 18).
+- **M3** — `CLAUDE.md` come fonte unica: fix Doc Map (casing, riferimenti a file che M5 rimuoverà), verifica roster agenti. **Non** toccare la riga React (già corretta a 18). Valutare anche la correzione dell'incoerenza §"Real Layouts" backend segnalata in §8.
 - **M4** — Gerarchia `AGENTS.md`: dedup root (BUG-1/WP5), fix BUG-2/BUG-3, banner agente per-track, back-link runbook (WP6), link sweep incluse le correzioni React 19→18 e i 2 link rotti pre-esistenti scoperti in M1.
 - **M5** — Cleanup: `git rm` dei 5 file (con `--ignore-unmatch`, via `git -C`), fix riferimenti pendenti, ri-verifica `temp_estimate_body.json`, guard-lista e guard-conteggio.
 - **M6** — Verifica finale: script link-rotti, script anchor-invalidi, zero riferimenti residui ai 5 file rimossi, `validate_dependencies.py`, spot-check tabelle, `git diff --stat`.
@@ -144,7 +154,9 @@ Nell'ordine previsto dal piano:
 
 ## 12. Prossimo step minimo
 
-Eseguire **M2** (migrazione contenuti, nessuna cancellazione) seguendo esattamente i done-criterion già scritti in `Docs/Piano-di-lavoro.md` §M2, poi verificare, committare, e fermarsi per review dell'utente prima di M3 — coerente con la modalità milestone-by-milestone scelta.
+Eseguire **M3** (`CLAUDE.md` fonte unica) seguendo esattamente i done-criterion già scritti in `Docs/Piano-di-lavoro.md` §M3: fix Doc Map (casing reale + riallineo/rimozione riferimenti a `PROJECT-STATUS`/`HANDOFF` che M5 eliminerà, "stato corrente" → root `AGENTS.md` Progress Tracker), verifica roster = 5 agenti reali (fallback `docker-dev`→`docs-dev`), **NON** toccare la riga React r.1 (già 18). Valutare la correzione dell'incoerenza §"Real Layouts" backend (§8). Poi verificare, committare, e fermarsi per review dell'utente prima di M4 — coerente con la modalità milestone-by-milestone.
+
+**Nota M2 (appena completata):** i grep di igiene-sigle HANDOFF (`BUG-[1-4]`/`WP[567]`) e i guard di M5 restano da eseguire nelle rispettive milestone; M2 ha toccato **solo aggiunte** (0 cancellazioni), quindi il conteggio `.md` tracciati resta N=61 invariato (nessun file rimosso/aggiunto).
 
 ## 13. Prompt consigliato per la nuova finestra/sessione
 

@@ -9,10 +9,12 @@ Entry-point onboarding for Claude sessions on TickerTracker v3.0. Standalone Fas
 | `task-planner` | Need a plan, unblocked-task selection, or dependency-graph query | none (read AGENTS.md only) |
 | `backend-dev` | Any `backend/**` edit, FastAPI/SQLAlchemy/Alembic, Pytest, scheduler/job code | `backend/` |
 | `frontend-dev` | Any `frontend/**` edit, React/TS/Vite, i18n, Zod schemas, Vitest | `frontend/` |
-| `docker-dev` | `docker/**`, compose files, helper scripts, infra-only Docker changes | `docker/` |
-| `docs-dev` | `docs/**`, markdown, runbook updates, PDF/docx conversion | `docs/` |
+| `docker-dev` *(no `.claude/agents` def — falls back to `docs-dev`)* | `Docker/**`, compose files, helper scripts, infra-only Docker changes | `Docker/` |
+| `docs-dev` | `Docs/**`, markdown, runbook updates, PDF/docx conversion | `Docs/` |
 | `code-reviewer` | Before any commit or PR; reviews diff for correctness + reuse | diff only |
 | `Explore` | Read-only search/audit across the tree when you need facts, not edits | none |
+
+> `.claude/agents/` defines exactly 5 agents: `task-planner`, `backend-dev`, `frontend-dev`, `docs-dev`, `code-reviewer`. `docker-dev` has **no** def file — the Docker track falls back to `docs-dev`. `Explore` is a built-in read-only agent, not a `.claude/agents` def.
 
 Boundary rule: do NOT modify files outside your section unless the change is explicitly part of a multi-track task agreed in `AGENTS.md`. If a backend change needs a frontend call-site update, that's one task — track it.
 
@@ -52,7 +54,7 @@ These are opinion-level rules, not derivable from the code. Violating them break
 
 **Frontend `frontend/src/`:** `app/` (providers, router), `components/{form,layout,ui}/`, `features/{admin,chat-ai,estimates,market-data,portfolio}/`, `shared/{api,components,finance,hooks,i18n,services,types,ui,utils}/`, `styles/`, `__tests__/`, `mocks/`. The old `pages/services/store/locales` scaffolding does not exist.
 
-**Backend `backend/src/`:** `domain/`, `application/`, `infrastructure/` (with `infrastructure/outbox/`, `infrastructure/scheduler/`, `infrastructure/sync/`), `api/`, `shared/` (with `shared/schemas/`, `shared/repositories/`, `shared/core/`). Bounded contexts are organized under `domain/` and `application/`.
+**Backend `backend/src/`:** bounded-context-first — `estimates/`, `market_data/`, `sync/`, `analytics/` (each holding its own `api/`/`domain/`/`services/`/`repositories/`/`schemas/` as needed), plus `shared/` (`shared/domain/value_objects/`, `shared/infra/`, `shared/api/`, `shared/schemas/`, `shared/repositories/`, `shared/core/`), `infra/` (`infra/outbox/`, `infra/scheduler/` — background-worker layer), and the `main.py` entry point. There is NO top-level `domain/`/`application/`/`infrastructure/`/`api/` layer folder — layering lives *inside* each bounded context. (Matches `backend/README.md` §Struttura Progetto and the Outbox invariant `backend/src/infra/outbox/`.)
 
 **Docker surface:**
 - `docker-manage.ps1` / `docker-manage.sh` — thin helpers: `up`, `health`, `logs`, `down`, `clean`. Infra-only; does NOT spawn the backend.
@@ -73,7 +75,7 @@ These are opinion-level rules, not derivable from the code. Violating them break
 ## Things That Were Wrong Before — Do Not Perpetuate
 
 - No `LICENSE` file at repo root (only sub-package licenses exist).
-- `docs/Piano-operativo-v1.7.md` does not exist; only `docs/Piano-operativo-v1.7.docx` does.
+- `Docs/Piano-operativo-v1.7.md` does not exist; only `Docs/Piano-operativo-v1.7.docx` does.
 - `AppErrorBoundary` is mounted by `app/providers/index.tsx`, not by `App.tsx` or `main.tsx`.
 - Outbox + dead-letter logic is in `backend/src/infra/outbox/`, not `backend/src/sync/`.
 - The `analytics` bounded context (`backend/src/analytics/`) is scaffolding only: `api/`, `services/`, `repositories/`, `schemas/` contain only an empty `__init__.py` — only `domain/entities.py` has content (the `AiModelRun` model). Do not assume analytics API routes/services exist.
@@ -83,7 +85,7 @@ These are opinion-level rules, not derivable from the code. Violating them break
 - **Backend commands:** see `backend/Makefile` (`make <target>`) and `backend/pyproject.toml` scripts.
 - **Frontend commands:** see `frontend/package.json` scripts (`dev`, `build`, `preview`, `test`, `test:coverage`, `lint`, `type-check`).
 - **Root AGENTS.md (task ledger + dependency graph + Progress Tracker):** `AGENTS.md` at repo root.
-- **Per-section agent memory:** `backend/AGENTS.md`, `frontend/AGENTS.md`, `docker/AGENTS.md`, `docs/AGENTS.md`. Each section `AGENTS.md` back-links here.
+- **Per-section agent memory:** `backend/AGENTS.md`, `frontend/AGENTS.md`, `Docker/AGENTS.md`, `Docs/AGENTS.md`. Each section `AGENTS.md` back-links here.
 - **Dependency validator:** `python scripts/validate_dependencies.py` from repo root.
 
 ## Doc Ownership Map
@@ -91,15 +93,14 @@ These are opinion-level rules, not derivable from the code. Violating them break
 | Topic | Owner | Path |
 |---|---|---|
 | Quick Start / docker-compose how-to | README.md | `README.md` |
-| Father DB / env file recipes | `.env.example` + `docker-compose*.yml` comments | repo root + `docker/` |
+| Father DB / env file recipes | `.env.example` + `docker-compose*.yml` comments | repo root + `Docker/` |
 | Atomic-dev task ledger + Progress Tracker | root AGENTS.md | `AGENTS.md` |
 | Backend invariants / completed-task history | backend agent memory | `backend/AGENTS.md` |
 | Frontend invariants / completed-task history | frontend agent memory | `frontend/AGENTS.md` |
-| Docker surface details | docker agent memory | `docker/AGENTS.md` |
-| Testing / CI-CD / runbook ownership | docs agent memory | `docs/AGENTS.md` |
+| Docker surface details | docker agent memory | `Docker/AGENTS.md` |
+| Testing / CI-CD / runbook ownership | docs agent memory | `Docs/AGENTS.md` |
 | Backend deep-dive tech docs (audience: dev) | backend/docs/ | `backend/docs/` |
-| Operational runbooks (audience: ops) | docs/runbook/ | `docs/runbook/` |
-| Project status snapshot (historical 2026-06-13 + Delta log) | docs/ | `docs/PROJECT-STATUS.md` |
-| Piano operativo (business plan, docx) | docs/ | `docs/Piano-operativo-v1.7.docx` |
+| Operational runbooks (audience: ops) | Docs/runbook/ | `Docs/runbook/` |
+| Piano operativo (business plan, docx) | Docs/ | `Docs/Piano-operativo-v1.7.docx` |
 
 If something here contradicts a file on disk, the file on disk wins — update this file.

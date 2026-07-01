@@ -1015,6 +1015,49 @@ Dipendenze: TASK 4.6, TASK 4.11
 
 ---
 
+# SPRINT UX — Fix operatività (migrato da Docs/agents-sprint-fix.md)
+
+> Sprint di rifinitura UX/operatività. Ordine consigliato: C → D → B → A. Checklist/overview in [`../AGENTS.md`](../AGENTS.md) §Sprint UX. Parti backend in [`../backend/AGENTS.md`](../backend/AGENTS.md) §Sprint UX.
+> **Vincoli:** stringhe utente in italiano; nessuna API key esposta al frontend; riusare endpoint esistenti (no duplicati); `npx tsc --noEmit` verde dopo ogni task.
+
+## TASK C — Barra inferiore: rimuovi `Sync Now`, aggiungi indicatore Yahoo
+**File target:** [`frontend/src/components/layout/AppStatusBar.tsx`](../src/components/layout/AppStatusBar.tsx)
+**Microstep:**
+1. Confermare che `AppStatusBar.tsx` è il componente realmente renderizzato nella barra inferiore (nessuna seconda implementazione attiva).
+2. Rimuovere il pulsante `Sync Now` e tutto il wiring UI usato solo da esso (handler, props, import icone, stato locale). Nessun dead code. Non rimuovere la capability backend.
+3. Rimuovere il badge `GDrive: Non configurato` dalla barra globale (lo stato GDrive resta consultabile in Admin).
+4. Aggiungere indicatore elapsed-time dell'ultima chiamata Yahoo usando il timestamp esposto dall'endpoint di status (vedi backend §Sprint UX). Testi: `Yahoo: aggiornato 24s fa` / `3m fa` / `1h 12m fa`; assente → `Yahoo: nessun aggiornamento registrato`; ultimo tentativo fallito → `Yahoo: ultimo tentativo fallito 4m fa`.
+5. Aggiornare l'elapsed con timer locale leggero (nessuna chiamata API aggiuntiva oltre al polling status esistente).
+6. Stato visivo a soglie documentate nel codice: <5m normale, 5–30m warning discreto, >30m o ultimo esito fallito warning/danger.
+
+## TASK D — Nuova Stima: stato Finnhub + fallback simbolo
+**File target:** [`frontend/src/features/estimates/components/EstimateForm.tsx`](../src/features/estimates/components/EstimateForm.tsx), [`frontend/src/features/estimates/components/InsertEstimate.tsx`](../src/features/estimates/components/InsertEstimate.tsx)
+**Microstep:**
+1. Leggere il flag `finnhub_key_configured` (booleano) via query dedicata dall'endpoint config/admin (vedi backend §Sprint UX). Caching ragionevole, no refetch aggressivo, naming coerente col layer API.
+2. Quando Finnhub NON è configurata: banner inline non invasivo vicino al campo simbolo — avvisa che la ricerca automatica è disabilitata, che si può inserire il ticker manualmente, con CTA verso Admin.
+3. Fallback manuale: al blur del campo simbolo, validare via endpoint Yahoo/market-validate esistente; feedback sintetico: valido / non trovato / verifica non disponibile.
+4. Se Finnhub È configurata: montare/usare davvero il flusso di symbol-search assistita (nessun codice ricerca scollegato).
+5. Copy in italiano, esempi ticker `AAPL`, `MSFT`, `ENI.MI`. Mai esporre la API key.
+
+## TASK B — Admin operativa completa
+**File target:** [`frontend/src/features/admin/components/AdminSettings.tsx`](../src/features/admin/components/AdminSettings.tsx)
+**Microstep:**
+1. Censire le config backend reali e distinguere config di sistema (persistite backend) da preferenze UI (localStorage).
+2. Finnhub: inserimento + verifica esplicita + salvataggio a verifica riuscita + stato configurata/non configurata senza mostrare il segreto.
+3. Google Drive: aggiungere il campo folder (`DRIVE_FOLDER_ID` o semantica backend reale), con caricamento valore corrente e salvataggio via backend (no persistenza solo locale).
+4. Backup/ripristino GDrive con feedback chiaro (usa endpoint status/backup esistenti; estendi, non duplicare).
+5. `PRICE_UPDATE_INTERVAL_MINUTES`: mostra valore reale backend, salvataggio via endpoint esistente, copy che spiega la frequenza di aggiornamento prezzi.
+
+## TASK A — System Logs: eventi frontend + backend unificati
+**File target:** nuovo [`frontend/src/shared/services/frontendLogger.ts`](../src/shared/services/frontendLogger.ts) + viewer System Logs esistente
+**Microstep:**
+1. Creare servizio centralizzato `frontendLogger` (buffer + flush, fire-and-forget, fallback silenzioso, niente `console.log` in prod).
+2. Inviare eventi a `POST /api/logs/frontend` (vedi backend §Sprint UX) con payload tipizzato: `timestamp`, `level` (info|warn|error), `event`, `message`, `path?`, `component?`, `details?` sanitizzato, `source: frontend`. Mai API key/Authorization/cookie/body sensibili.
+3. Coprire: cambio route (`page_navigation`), errori API principali (`api_error`), boundary error se presente, click su azioni importanti (backup/ripristino GDrive, verifica/salvataggio Finnhub, salvataggio Admin).
+4. Aggiornare il viewer System Logs: distinguere `frontend`/`backend`, mostrare `timestamp/source/level/event/message`, filtro `source`, compatibilità con i log backend esistenti.
+
+---
+
 # NOTE FINALI PER LLM FRONTEND
 
 1. **Sempre usare decimal.js per calcoli finanziari** - mai `number` nativo

@@ -1111,3 +1111,28 @@ Prestazioni O(1) per pagina indipendentemente dalla profondità.
 - `apply_cursor_pagination()` riceve `cursor_value` già decodificato e castato (es. `date`) dal caller.
 - `get_history_paginated()` gestisce internamente decode del cursore e filtri start/end.
 - Endpoint `/api/market/history/{ticker}/paginated` accede ai dati localmente sincronizzati (PostgreSQL), non a Yahoo Finance live.
+
+---
+
+# SPRINT UX (backend) — supporto ai fix UX (migrato da Docs/agents-sprint-fix.md)
+
+> Parti backend a supporto dello Sprint UX frontend. Checklist/overview in [`../AGENTS.md`](../AGENTS.md) §Sprint UX; microstep frontend in [`../frontend/AGENTS.md`](../frontend/AGENTS.md) §Sprint UX.
+> **Vincoli:** riusare/estendere endpoint esistenti (no duplicati con semantica equivalente); mai esporre segreti (API key) nelle response; usare `ApiResponse` standard.
+
+## TASK D-backend — Flag stato Finnhub
+**Target:** router config/admin (in `backend/src/**/api/` che serve la config admin).
+**Microstep:**
+1. Esporre nel payload di config/admin un flag booleano `finnhub_key_configured` che indica solo la presenza/validità del segreto (mai il valore).
+2. Derivare il flag da `Settings.FINNHUB_API_KEY` (SecretStr optional) senza serializzare il segreto.
+
+## TASK A-backend — Ingest log frontend
+**Target:** router logs esistente (cercarlo in `backend/src/**/api/`; NON crearne uno nuovo se esiste già).
+**Microstep:**
+1. Aggiungere endpoint `POST /api/logs/frontend` che accetta il payload tipizzato frontend (schema pydantic da creare se assente: `timestamp`, `level`, `event`, `message`, `path?`, `component?`, `details?`, `source`).
+2. Gli eventi confluiscono nello stesso storage/stream dei log letti dal viewer, con campo `source: frontend`. Sanitizzare i `details`; non loggare segreti.
+
+## TASK C-backend — Timestamp ultima chiamata Yahoo su endpoint status
+**Target:** endpoint di status esistente (quello consumato dalla barra inferiore).
+**Microstep:**
+1. Estendere l'endpoint di status per includere il timestamp dell'ultima chiamata Yahoo e l'esito (successo/fallimento) dell'ultimo tentativo.
+2. Non introdurre nuovo polling: riusare l'endpoint di status già interrogato dal frontend.

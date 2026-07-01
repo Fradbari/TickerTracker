@@ -163,6 +163,17 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 ---
 
+## 🎯 Sprint UX (fix operatività post-Docker)
+
+Sprint di rifinitura UX/operatività migrato da `Docs/agents-sprint-fix.md`. 4 task; ordine di esecuzione consigliato: **C → D → B → A**. Microstep frontend in [`frontend/AGENTS.md`](./frontend/AGENTS.md) §Sprint UX; parti backend in [`backend/AGENTS.md`](./backend/AGENTS.md) §Sprint UX.
+
+- [ ] **TASK C — Barra inferiore**: rimuovere `Sync Now` e badge `GDrive: Non configurato`; aggiungere indicatore Yahoo elapsed-time.
+- [ ] **TASK D — Nuova Stima / Finnhub**: banner/hint quando Finnhub non è configurata + fallback validazione simbolo via Yahoo.
+- [ ] **TASK B — Admin operativa**: completare campi config (Finnhub, GDrive folder, `PRICE_UPDATE_INTERVAL_MINUTES`, backup/ripristino).
+- [ ] **TASK A — System Logs**: unificare log frontend+backend, servizio `frontendLogger`, viewer con distinzione `source`.
+
+---
+
 ## Struttura Repository
 
 ```

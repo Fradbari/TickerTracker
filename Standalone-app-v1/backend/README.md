@@ -108,6 +108,15 @@ backend/
 
 > Dettagli task per modulo e completed-task history: [`AGENTS.md`](AGENTS.md).
 
+## Troubleshooting (sviluppo locale)
+
+| Sintomo | Causa probabile | Soluzione |
+|---|---|---|
+| `ModuleNotFoundError` (es. `pydantic`) | Dipendenze non installate nel venv attivo | Attiva il venv, poi `pip install -r requirements.txt` (o `poetry install`) |
+| `password authentication failed` | `DATABASE_URL` in `.env` non allineato al DB | Verifica `DATABASE_URL` in `.env` contro `.env.example` |
+| Backend non raggiungibile / DB down | Container Postgres/Redis non avviati | Riavvia i container: `docker compose up -d db redis` e attendi l'healthcheck |
+| `alembic: can't find migrations` | Comando lanciato fuori da `backend/` | Esegui `alembic` dalla dir `backend/` (dove sta `alembic.ini`) |
+
 ## Comandi Utili
 
 ### Makefile (Linux/macOS)

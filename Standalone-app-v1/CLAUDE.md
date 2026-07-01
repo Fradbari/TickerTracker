@@ -76,6 +76,7 @@ These are opinion-level rules, not derivable from the code. Violating them break
 - `docs/Piano-operativo-v1.7.md` does not exist; only `docs/Piano-operativo-v1.7.docx` does.
 - `AppErrorBoundary` is mounted by `app/providers/index.tsx`, not by `App.tsx` or `main.tsx`.
 - Outbox + dead-letter logic is in `backend/src/infra/outbox/`, not `backend/src/sync/`.
+- The `analytics` bounded context (`backend/src/analytics/`) is scaffolding only: `api/`, `services/`, `repositories/`, `schemas/` contain only an empty `__init__.py` — only `domain/entities.py` has content (the `AiModelRun` model). Do not assume analytics API routes/services exist.
 
 ## Quick References
 

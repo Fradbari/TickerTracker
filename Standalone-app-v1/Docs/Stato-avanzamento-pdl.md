@@ -1,9 +1,9 @@
 # Stato di avanzamento — Piano-di-lavoro.md
 
 > **Attenzione:** questo file **non è** `Docs/HANDOFF.md`. `HANDOFF.md` è uno degli oggetti che il Piano-di-lavoro migra e poi elimina (M5) — resta invariato finché M2/M5 non lo toccano secondo il piano. Questo file è la sintesi di continuità cross-sessione richiesta esplicitamente dall'utente, aggiornata ad ogni milestone.
-> **Ultimo aggiornamento:** 2026-07-01, subito dopo il completamento e commit di M3.
+> **Ultimo aggiornamento:** 2026-07-02, subito dopo il completamento e commit di M4.
 > **Branch:** `vibe-claude` (nessun branch nuovo creato, per vincolo esplicito).
-> **HEAD al momento della scrittura:** `6c54bbd` — `docs: CLAUDE.md single source — Doc Map casing, roster fallback, real backend layout (M3)`.
+> **HEAD al momento della scrittura:** `670cb21` — `docs: AGENTS.md hierarchy — dedup, agent banners, tracker truth, runbook backlinks (M4)`.
 
 ---
 
@@ -30,12 +30,12 @@ Modalità di esecuzione scelta dall'utente: **milestone-by-milestone** — si es
 | M1 — Normalizzazione casing link | ✅ Completata e committata | `a82a3c0` |
 | M2 — Migrazione contenuti | ✅ Completata e committata | `20d7f2e` |
 | M3 — CLAUDE.md fonte unica | ✅ Completata e committata | `6c54bbd` |
-| M4 — Gerarchia AGENTS.md + link sweep | ⬜ Da iniziare | — |
+| M4 — Gerarchia AGENTS.md + link sweep | ✅ Completata e committata | `670cb21` |
 | M5 — Cleanup (git rm 5 file) | ⬜ Da iniziare | — |
 | M6 — Verifica finale | ⬜ Da iniziare | — |
 | M7 — Tuning modelli agenti | ⬜ Da iniziare | — |
 
-**Prossima milestone da eseguire: M4.**
+**Prossima milestone da eseguire: M5.**
 
 ## 4. File modificati, creati, eliminati o da verificare
 
@@ -63,15 +63,21 @@ Esecuzione via **3 subagent `docs-dev` paralleli** (file-set disgiunti). Done-cr
 
 Esecuzione via **SDD** (`/subagent-driven-development`): 2 subagent investigatori read-only `haiku` in parallelo (subagent-1 scan Real-Layouts+disco; subagent-2 coerenza AGENTS post-M2 + roster + casing) → aggregazione → subagent-3 `sonnet` orchestratore delle scritture (12 edit exact-string). Done-criterion M3 ri-verificati dal thread principale: `PROJECT-STATUS` in CLAUDE=0 ✅, lowercase top-level residui=0 ✅, `backend/docs/` preservato ✅, React r.1 invariato ✅, `bounded-context-first` presente ✅, tabella Doc Map integra ✅.
 
+**Modificati e committati (M4, commit `670cb21`) — 13 file, 63 ins / 77 del. Subtask + esito:**
+| Subtask | Agente/modello | File | Esito |
+|---|---|---|---|
+| A — root `AGENTS.md`: dedup Regole Globali/Risorse/Support→link CLAUDE, §"Agenti disponibili" (track→agente, fallback docker-dev→docs-dev), Progress Tracker allineato al filesystem (4.10 `[ ]` nessun CloseEstimateModal; 4.11 `[x]` Dashboard.tsx su route `/`; 4.12 `[x]` AiPerformanceChart.tsx; 4.16 `[x]` 6 route reali in App.tsx + RootLayout), narrativa Frontend MVP allineata, contatori (13/15, 3/3) e statistiche (MVP 30/48 63%, TOT 30/67 45%), React 18 su TASK 4.1, casing tree | docs-dev/sonnet | root `AGENTS.md` | ✅ |
+| B — banner `> **Agente:**` nei 4 track + back-link CLAUDE garantito, fix backtick non chiuso `Docs/AGENTS.md` (riga HANDOFF, tabella ora renderizzabile) + casing heading, fix `../src`→`./src` (5 link REGOLE FISSE frontend), React 18 su heading TASK 4.1 frontend | docs-dev/haiku | 4 track `AGENTS.md` | ✅ |
+| C — back-link runbook nei deep-dive: `## Vedere anche` in `backend/docs/{HEALTH,METRICS,LOGGING,SCHEDULER}.md` (target verificati esistenti); fix endpoint `Docs/runbook/monitoring.md` `/api/v1/metrics`→`/metrics` | docs-dev/haiku | 5 file | ✅ |
+| D — link sweep README: root `README.md` r.22 React 19→18; 4 link penzolanti `TASK_2_2_*`/`TASK_2.21_*` (target mai esistiti, nemmeno in `history/orig/`) ripuntati a `backend/docs/history/TASK-COMPLETION-LOGS.md` o rimossi (path da `sync/infra/` corretto a `../../../`) | docs-dev/haiku | 3 README | ✅ |
+
+Discovery BUG Progress-Tracker eseguita **inline dal thread principale** (load-bearing, comandi del piano: enumerazione componenti reali + routing per contenuto) prima del dispatch. Ri-verifica indipendente post-subagent: 14 check tutti PASS (dedup=0, agenti-disponibili=1, WP6=4/4, monitoring=0, link-rotti=0, igiene-sigle=0, Sprint UX 4/4 intatte, checkbox guard=87, banner 4/4, scope diffstat=13 file attesi).
+
 **Creati in questa sessione (fuori dal piano, per continuità cross-sessione):**
 - `Standalone-app-v1/Docs/Piano-di-lavoro.md` (questo passaggio)
 - `Standalone-app-v1/Docs/Stato-avanzamento-pdl.md` (questo file)
 
 **Non ancora toccati (target delle milestone future):**
-- `Standalone-app-v1/AGENTS.md`, `backend/AGENTS.md`, `frontend/AGENTS.md`, `Docker/AGENTS.md`, `Docs/AGENTS.md` (M4 — ulteriori edit oltre M1/M2)
-- `backend/docs/{HEALTH,METRICS,LOGGING,SCHEDULER}.md` (M4, WP6 back-link)
-- `Docs/runbook/monitoring.md` (M4, fix endpoint)
-- `backend/README.md` (M2, fold BUG-4)
 - `.claude/agents/*.md` (M7, solo riga `model:`)
 
 **Da eliminare (M5, non ancora fatto):**
@@ -122,6 +128,8 @@ Esecuzione via **SDD** (`/subagent-driven-development`): 2 subagent investigator
 - **[RISOLTA in M3, commit `6c54bbd`] Incoerenza in `CLAUDE.md` §"Real Layouts" (backend)**: descriveva il backend come `domain/`, `application/`, `infrastructure/`, `api/`, `shared/`, ma su disco il layout reale è **bounded-context-first** (`estimates/`, `market_data/`, `sync/`, `analytics/`, `shared/`, `infra/`, `main.py`) — coerente con `backend/README.md` §Struttura Progetto e l'invariante Outbox. Scoperta in M2 (verifica `analytics/`), confermata in M3 da subagent-1 (disco reale `backend/src/` = analytics/estimates/infra/market_data/shared/sync). **Corretta** nel testo di CLAUDE §Real Layouts.
 - **[NEW, M3] Conflitto finding-subagent vs piano sul casing — risolto a favore del repo (git-tracked).** subagent-2 (`haiku`) ha riportato che le cartelle top-level reali sarebbero lowercase `docs/`/`docker/` e che i link uppercase `Docs/`/`Docker/` scritti in M1 sarebbero un'"anomalia". **Falso positivo**: nato dall'uso di `find`/`ls` su filesystem Windows **case-insensitive**. Verifica autorevole eseguita dal thread principale con `rtk proxy git ls-files` (ciò che una CI Linux case-sensitive vede): `Standalone-app-v1/Docs/` e `Standalone-app-v1/Docker/` sono **UPPERCASE**; `backend/docs/` lowercase. Il piano è corretto; la direzione del fix M3 è confermata (lowercase→uppercase in CLAUDE.md). **Regola confermata:** ogni check di casing va fatto con `git ls-files`, mai con `find`/`ls` su Windows.
 - **[NEW, M3] Riferimenti provenienza `agents-sprint-fix.md` introdotti in M2 — pendenti per M5/M6.** Le sezioni Sprint UX aggiunte in M2 a root/frontend/backend `AGENTS.md` contengono la dicitura "migrato da `Docs/agents-sprint-fix.md`". Il grep M6 step 3 (`agents-sprint-fix` → 0 ovunque) li segnalerà. **Azione richiesta in M5** (correzione riferimenti pendenti ai file rimossi): rimuovere/riformulare quelle 3 provenienze prima della verifica M6. Non è un problema per M3/M4.
+- **[NEW, M4] Occorrenze "React 19" residue post-M4 — deviazione motivata dal done-criterion letterale.** Il criterio WP7 (`grep -rn "React 19" … = 0` su tutta `Standalone-app-v1`) è irrealizzabile alla lettera: (a) `Docs/HANDOFF.md` e `Docs/PROJECT-STATUS.md` contengono "React 19" ma **vengono eliminati in M5** — correggerli ora sarebbe lavoro morto; (b) `Docs/Piano-di-lavoro.md` e questo stesso file **citano la stringa come testo del criterio/motivazioni**. Tutte le occorrenze nei file di progetto reali (README r.22, root AGENTS TASK 4.1, frontend/AGENTS heading TASK 4.1) sono corrette a 18. Post-M5 il grep residuo cadrà solo sui 2 file di continuità → da considerare atteso in M6.
+- **[NEW, M4] Link `../src/...` residui nel corpo-task di `frontend/AGENTS.md` (fuori scope del fix righe 21-25).** Il fix M4 ha corretto i 5 link della sezione normativa "REGOLE FISSE" come da piano (righe target 22-23 ampliate all'intera sezione). Decine di altri link `../src/...` restano nei blocchi task del file (es. r.47, 100+, 579+): sono ugualmente mal-risolti ma **fuori dallo scope del piano** e **non intercettati da M6** (lo script valida solo link con estensione `.md`, non `.ts`/`.tsx`). Candidati a un follow-up post-piano, non bloccanti.
 
 ## 9. Vincoli espliciti
 
@@ -148,21 +156,25 @@ Esecuzione via **SDD** (`/subagent-driven-development`): 2 subagent investigator
 9. Creazione di questo pacchetto di continuità cross-sessione (`Docs/Piano-di-lavoro.md` + questo file).
 10. **M2** eseguita e committata (`20d7f2e`): migrazione contenuti senza cancellazioni. Sprint-UX (4 task) → root/frontend/backend `AGENTS.md`; fold BUG-4 (Troubleshooting) → `backend/README.md`; delta analytics → `CLAUDE.md`. Orchestrazione via 3 subagent `docs-dev` paralleli su file-set disgiunti; done-criterion ri-verificati dal thread principale (grep quantità+qualità tutti PASS) prima del commit.
 11. **M3** eseguita e committata (`6c54bbd`): `CLAUDE.md` fonte unica. Fix Doc Map/roster/Quick-Refs al casing reale (`Docs/`/`Docker/` uppercase); rimossa riga Doc Map `PROJECT-STATUS.md`; roster `docker-dev`→fallback `docs-dev` + nota 5 def reali; §Real Layouts backend corretto a bounded-context-first. Orchestrazione via SDD: 2 investigatori `haiku` paralleli + 1 orchestratore-scritture `sonnet`; risolto conflitto casing (falso positivo Windows) con verifica autorevole `git ls-files`; done-criterion ri-verificati dal thread principale prima del commit.
+12. **M4** eseguita e committata (`670cb21`): gerarchia `AGENTS.md` + link sweep, 13 file. Discovery Progress-Tracker inline (thread principale, comandi del piano) → stato accertato 4.10 `[ ]` / 4.11-4.12-4.16 `[x]`; poi 4 subagent `docs-dev` paralleli su file-set disgiunti (A=root/sonnet, B=track/haiku, C=runbook-backlink/haiku, D=README-sweep/haiku). Dedup root→link CLAUDE, §"Agenti disponibili", banner agente per-track, backtick e `../src` fixati, back-link runbook 4/4, monitoring `/metrics`, React 18 ovunque nei file di progetto, 4 link penzolanti ripuntati all'archivio completion-logs. Ri-verifica indipendente: 14/14 check PASS. Nessun blocco; 2 deviazioni motivate documentate in §8 (React-19 residue nei file M5/continuità; `../src` residui fuori scope).
 
 ## 11. Azioni ancora mancanti
 
 Nell'ordine previsto dal piano:
 
-- **M4** — Gerarchia `AGENTS.md`: dedup root (BUG-1/WP5 → rimuovere §"Regole Globali"/"Risorse Utili"/"Support"), fix BUG-2 (`Docs/AGENTS.md:30` backtick), BUG-3 (`frontend/AGENTS.md:22-23` `../src`→`./src`), banner agente per-track (`> **Agente:** …`, con `docker-dev` fallback→`docs-dev`), §"Agenti disponibili" in root, back-link runbook WP6 (`backend/docs/{HEALTH,METRICS,LOGGING,SCHEDULER}.md`), link sweep (endpoint `monitoring.md` `/api/v1/metrics`→`/metrics`, React 19→18 dove errato, 2 link rotti pre-esistenti scoperti in M1). **Preservare** le sezioni Sprint UX aggiunte in M2 (non riscriverle — vedi confine ownership M2/M4 nel piano).
-- **M5** — Cleanup: `git rm` dei 5 file (con `--ignore-unmatch`, via `git -C`), fix riferimenti pendenti, ri-verifica `temp_estimate_body.json`, guard-lista e guard-conteggio.
+- **M5** — Cleanup: `git rm` dei 5 file (con `--ignore-unmatch`, via `git -C`), fix riferimenti pendenti ai file rimossi — inclusi: root `README.md` r.~241 (link `agents-sprint-fix` → ripuntare a root `AGENTS.md` §Sprint UX), le **3 provenienze** "migrato da `Docs/agents-sprint-fix.md`" nelle sezioni Sprint UX (root/frontend/backend AGENTS.md, vedi §8), la riga `HANDOFF.md`/`PROJECT-STATUS.md`/`agents-sprint-fix.md` nella tabella "Mappa della cartella" di `Docs/AGENTS.md` e nel tree di root `AGENTS.md` — poi ri-verifica `temp_estimate_body.json`, guard-lista e guard-conteggio (baseline `/tmp/tt_md_baseline.txt`, rigenerabile da §4 se assente).
 - **M6** — Verifica finale: script link-rotti, script anchor-invalidi, zero riferimenti residui ai 5 file rimossi, `validate_dependencies.py`, spot-check tabelle, `git diff --stat`.
 - **M7** — Tuning modelli 5 agenti (solo riga frontmatter `model:`).
 
 ## 12. Prossimo step minimo
 
-Eseguire **M4** (gerarchia `AGENTS.md` + link sweep) seguendo esattamente i done-criterion in `Docs/Piano-di-lavoro.md` §M4: dedup root (WP5), BUG-1 (Progress Tracker coerente e discovery-driven sui task 4.10/4.11/4.12/4.16 — enumerare i componenti reali PRIMA di marcare, no nomi presupposti), BUG-2/BUG-3 a riga target, banner `> **Agente:**` per-track, §"Agenti disponibili" in root, WP6 back-link runbook, link sweep (monitoring endpoint, React 19→18, 2 link rotti pre-esistenti). **Vincolo ownership:** prima di editare, `grep -n "Sprint UX"` nei file e **preservare** le sezioni Sprint UX di M2. Poi verificare, committare, fermarsi per review prima di M5.
+Eseguire **M5** (cleanup — prima e unica milestone distruttiva) seguendo esattamente `Docs/Piano-di-lavoro.md` §M5: (1) verificare/rigenerare la baseline `$BASE` (`/tmp/tt_md_baseline.txt`; se assente, rigenerarla NON è più possibile a posteriori — usare la lista attesa in §4 e il conteggio N=61 come riferimento); (2) `git rm --ignore-unmatch` via `git -C "$ROOT"` dei 5 file; (3) fix riferimenti pendenti (lista dettagliata in §11-M5, incluse le 3 provenienze Sprint UX e root README r.241); (4) azione condizionale idempotente su `temp_estimate_body.json`; (5) guard-lista (esattamente 5 righe `<`, 0 `>`) + guard-conteggio (56); (6) commit. Poi fermarsi per review prima di M6.
 
-**Nota M3 (appena completata):** i grep di igiene-sigle HANDOFF (`BUG-[1-4]`/`WP[567]`) e i guard di M5 restano da eseguire nelle rispettive milestone; M2+M3 hanno toccato **solo aggiunte/edit** (0 cancellazioni), quindi il conteggio `.md` tracciati resta N=61 invariato. **Da non dimenticare in M5:** rimuovere le 3 provenienze "migrato da `agents-sprint-fix.md`" (vedi §8) per far passare M6 step 3.
+**Dipendenze pendenti verso M5/M6 (flag):**
+- M2–M4 completate e verificate → precondizione M5 soddisfatta.
+- Igiene-sigle HANDOFF: già verde su root AGENTS/CLAUDE (grep M4 = 0).
+- Attenzione M6 step 3: passerà solo dopo la rimozione dei riferimenti elencati in §11-M5; "React 19" e i nomi dei 5 file rimossi resteranno legittimamente nei 2 file di continuità (`Piano-di-lavoro.md`, questo file) — sono citazioni del piano, da trattare come eccezione documentata in M6.
+- Conteggio `.md`: ancora N=61 (M4 = solo edit, 0 file aggiunti/rimossi).
 
 ## 13. Prompt consigliato per la nuova finestra/sessione
 

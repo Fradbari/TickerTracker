@@ -1017,7 +1017,7 @@ Dipendenze: TASK 4.6, TASK 4.11
 
 ---
 
-# SPRINT UX — Fix operatività (migrato da Docs/agents-sprint-fix.md)
+# SPRINT UX — Fix operatività
 
 > Sprint di rifinitura UX/operatività. Ordine consigliato: C → D → B → A. Checklist/overview in [`../AGENTS.md`](../AGENTS.md) §Sprint UX. Parti backend in [`../backend/AGENTS.md`](../backend/AGENTS.md) §Sprint UX.
 > **Vincoli:** stringhe utente in italiano; nessuna API key esposta al frontend; riusare endpoint esistenti (no duplicati); `npx tsc --noEmit` verde dopo ogni task.

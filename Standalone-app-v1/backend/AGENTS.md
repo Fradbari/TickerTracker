@@ -1116,7 +1116,7 @@ Prestazioni O(1) per pagina indipendentemente dalla profondità.
 
 ---
 
-# SPRINT UX (backend) — supporto ai fix UX (migrato da Docs/agents-sprint-fix.md)
+# SPRINT UX (backend) — supporto ai fix UX
 
 > Parti backend a supporto dello Sprint UX frontend. Checklist/overview in [`../AGENTS.md`](../AGENTS.md) §Sprint UX; microstep frontend in [`../frontend/AGENTS.md`](../frontend/AGENTS.md) §Sprint UX.
 > **Vincoli:** riusare/estendere endpoint esistenti (no duplicati con semantica equivalente); mai esporre segreti (API key) nelle response; usare `ApiResponse` standard.

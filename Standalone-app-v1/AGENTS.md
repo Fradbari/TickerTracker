@@ -161,7 +161,7 @@ Le definizioni operative vivono in `.claude/agents/` (5 file): `task-planner`, `
 
 ## 🎯 Sprint UX (fix operatività post-Docker)
 
-Sprint di rifinitura UX/operatività migrato da `Docs/agents-sprint-fix.md`. 4 task; ordine di esecuzione consigliato: **C → D → B → A**. Microstep frontend in [`frontend/AGENTS.md`](./frontend/AGENTS.md) §Sprint UX; parti backend in [`backend/AGENTS.md`](./backend/AGENTS.md) §Sprint UX.
+Sprint di rifinitura UX/operatività. 4 task; ordine di esecuzione consigliato: **C → D → B → A**. Microstep frontend in [`frontend/AGENTS.md`](./frontend/AGENTS.md) §Sprint UX; parti backend in [`backend/AGENTS.md`](./backend/AGENTS.md) §Sprint UX.
 
 - [ ] **TASK C — Barra inferiore**: rimuovere `Sync Now` e badge `GDrive: Non configurato`; aggiungere indicatore Yahoo elapsed-time.
 - [ ] **TASK D — Nuova Stima / Finnhub**: banner/hint quando Finnhub non è configurata + fallback validazione simbolo via Yahoo.
@@ -195,8 +195,7 @@ Standalone-app-v1/
 ├── Docs/
 │   ├── AGENTS.md          ← task Testing/CI-CD/Docs (↩ back-link a CLAUDE.md)
 │   ├── runbook/           ← procedure operative (ops)
-│   ├── PROJECT-STATUS.md  ← snapshot storico + Delta log
-│   └── HANDOFF.md         ← resoconti sessione (storico)
+│   └── Piano-operativo-v1.7.docx ← business plan (binario)
 │
 ├── e2e/                   ← suite Playwright (config alla root)
 ├── scripts/               ← validate_dependencies.py, ...

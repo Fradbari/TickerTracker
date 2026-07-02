@@ -41,7 +41,7 @@ Standalone-app-v1/
 │   └── docs/           # Deep-dive tecnici (dev): API, SECURITY, PAGINATION, ...
 ├── frontend/           # React 18/TypeScript (src/features|shared|app)
 ├── docker/             # Compose/Dockerfile + Docker/AGENTS.md
-├── docs/               # Runbook (ops), PROJECT-STATUS, HANDOFF, + Docs/AGENTS.md
+├── Docs/               # Runbook (ops), Docs/AGENTS.md, Piano operativo (docx)
 ├── e2e/                # Suite Playwright (playwright.config.ts alla root)
 ├── scripts/            # Tool di sviluppo (validate_dependencies.py, ...)
 └── docker-compose*.yml # base / dev / prod
@@ -238,7 +238,7 @@ Il progetto adotta un approccio **Atomic Development**. Ogni modifica deve esser
    - [backend/AGENTS.md](./backend/AGENTS.md) - Task backend
    - [frontend/AGENTS.md](./frontend/AGENTS.md) - Task frontend
    - [Docker/AGENTS.md](./Docker/AGENTS.md) - Task Docker
-   - [Docs/agents-sprint-fix.md](./Docs/agents-sprint-fix.md) - Note di sprint-fix docs; per il workflow task-driven usare root `AGENTS.md`
+   - [AGENTS.md — §Sprint UX](./AGENTS.md) - Sprint UX (TASK C/D/B/A); per il workflow task-driven usare root `AGENTS.md`
 
 2. **Standard di Codifica**:
     - **Backend**: Usa sempre `Decimal` per valori monetari. Segui il layering api → services → repositories → domain.

@@ -1,9 +1,9 @@
 # Stato di avanzamento — Piano-di-lavoro.md
 
 > **Attenzione:** questo file **non è** `Docs/HANDOFF.md`. `HANDOFF.md` è uno degli oggetti che il Piano-di-lavoro migra e poi elimina (M5) — resta invariato finché M2/M5 non lo toccano secondo il piano. Questo file è la sintesi di continuità cross-sessione richiesta esplicitamente dall'utente, aggiornata ad ogni milestone.
-> **Ultimo aggiornamento:** 2026-07-02, subito dopo il completamento e commit di M4.
+> **Ultimo aggiornamento:** 2026-07-02, subito dopo il completamento e commit di M5.
 > **Branch:** `vibe-claude` (nessun branch nuovo creato, per vincolo esplicito).
-> **HEAD al momento della scrittura:** `670cb21` — `docs: AGENTS.md hierarchy — dedup, agent banners, tracker truth, runbook backlinks (M4)`.
+> **HEAD al momento della scrittura:** `15be57c` — `docs: repoint dangling references to removed docs (M5)` (preceduto da `6e9241e` — rimozione dei 5 file).
 
 ---
 
@@ -31,11 +31,11 @@ Modalità di esecuzione scelta dall'utente: **milestone-by-milestone** — si es
 | M2 — Migrazione contenuti | ✅ Completata e committata | `20d7f2e` |
 | M3 — CLAUDE.md fonte unica | ✅ Completata e committata | `6c54bbd` |
 | M4 — Gerarchia AGENTS.md + link sweep | ✅ Completata e committata | `670cb21` |
-| M5 — Cleanup (git rm 5 file) | ⬜ Da iniziare | — |
+| M5 — Cleanup (git rm 5 file) | ✅ Completata e committata | `6e9241e` (rm) + `15be57c` (fix ref) |
 | M6 — Verifica finale | ⬜ Da iniziare | — |
 | M7 — Tuning modelli agenti | ⬜ Da iniziare | — |
 
-**Prossima milestone da eseguire: M5.**
+**Prossima milestone da eseguire: M6.**
 
 ## 4. File modificati, creati, eliminati o da verificare
 
@@ -73,22 +73,28 @@ Esecuzione via **SDD** (`/subagent-driven-development`): 2 subagent investigator
 
 Discovery BUG Progress-Tracker eseguita **inline dal thread principale** (load-bearing, comandi del piano: enumerazione componenti reali + routing per contenuto) prima del dispatch. Ri-verifica indipendente post-subagent: 14 check tutti PASS (dedup=0, agenti-disponibili=1, WP6=4/4, monitoring=0, link-rotti=0, igiene-sigle=0, Sprint UX 4/4 intatte, checkbox guard=87, banner 4/4, scope diffstat=13 file attesi).
 
+**Eliminati e committati (M5, commit `6e9241e`) — 5 file, 1630 righe rimosse:**
+- `.cursor/plans/armonizzazione_md_docs_9e122796.plan.md` ✅
+- `Standalone-app-v1/Docs/HANDOFF.md` ✅
+- `Standalone-app-v1/Docs/agents-sprint-fix.md` ✅
+- `Standalone-app-v1/Docs/PROJECT-STATUS.md` ✅
+- `Standalone-app-v1/backend/SETUP_GUIDE.md` ✅
+
+**Modificati e committati (M5, commit `15be57c`) — fix riferimenti pendenti, 5 file, 8 ins / 10 del. Subtask + esito:**
+| Subtask | Agente/modello | Esito |
+|---|---|---|
+| Baseline + `git rm` + guard-lista/conteggio + temp-file check (azioni distruttive/load-bearing eseguite **inline** dal thread principale) | Opus 4.8 (inline) | ✅ |
+| S1 — root `AGENTS.md` (provenienza Sprint UX rimossa; tree: PROJECT-STATUS/HANDOFF → `Piano-operativo-v1.7.docx`) + root `README.md` (r.44 tree ricasato `Docs/` e ripulito; r.241 link → root `AGENTS.md` §Sprint UX) | docs-dev/haiku | ✅ |
+| S2 — `frontend/AGENTS.md` + `backend/AGENTS.md` (heading SPRINT UX senza provenienza; blocchi task intatti 4/3) + `Docs/AGENTS.md` (3 righe tabella rimosse; aggiunte 2 righe per i file di continuità realmente presenti) | docs-dev/haiku | ✅ |
+
+Ri-verifica indipendente (grep M6-step-3 anticipato): **0 riferimenti** ai 5 file rimossi in tutti i `.md` di progetto; unici match residui nei 2 file di continuità (citazioni del piano — eccezione documentata per M6). `temp_estimate_body.json`: confermato assente da HEAD/index/disco → no-op (idempotenza rispettata).
+
 **Creati in questa sessione (fuori dal piano, per continuità cross-sessione):**
 - `Standalone-app-v1/Docs/Piano-di-lavoro.md` (questo passaggio)
 - `Standalone-app-v1/Docs/Stato-avanzamento-pdl.md` (questo file)
 
 **Non ancora toccati (target delle milestone future):**
 - `.claude/agents/*.md` (M7, solo riga `model:`)
-
-**Da eliminare (M5, non ancora fatto):**
-- `.cursor/plans/armonizzazione_md_docs_9e122796.plan.md`
-- `Standalone-app-v1/Docs/HANDOFF.md`
-- `Standalone-app-v1/Docs/agents-sprint-fix.md`
-- `Standalone-app-v1/Docs/PROJECT-STATUS.md`
-- `Standalone-app-v1/backend/SETUP_GUIDE.md`
-
-**Da verificare (stato ambiguo, vedi §8 Incongruenze):**
-- `Standalone-app-v1/temp_estimate_body.json` — risulta già assente da HEAD/index/disco al momento delle verifiche raw-git di M0, ma per motivi indipendenti dal piano (vedi §8).
 
 ## 5. Decisioni prese e loro motivazione
 
@@ -127,7 +133,9 @@ Discovery BUG Progress-Tracker eseguita **inline dal thread principale** (load-b
 - **`$BASE` (baseline lista M0) salvata in `/tmp/tt_md_baseline.txt`** tramite il tool Bash di questa sessione (Git Bash su Windows mappa `/tmp` su disco reale). Una nuova sessione/finestra **potrebbe non avere accesso allo stesso path** se gira in un ambiente/sandbox diverso: da verificare all'avvio della prossima sessione, rigenerando la baseline con lo stesso comando se il file non risulta presente (il conteggio N=61 e la lista dei 5 file attesi in rimozione sono comunque riportati per esteso in questo documento e nel piano, quindi rigenerabili senza perdita di informazione).
 - **[RISOLTA in M3, commit `6c54bbd`] Incoerenza in `CLAUDE.md` §"Real Layouts" (backend)**: descriveva il backend come `domain/`, `application/`, `infrastructure/`, `api/`, `shared/`, ma su disco il layout reale è **bounded-context-first** (`estimates/`, `market_data/`, `sync/`, `analytics/`, `shared/`, `infra/`, `main.py`) — coerente con `backend/README.md` §Struttura Progetto e l'invariante Outbox. Scoperta in M2 (verifica `analytics/`), confermata in M3 da subagent-1 (disco reale `backend/src/` = analytics/estimates/infra/market_data/shared/sync). **Corretta** nel testo di CLAUDE §Real Layouts.
 - **[NEW, M3] Conflitto finding-subagent vs piano sul casing — risolto a favore del repo (git-tracked).** subagent-2 (`haiku`) ha riportato che le cartelle top-level reali sarebbero lowercase `docs/`/`docker/` e che i link uppercase `Docs/`/`Docker/` scritti in M1 sarebbero un'"anomalia". **Falso positivo**: nato dall'uso di `find`/`ls` su filesystem Windows **case-insensitive**. Verifica autorevole eseguita dal thread principale con `rtk proxy git ls-files` (ciò che una CI Linux case-sensitive vede): `Standalone-app-v1/Docs/` e `Standalone-app-v1/Docker/` sono **UPPERCASE**; `backend/docs/` lowercase. Il piano è corretto; la direzione del fix M3 è confermata (lowercase→uppercase in CLAUDE.md). **Regola confermata:** ogni check di casing va fatto con `git ls-files`, mai con `find`/`ls` su Windows.
-- **[NEW, M3] Riferimenti provenienza `agents-sprint-fix.md` introdotti in M2 — pendenti per M5/M6.** Le sezioni Sprint UX aggiunte in M2 a root/frontend/backend `AGENTS.md` contengono la dicitura "migrato da `Docs/agents-sprint-fix.md`". Il grep M6 step 3 (`agents-sprint-fix` → 0 ovunque) li segnalerà. **Azione richiesta in M5** (correzione riferimenti pendenti ai file rimossi): rimuovere/riformulare quelle 3 provenienze prima della verifica M6. Non è un problema per M3/M4.
+- **[RISOLTA in M5, commit `15be57c`] Riferimenti provenienza `agents-sprint-fix.md` introdotti in M2.** Le 3 provenienze "migrato da `Docs/agents-sprint-fix.md`" (root intro + 2 heading track) sono state rimosse; anche root README r.241 ripuntato, tree root AGENTS e tabella `Docs/AGENTS.md` ripuliti. Grep M6-step-3 anticipato = 0 nei file di progetto.
+- **[NEW, M5] Guard-conteggio: atteso dal piano 56, reale 58 — delta spiegato e legittimo.** Il piano (M0) fissava N=61 → guard `N−5=56`. Dopo M0 sono stati però creati e committati i 2 file di continuità (`Docs/Piano-di-lavoro.md`, `Docs/Stato-avanzamento-pdl.md`, commit `3d2dd19`), portando i `.md` tracciati a 63. Il guard-lista M5 ha mostrato **esattamente** i 5 attesi rimossi (`<`) e come uniche aggiunte (`>`) i 2 file di continuità noti — nessuno swap, nessun file inatteso. Conteggio post-rm = **58** (63−5), coerente. La baseline `/tmp/tt_md_baseline.txt` (61 righe, originale M0) era ancora presente e usata come riferimento autorevole.
+- **[NEW, M5] Eccezione permanente per M6 step 3:** i nomi dei 5 file rimossi (e "React 19") compaiono legittimamente **solo** nei 2 file di continuità, che citano il piano stesso. Il grep di M6 va eseguito escludendo `Docs/Piano-di-lavoro.md` e `Docs/Stato-avanzamento-pdl.md` (o riconoscendone i match come eccezione documentata). Nota pratica: l'output di `grep -r` su Windows può mostrare i path come `./docs/...` lowercase — filtrare le esclusioni case-insensitive.
 - **[NEW, M4] Occorrenze "React 19" residue post-M4 — deviazione motivata dal done-criterion letterale.** Il criterio WP7 (`grep -rn "React 19" … = 0` su tutta `Standalone-app-v1`) è irrealizzabile alla lettera: (a) `Docs/HANDOFF.md` e `Docs/PROJECT-STATUS.md` contengono "React 19" ma **vengono eliminati in M5** — correggerli ora sarebbe lavoro morto; (b) `Docs/Piano-di-lavoro.md` e questo stesso file **citano la stringa come testo del criterio/motivazioni**. Tutte le occorrenze nei file di progetto reali (README r.22, root AGENTS TASK 4.1, frontend/AGENTS heading TASK 4.1) sono corrette a 18. Post-M5 il grep residuo cadrà solo sui 2 file di continuità → da considerare atteso in M6.
 - **[NEW, M4] Link `../src/...` residui nel corpo-task di `frontend/AGENTS.md` (fuori scope del fix righe 21-25).** Il fix M4 ha corretto i 5 link della sezione normativa "REGOLE FISSE" come da piano (righe target 22-23 ampliate all'intera sezione). Decine di altri link `../src/...` restano nei blocchi task del file (es. r.47, 100+, 579+): sono ugualmente mal-risolti ma **fuori dallo scope del piano** e **non intercettati da M6** (lo script valida solo link con estensione `.md`, non `.ts`/`.tsx`). Candidati a un follow-up post-piano, non bloccanti.
 
@@ -157,24 +165,24 @@ Discovery BUG Progress-Tracker eseguita **inline dal thread principale** (load-b
 10. **M2** eseguita e committata (`20d7f2e`): migrazione contenuti senza cancellazioni. Sprint-UX (4 task) → root/frontend/backend `AGENTS.md`; fold BUG-4 (Troubleshooting) → `backend/README.md`; delta analytics → `CLAUDE.md`. Orchestrazione via 3 subagent `docs-dev` paralleli su file-set disgiunti; done-criterion ri-verificati dal thread principale (grep quantità+qualità tutti PASS) prima del commit.
 11. **M3** eseguita e committata (`6c54bbd`): `CLAUDE.md` fonte unica. Fix Doc Map/roster/Quick-Refs al casing reale (`Docs/`/`Docker/` uppercase); rimossa riga Doc Map `PROJECT-STATUS.md`; roster `docker-dev`→fallback `docs-dev` + nota 5 def reali; §Real Layouts backend corretto a bounded-context-first. Orchestrazione via SDD: 2 investigatori `haiku` paralleli + 1 orchestratore-scritture `sonnet`; risolto conflitto casing (falso positivo Windows) con verifica autorevole `git ls-files`; done-criterion ri-verificati dal thread principale prima del commit.
 12. **M4** eseguita e committata (`670cb21`): gerarchia `AGENTS.md` + link sweep, 13 file. Discovery Progress-Tracker inline (thread principale, comandi del piano) → stato accertato 4.10 `[ ]` / 4.11-4.12-4.16 `[x]`; poi 4 subagent `docs-dev` paralleli su file-set disgiunti (A=root/sonnet, B=track/haiku, C=runbook-backlink/haiku, D=README-sweep/haiku). Dedup root→link CLAUDE, §"Agenti disponibili", banner agente per-track, backtick e `../src` fixati, back-link runbook 4/4, monitoring `/metrics`, React 18 ovunque nei file di progetto, 4 link penzolanti ripuntati all'archivio completion-logs. Ri-verifica indipendente: 14/14 check PASS. Nessun blocco; 2 deviazioni motivate documentate in §8 (React-19 residue nei file M5/continuità; `../src` residui fuori scope).
+13. **M5** eseguita e committata (`6e9241e` + `15be57c`): cleanup — unica milestone distruttiva. Sequenza: baseline verificata (ancora presente in `/tmp/tt_md_baseline.txt`, 61 righe) → discovery completa riferimenti pendenti (grep) → `git rm --ignore-unmatch` dei 5 file via `git -C "$ROOT"` (idempotente, path quotati) → guard-lista (5 `<` esatti, 2 `>` = solo i file di continuità noti) + guard-conteggio (58, delta 56→58 spiegato in §8) → commit rm → 2 subagent `docs-dev`/haiku paralleli per fix riferimenti (S1 root, S2 track) → ri-verifica grep M6-step-3 anticipato = 0 nei file di progetto → commit fix. `temp_estimate_body.json` = no-op confermato. Azioni distruttive e guard eseguiti inline dal thread principale, mai delegati.
 
 ## 11. Azioni ancora mancanti
 
 Nell'ordine previsto dal piano:
 
-- **M5** — Cleanup: `git rm` dei 5 file (con `--ignore-unmatch`, via `git -C`), fix riferimenti pendenti ai file rimossi — inclusi: root `README.md` r.~241 (link `agents-sprint-fix` → ripuntare a root `AGENTS.md` §Sprint UX), le **3 provenienze** "migrato da `Docs/agents-sprint-fix.md`" nelle sezioni Sprint UX (root/frontend/backend AGENTS.md, vedi §8), la riga `HANDOFF.md`/`PROJECT-STATUS.md`/`agents-sprint-fix.md` nella tabella "Mappa della cartella" di `Docs/AGENTS.md` e nel tree di root `AGENTS.md` — poi ri-verifica `temp_estimate_body.json`, guard-lista e guard-conteggio (baseline `/tmp/tt_md_baseline.txt`, rigenerabile da §4 se assente).
-- **M6** — Verifica finale: script link-rotti, script anchor-invalidi, zero riferimenti residui ai 5 file rimossi, `validate_dependencies.py`, spot-check tabelle, `git diff --stat`.
+- **M6** — Verifica finale (ordine vincolante del piano): (1) script link-`.md`-rotti da `Standalone-app-v1/`; (2) script anchor-validator; (3) zero riferimenti residui ai 5 file rimossi — **con l'eccezione documentata dei 2 file di continuità** (vedi §8, filtrare case-insensitive); (4) `python scripts/validate_dependencies.py` (precondizione `test -e`); (5) spot-check rendering tabelle (es. tabella `Docs/AGENTS.md` ex-backtick); (6) `git diff --stat` scope.
 - **M7** — Tuning modelli 5 agenti (solo riga frontmatter `model:`).
 
 ## 12. Prossimo step minimo
 
-Eseguire **M5** (cleanup — prima e unica milestone distruttiva) seguendo esattamente `Docs/Piano-di-lavoro.md` §M5: (1) verificare/rigenerare la baseline `$BASE` (`/tmp/tt_md_baseline.txt`; se assente, rigenerarla NON è più possibile a posteriori — usare la lista attesa in §4 e il conteggio N=61 come riferimento); (2) `git rm --ignore-unmatch` via `git -C "$ROOT"` dei 5 file; (3) fix riferimenti pendenti (lista dettagliata in §11-M5, incluse le 3 provenienze Sprint UX e root README r.241); (4) azione condizionale idempotente su `temp_estimate_body.json`; (5) guard-lista (esattamente 5 righe `<`, 0 `>`) + guard-conteggio (56); (6) commit. Poi fermarsi per review prima di M6.
+Eseguire **M6** (verifica finale, read-only + fix puntuali) nell'ordine vincolante del piano §M6. Attese già note: (a) step 1-2 (link+anchor) dovrebbero passare — i link scritti in M2-M5 sono stati verificati contro target esistenti al momento della scrittura; (b) step 3 passa **solo** filtrando i 2 file di continuità (eccezione §8, filtro case-insensitive per l'output `./docs/` di grep su Windows); (c) step 4 `validate_dependencies.py` mai eseguito finora in questa sessione — se fallisse per ragioni pre-esistenti non-doc, loggare e valutare (il piano copre solo il grafo task Python). Dopo M6: M7 (tuning `model:` dei 5 agent-def). Fermarsi per review dopo ogni milestone.
 
-**Dipendenze pendenti verso M5/M6 (flag):**
-- M2–M4 completate e verificate → precondizione M5 soddisfatta.
-- Igiene-sigle HANDOFF: già verde su root AGENTS/CLAUDE (grep M4 = 0).
-- Attenzione M6 step 3: passerà solo dopo la rimozione dei riferimenti elencati in §11-M5; "React 19" e i nomi dei 5 file rimossi resteranno legittimamente nei 2 file di continuità (`Piano-di-lavoro.md`, questo file) — sono citazioni del piano, da trattare come eccezione documentata in M6.
-- Conteggio `.md`: ancora N=61 (M4 = solo edit, 0 file aggiunti/rimossi).
+**Dipendenze pendenti verso M6/M7 (flag):**
+- M2–M5 completate e verificate → precondizione M6 soddisfatta.
+- Conteggio `.md` tracciati corrente: **58** (63−5; delta rispetto al 56 del piano spiegato in §8 — 2 file di continuità post-baseline).
+- Eccezione M6 step 3: 2 file di continuità (vedi §8).
+- M7 pronto: mapping modelli in §5, tutti gli agent-def oggi `model: inherit`.
 
 ## 13. Prompt consigliato per la nuova finestra/sessione
 

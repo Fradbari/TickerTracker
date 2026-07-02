@@ -7,6 +7,22 @@
 
 ---
 
+## 0. Handoff snapshot (ingresso rapido per nuova sessione — 2026-07-02)
+
+Sintesi operativa non ridondante; il dettaglio vive nelle sezioni §1–§12 sottostanti.
+
+| Chiave | Valore |
+|---|---|
+| **Obiettivo** | Armonizzare i `.md` in 3 classi: `CLAUDE.md` fonte unica · gerarchia `AGENTS.md` (root + 4 track) come ledger · cleanup conservativo (§1) |
+| **Milestone** | M0–M5 ✅ · **M6 ⏳ prossima** (verifica finale) · M7 ⬜ (tuning `model:` agenti). Commit: M1 `a82a3c0` · M2 `20d7f2e` · M3 `6c54bbd` · M4 `670cb21` · M5 `6e9241e`+`15be57c` (§3) |
+| **Delta file vs baseline M0** | −5 obsoleti (`HANDOFF`, `agents-sprint-fix`, `PROJECT-STATUS`, `SETUP_GUIDE`, `.cursor/plans/…`) · +2 continuità (questo file + `Piano-di-lavoro.md`) · `.md` tracciati **63→58** (§4, §8) |
+| **Prossimo step minimo** | M6 nell'ordine vincolante del piano: link-rotti → anchor → riferimenti residui → `validate_dependencies.py` → spot-check tabelle → `git diff --stat` (§12) |
+| **Eccezioni attive** | (a) M6-step-3: i 2 file di continuità citano i file rimossi **per definizione** — escluderli case-insensitive, non è incongruenza; (b) guard-conteggio = 58, non 56 (§8); (c) "React 19" residua solo nei 2 file di continuità (§8); (d) baseline `/tmp/tt_md_baseline.txt` non più necessaria (guard M5 già passati) |
+| **Regole operative sempre valide** | `rtk proxy git …` per ogni verifica load-bearing · `git -C "$ROOT"` quotato (root con spazio nel nome) · casing SOLO via `git ls-files`, mai `find`/`ls` · milestone-by-milestone con stop per review · branch solo `vibe-claude` (§9) |
+| **Prompt ready-to-paste** | §13 |
+
+---
+
 ## 1. Obiettivo iniziale del lavoro
 
 Armonizzare la documentazione `.md` di `Standalone-app-v1/` (60 file di progetto + `.cursor/plans/` fuori dalla subdir = 61 tracciati totali), oggi frammentata e in parte incoerente, riducendola a **3 classi documentali**:
@@ -187,29 +203,40 @@ Eseguire **M6** (verifica finale, read-only + fix puntuali) nell'ordine vincolan
 ## 13. Prompt consigliato per la nuova finestra/sessione
 
 ```
-Riprendi il lavoro di armonizzazione documentazione TickerTracker v3.0.
+Riprendi l'armonizzazione documentazione TickerTracker v3.0.
 
-Leggi prima questi due file, in quest'ordine:
-1. Standalone-app-v1/Docs/Stato-avanzamento-pdl.md — stato corrente, decisioni prese, incongruenze residue
-2. Standalone-app-v1/Docs/Piano-di-lavoro.md — piano completo con i done-criterion di ogni milestone
+Leggi in quest'ordine:
+1. Standalone-app-v1/Docs/Stato-avanzamento-pdl.md — parti da §0 (handoff snapshot),
+   poi §8 (eccezioni attive) e §12 (prossimo step)
+2. Standalone-app-v1/Docs/Piano-di-lavoro.md — §M6: done-criterion e script pronti
+   da copiare (link-validator e anchor-validator inclusi)
 
-Stato: M0 e M1 completate e committate (HEAD a82a3c0 su branch vibe-claude). Prossimo
-step: eseguire M2 (migrazione contenuti — NESSUNA cancellazione) seguendo esattamente
-i done-criterion descritti nel piano per M2.
+Stato: M0–M5 completate e committate su vibe-claude (M5 = 6e9241e rm + 15be57c fix
+ref). 58 file .md tracciati (63−5; il 56 del piano non tiene conto dei 2 file di
+continuità creati post-baseline — delta documentato in §8).
 
-Vincoli da rispettare senza eccezioni:
-- Nessun nuovo branch — lavora solo su vibe-claude.
-- Modalità milestone-by-milestone: esegui M2, verifica i done-criterion, committa,
-  poi FERMATI per la mia review prima di procedere a M3.
-- La repo ha una root con spazio nel nome ("Ticker Tracker/") — non usare `cd` non
-  quotato su quel path; usa `git -C "$ROOT"` dove serve.
-- Un proxy `rtk` in questa repo può alterare silenziosamente l'output di `git`
-  (osservato su `git status --porcelain`) — per ogni verifica che conta (conteggi,
-  guard, discovery) usa `rtk proxy git ...` per bypassarlo.
-- Non confondere questi due file di continuità con Docs/HANDOFF.md, che è uno degli
-  oggetti che il piano stesso migra (M2) ed elimina (M5) — resta un file distinto e
-  ancora da toccare secondo il piano, non uno di gestione della sessione.
+Prossimo step: M6 — verifica finale, ordine vincolante: (1) script link-.md-rotti da
+Standalone-app-v1/ → (2) script anchor-validator → (3) zero riferimenti residui ai 5
+file rimossi → (4) python scripts/validate_dependencies.py (precondizione test -e) →
+(5) spot-check rendering tabelle (es. tabella Docs/AGENTS.md ex-backtick) →
+(6) git diff --stat.
 
-Prima di eseguire, conferma di aver letto lo stato e chiedimi conferma solo se trovi
-un'ambiguità reale — altrimenti procedi con M2.
+Vincoli senza eccezioni:
+- Nessun nuovo branch; milestone-by-milestone: esegui M6, verifica, committa,
+  FERMATI per review prima di M7.
+- Root repo con spazio nel nome ("Ticker Tracker/") → mai cd non quotato;
+  usa git -C "$ROOT".
+- Proxy rtk intercetta git e può alterarne l'output → ogni verifica load-bearing
+  con `rtk proxy git ...`.
+- M6 step 3: escludi (case-insensitive: grep può mostrare ./docs/ lowercase) i 2
+  file di continuità Docs/Piano-di-lavoro.md e Docs/Stato-avanzamento-pdl.md —
+  citano i file rimossi per definizione, NON è un'incongruenza.
+- Casing cartelle: verifiche solo con git ls-files (mai find/ls su Windows).
+- /tmp/tt_md_baseline.txt non serve più (i guard M5 sono già passati e verbalizzati).
+
+Dopo M6 (previa mia review): M7 = modificare SOLO la riga frontmatter `model:` nei 5
+file .claude/agents/*.md (code-reviewer=opus, backend-dev=opus, frontend-dev=sonnet,
+task-planner=sonnet, docs-dev=haiku), corpo invariato; done-criterion nel piano §M7.
+
+Procedi con M6 senza chiedere conferma, salvo ambiguità reale.
 ```

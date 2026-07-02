@@ -102,5 +102,6 @@ These are opinion-level rules, not derivable from the code. Violating them break
 | Backend deep-dive tech docs (audience: dev) | backend/docs/ | `backend/docs/` |
 | Operational runbooks (audience: ops) | Docs/runbook/ | `Docs/runbook/` |
 | Piano operativo (business plan, docx) | Docs/ | `Docs/Piano-operativo-v1.7.docx` |
+| Doc-harmonization plan + progress (cross-session continuity) | Docs/ | `Docs/Piano-di-lavoro.md` + `Docs/Stato-avanzamento-pdl.md` |
 
 If something here contradicts a file on disk, the file on disk wins — update this file.

@@ -5,7 +5,7 @@
 ## Metriche (Prometheus / Grafana)
 Il sistema espone le metriche in formato Prometheus all'endpoint:
 ```bash
-curl -s http://localhost/api/v1/metrics
+curl -s http://localhost/metrics
 ```
 Le dashboard sono accessibili in Grafana (se configurato sull'host monitoraggio).
 *Esempio PromQL per verificare il rate di errore HTTP:*

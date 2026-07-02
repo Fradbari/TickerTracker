@@ -60,3 +60,8 @@ Aggiungere una nuova dipendenza è un one-liner: registri un nuovo `HealthCheckP
 ## Per Kubernetes / Docker health probe
 
 Vedi snippet in `backend/README.md` § Quick Start.
+
+## Vedere anche
+
+- Runbook monitoring (ops): [`../../Docs/runbook/monitoring.md`](../../Docs/runbook/monitoring.md)
+- Runbook startup/shutdown (ops): [`../../Docs/runbook/startup-shutdown.md`](../../Docs/runbook/startup-shutdown.md)

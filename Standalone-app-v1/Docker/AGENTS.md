@@ -1,5 +1,7 @@
 # AGENTS — docker
 
+> **Agente:** docker-dev (def assente — questo file è gestito da docs-dev come fallback)
+>
 > ↗ Invarianti architetturali e workflow atomico: vedi [`../CLAUDE.md`](../CLAUDE.md) · Progress Tracker globale e grafo dipendenze: vedi [`../AGENTS.md`](../AGENTS.md)
 
 ID: TASK 2.2

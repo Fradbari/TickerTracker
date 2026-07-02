@@ -70,3 +70,7 @@ REQUEST_LOG_ENABLED=false   # riduce noise nei test E2E
 - Config: `src/shared/infra/logging/config.py`
 - Middleware: `src/shared/infra/logging/correlation_middleware.py`
 - ContextVar: `src/shared/infra/logging/context.py`
+
+## Vedere anche
+
+- Runbook monitoring (ops): [`../../Docs/runbook/monitoring.md`](../../Docs/runbook/monitoring.md)

@@ -8,7 +8,7 @@ Questo folder contiene la documentazione relativa alla containerizzazione di Tic
 - **Status**: COMPLETE ✅
 - **Files**: `docker-compose.base.yml` (root)
 - **Services**: PostgreSQL 16, Redis 7
-- **Documentation**: [TASK_2_2_IMPLEMENTATION_SUMMARY.md](../docs/TASK_2_2_IMPLEMENTATION_SUMMARY.md)
+- **Documentation**: [archivio completion logs](../backend/docs/history/TASK-COMPLETION-LOGS.md)
 
 ### ⏳ TASK 3.12: Docker Compose Dev Environment
 - **Status**: PENDING (Dependency: TASK 2.2 ✅)
@@ -365,8 +365,7 @@ sudo chown -R 999:999 data/redis
 
 ## 📚 Documentation References
 
-- **TASK 2.2 Complete**: [TASK_2_2_IMPLEMENTATION_SUMMARY.md](../docs/TASK_2_2_IMPLEMENTATION_SUMMARY.md)
-- **TASK 2.2 Status**: [TASK_2_2_STATUS_REPORT.md](../docs/TASK_2_2_STATUS_REPORT.md)
+- **TASK 2.2 Complete**: [archivio completion logs](../backend/docs/history/TASK-COMPLETION-LOGS.md)
 - **Task Progress**: [AGENTS.md](./AGENTS.md)
 - **Main README**: [../README.md](../README.md)
 

@@ -11,24 +11,7 @@
 
 ---
 
-## 🛠 Regole Globali di Sviluppo
-
-Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istruzioni locali.
-
-1.  **Precisione Finanziaria**:
-    *   **Backend**: Usa SEMPRE `Decimal` per importi, prezzi e percentuali. Mai usare `float`.
-    *   **Frontend**: Usa SEMPRE `decimal.js` per ogni calcolo finanziario. Mai usare `number`.
-2.  **Comunicazione API**:
-    *   Usa SEMPRE il modello `ApiResponse` standard per ogni risposta del backend.
-    *   Il frontend deve usare SEMPRE l'API client centralizzato.
-3.  **Integrità dei Dati**:
-    *   Ogni azione significativa deve produrre un evento di dominio (Event Sourcing).
-4.  **Architettura**:
-    *   Rispetta rigorosamente i boundary dei moduli. No cross-import diretti tra feature.
-5.  **Documentazione**:
-    *   Ogni nuovo endpoint deve essere documentato con OpenAPI/Swagger.
-
----
+ℹ️ Le regole globali (Decimal/decimal.js, ApiResponse, API client centralizzato, Event Sourcing, boundary moduli, OpenAPI) vivono in [`CLAUDE.md`](./CLAUDE.md) §Critical Architectural Invariants — qui non si duplicano.
 
 ### Prima di Iniziare
 1. **Leggi la sezione appropriata** in base al tuo task:
@@ -40,6 +23,19 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 2. **Rispetta i boundary**: Non modificare file fuori dalla tua sezione
 3. **Segui i microstep**: Ogni task ha step atomici e verificabili
 4. **Completa gli Acceptance Criteria**: Prima di marcare un task come fatto
+
+---
+
+## Agenti disponibili
+
+Le definizioni operative vivono in `.claude/agents/` (5 file): `task-planner`, `backend-dev`, `frontend-dev`, `docs-dev`, `code-reviewer`. Dettagli e regole d'uso: [`CLAUDE.md`](./CLAUDE.md) §Sub-agent Roster.
+
+| Track | File ledger | Agente |
+|---|---|---|
+| Backend | [`backend/AGENTS.md`](./backend/AGENTS.md) | `backend-dev` |
+| Frontend | [`frontend/AGENTS.md`](./frontend/AGENTS.md) | `frontend-dev` |
+| Docker | [`Docker/AGENTS.md`](./Docker/AGENTS.md) | `docker-dev` *(def assente — fallback: `docs-dev`)* |
+| Docs/Testing/CI | [`Docs/AGENTS.md`](./Docs/AGENTS.md) | `docs-dev` |
 
 ---
 
@@ -83,8 +79,8 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 2.23** - Test Retrocompatibilità Backup/History Legacy *(17 tests passing)*
 - [x] **TASK 2.24** - Setup Background Worker APScheduler *(job scheduling, FastAPI integration)*
 
-#### Sezione 4: Frontend Setup & Features (5/15)
-- [x] **TASK 4.1** - Setup Progetto Frontend (Vite + React 19)
+#### Sezione 4: Frontend Setup & Features (13/15)
+- [x] **TASK 4.1** - Setup Progetto Frontend (Vite + React 18)
 - [x] **TASK 4.2** - Creazione Struttura Feature Modules
 - [x] **TASK 4.3** - Configurazione React Query & API Client
 - [x] **TASK 4.4** - Definizione Types e API Response Models
@@ -96,9 +92,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [x] **TASK 4.8** - Implementazione EstimateForm Component
 - [x] **TASK 4.9** - Implementazione EstimateCard Component
 - [ ] **TASK 4.10** - Implementazione CloseEstimateModal Component
-- [ ] **TASK 4.11** - Implementazione PortfolioDashboard Component
-- [ ] **TASK 4.12** - Implementazione PerformanceChart Component
-- [ ] **TASK 4.16** - Setup React Router e Layout
+- [x] **TASK 4.11** - Implementazione PortfolioDashboard Component *(implementato: `portfolio/components/Dashboard.tsx`, montato su route `/`)*
+- [x] **TASK 4.12** - Implementazione PerformanceChart Component *(implementato: `portfolio/components/AiPerformanceChart.tsx`)*
+- [x] **TASK 4.16** - Setup React Router e Layout *(implementato in `App.tsx`: 6 route reali `/`, `/admin`, `/insert`, `/portfolio`, `/analysis`, `*` + `RootLayout` montato; i path differiscono dai microstep originali)*
 
 #### Sezione 5: Testing & CI/CD Base (0/5)
 - [ ] **TASK 5.1** - Setup Test Framework Backend
@@ -131,7 +127,7 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 - [ ] **TASK 5.12** - Implementazione Feature Flags *(in backend/AGENTS.md)*
 - [ ] **TASK 5.13** - Implementazione Backup Automatico Database *(in backend/AGENTS.md)*
 
-#### Sezione 4: Frontend Advanced (0/3)
+#### Sezione 4: Frontend Advanced (3/3)
 - [x] **TASK 4.13** - Implementazione Dashboard Portfolio
 - [x] **TASK 4.14** - Implementazione Price Chart
 - [x] **TASK 4.15** - Implementazione ChatAI Component (Gemini)
@@ -157,9 +153,9 @@ Queste regole si applicano a tutto il progetto e hanno la precedenza sulle istru
 
 | Categoria | Completati | Totali | Percentuale |
 |-----------|------------|--------|-----------|
-| **MVP** | 27 | 48 | 56% |
+| **MVP** | 30 | 48 | 63% |
 | **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **27** | **67** | 40% |
+| **TOTALE** | **30** | **67** | 45% |
 
 ---
 
@@ -193,10 +189,10 @@ Standalone-app-v1/
 │   ├── src/  (features/, shared/, app/)
 │   └── tests/
 │
-├── docker/
+├── Docker/
 │   └── AGENTS.md          ← task container (↩ back-link a CLAUDE.md)
 │
-├── docs/
+├── Docs/
 │   ├── AGENTS.md          ← task Testing/CI-CD/Docs (↩ back-link a CLAUDE.md)
 │   ├── runbook/           ← procedure operative (ops)
 │   ├── PROJECT-STATUS.md  ← snapshot storico + Delta log
@@ -225,7 +221,7 @@ Standalone-app-v1/
 
 **Frontend MVP**:
 - ✅ TASK 1.8: Setup decimal.js wrapper
-- ✅ TASK 4.1-4.10: Setup + feature estimates completa
+- ✅ TASK 4.1-4.9: Setup + feature estimates (4.5b componenti UI shared ⬜, 4.10 CloseEstimateModal ⬜)
 - ✅ TASK 4.11-4.12: Dashboard portfolio
 - ✅ TASK 4.16: Router & layout
 
@@ -437,38 +433,3 @@ feat(TASK-X.Y): breve descrizione
 
 Closes #issue-number
 ```
-
----
-
-## Risorse Utili
-
-### Backend
-- [FastAPI Docs](https://fastapi.tiangolo.com/)
-- [SQLAlchemy Docs](https://docs.sqlalchemy.org/)
-- [Pydantic Docs](https://docs.pydantic.dev/)
-- [Event Sourcing Pattern](https://martinfowler.com/eaaDev/EventSourcing.html)
-
-### Frontend
-- [React 19 Docs](https://react.dev/)
-- [TailwindCSS Docs](https://tailwindcss.com/)
-- [React Query Docs](https://tanstack.com/query/latest)
-- [Recharts Docs](https://recharts.org/)
-
-### Tools
-- [Docker Docs](https://docs.docker.com/)
-- [PostgreSQL Docs](https://www.postgresql.org/docs/)
-- [Alembic Docs](https://alembic.sqlalchemy.org/)
-
----
-
-## Support & Questions
-
-Per domande o chiarimenti:
-1. Verifica prima la sezione specifica (Backend/Frontend/Docker/Docs)
-2. Controlla acceptance criteria del task
-3. Rivedi dipendenze nel grafo
-4. Se ancora bloccato: documenta il problema e chiedi help
-
----
-
-**Buon lavoro! 🚀**

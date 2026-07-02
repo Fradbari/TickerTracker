@@ -1,5 +1,7 @@
 # Frontend - React UI & UX
 
+> **Agente:** frontend-dev
+>
 > ↗ Invarianti architetturali e workflow atomico: vedi [`../CLAUDE.md`](../CLAUDE.md) · Progress Tracker globale e grafo dipendenze: vedi [`../AGENTS.md`](../AGENTS.md)
 
 ## Scope
@@ -18,11 +20,11 @@ Questa sezione contiene SOLO task per il frontend React/TypeScript:
 
 # REGOLE FISSE PER LLM FRONTEND
 
-1. **Tutti i calcoli finanziari DEVONO usare decimal.js** ([`shared/utils/financial.ts`](../src/shared/utils/financial.ts) o [`shared/finance/decimalMoney.ts`](../src/shared/finance/decimalMoney.ts))
-2. **Tutte le chiamate API DEVONO passare da [`shared/api/client.ts`](../src/shared/api/client.ts)** (no fetch/axios sparso)
+1. **Tutti i calcoli finanziari DEVONO usare decimal.js** ([`shared/utils/financial.ts`](./src/shared/utils/financial.ts) o [`shared/finance/decimalMoney.ts`](./src/shared/finance/decimalMoney.ts))
+2. **Tutte le chiamate API DEVONO passare da [`shared/api/client.ts`](./src/shared/api/client.ts)** (no fetch/axios sparso)
 3. **Ogni feature è self-contained**: no import cross-feature diretti (solo via `shared/`)
-4. **Componenti riutilizzabili vanno in [`shared/components/`](../src/shared/components)**
-5. **Hook riutilizzabili vanno in [`shared/hooks/`](../src/shared/hooks)**
+4. **Componenti riutilizzabili vanno in [`shared/components/`](./src/shared/components)**
+5. **Hook riutilizzabili vanno in [`shared/hooks/`](./src/shared/hooks)**
 6. **Zod v4 (^4.x)**: per campi numerici da `<input>` HTML usa **`z.string().refine(val => !isNaN(parseFloat(val))...)`** — NON `z.coerce.number()` (comportamento cambiato in v4; input HTML produce sempre stringhe)
 7. **Toast/notifiche**: usa sempre `useNotify()` da `@/shared/ui` — NON importare `react-hot-toast` direttamente nei componenti feature
 8. **Error Boundary**: errori non catturati vengono mostrati da `AppErrorBoundary` in `src/app/components/` — non serve try/catch in ogni componente per errori React; usa `useNotify` per errori API nelle mutation
@@ -175,7 +177,7 @@ Area: frontend/setup
 Fase: MVP
 Dipendenze: -
 
-## TASK 4.1: Setup Progetto Frontend (Vite + React 19)
+## TASK 4.1: Setup Progetto Frontend (Vite + React 18)
 
 **Descrizione:** Inizializzare progetto frontend con stack moderno.
 

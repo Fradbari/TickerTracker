@@ -176,7 +176,7 @@ Dipende da:
 
 Per dettagli completi:
 - Column mapping: [COLUMN_MAPPING.md](./COLUMN_MAPPING.md)
-- Completion report: [docs/TASK_2.21_COMPLETION_REPORT.md](../../docs/TASK_2.21_COMPLETION_REPORT.md)
+- Completion report: [archivio completion logs](../../../docs/history/TASK-COMPLETION-LOGS.md)
 - AGENTS tasks: [AGENTS.md](../AGENTS.md)
 
 ---

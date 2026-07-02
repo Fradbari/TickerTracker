@@ -1,5 +1,7 @@
 # AGENTS — Docs (Testing, CI/CD, Documentazione, Runbook)
 
+> **Agente:** docs-dev
+>
 > ↗ Invarianti architetturali e workflow atomico: vedi [`../CLAUDE.md`](../CLAUDE.md) · Progress Tracker globale e grafo dipendenze: vedi [`../AGENTS.md`](../AGENTS.md)
 
 ## Scope
@@ -22,12 +24,12 @@ Questa sezione contiene i task per il **track docs**: testing, CI/CD, documentaz
 
 ---
 
-## Mappa della cartella `docs/`
+## Mappa della cartella `Docs/`
 
 | File/Cartella | Scopo | Stato |
 |---|---|---|
 | `runbook/` | 7 procedure operative di produzione (startup, recovery, outage, monitoring, scaling, drive-sync, contacts) | ✅ Attivo (TASK 5.15) |
-| `HANDOFF.md | Resoconti di sessione di refactoring doc (riferimento storico) | Storico |
+| `HANDOFF.md` | Resoconti di sessione di refactoring doc (riferimento storico) | Storico |
 | `PROJECT-STATUS.md` | Snapshot progetto al 2026-06-13 + Delta log delle claim smentite | Storico (verità corrente: root `AGENTS.md`) |
 | `agents-sprint-fix.md` | Piano sprint UX/operatività (4 task) — binding, branch `test` | Piano attivo |
 | `superpowers/plans/` | Analisi gap repository (storiche) | Storico |

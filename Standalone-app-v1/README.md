@@ -19,7 +19,7 @@ L'applicazione segue i principi del Clean Architecture e separazione dei ruoli (
 - **Auth / RBAC**: Modelli base `User` e `Role` aggiunti in `backend/src/shared/domain` (TASK 2.7).
 
 ### Frontend
-- **Framework**: **React 19** + **TypeScript**.
+- **Framework**: **React 18** + **TypeScript**.
 - **Build Tool**: **Vite**.
 - **Styling**: **TailwindCSS**.
 - **Data Fetching**: **React Query** (TanStack Query).

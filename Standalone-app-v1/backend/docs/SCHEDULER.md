@@ -82,3 +82,8 @@ Outbox + Dead Letter sono in **`backend/src/infra/outbox/`**.
 
 - Unit: `tests/unit/outbox/test_outbox_processor.py` (95%+ coverage)
 - E2E: `tests/e2e/test_outbox_e2e.py` (flow completo: create → process → Drive)
+
+## Vedere anche
+
+- Runbook Yahoo outage (ops): [`../../Docs/runbook/yahoo-outage.md`](../../Docs/runbook/yahoo-outage.md)
+- Runbook monitoring (ops): [`../../Docs/runbook/monitoring.md`](../../Docs/runbook/monitoring.md)

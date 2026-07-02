@@ -58,3 +58,7 @@ Le gauge del pool sono aggiornate ad ogni scrape, vedi `backend/docs/CONNECTION-
 
 - Metrics primitives: `src/shared/infra/metrics/metrics.py`
 - Routes: `src/shared/infra/metrics/routes.py`
+
+## Vedere anche
+
+- Runbook monitoring (ops): [`../../Docs/runbook/monitoring.md`](../../Docs/runbook/monitoring.md)

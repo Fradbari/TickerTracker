@@ -71,6 +71,7 @@ These are opinion-level rules, not derivable from the code. Violating them break
 - **Pytest markers:** `unit`, `integration`, `e2e`, `slow`, `chaos`, `properties` (defined in `backend/pyproject.toml` `[tool.pytest.ini_options]`). Run a single test with `pytest backend/tests/path/test_x.py::test_y -m unit` or via `make test TEST=...` in `backend/Makefile`.
 - **e2e/ at repo root:** Playwright suite lives at repo root (`playwright.config.ts`) — not under `frontend/`. There is no `test:e2e` npm script; the root `package.json`'s `test` is a stub.
 - **Settings cache:** `get_settings()` is `@lru_cache`-d. Secrets use Pydantic `SecretStr`. Mutate `.env`/restart — never expect a second call to differ.
+- **`validate_dependencies.py` on Windows:** the script prints emoji and crashes with `UnicodeEncodeError` on cp1252 consoles — run it as `PYTHONIOENCODING=utf-8 python scripts/validate_dependencies.py`. As of 2026-07-03 it FAILS with 14 pre-existing task-graph errors (references to non-existent TASK 3.6/3.7, dependency cycles among 4.x/5.x) that pre-date the doc-harmonization work — the graph in root/track `AGENTS.md` needs a dedicated fix before the validator can gate commits again.
 
 ## Things That Were Wrong Before — Do Not Perpetuate
 

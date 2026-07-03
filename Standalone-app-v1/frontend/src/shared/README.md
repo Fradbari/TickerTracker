@@ -96,4 +96,4 @@ const total = addMoney(createMoney('100.50', 'USD'), createMoney('8.25', 'USD'))
 const total = 100.50 + 8.25  // might give 108.74999...
 ```
 
-See the [full README](../README.md#calcoli-finanziari-obbligatorio) for the complete mapping table.
+See the [full README](../../README.md#-calcoli-finanziari-obbligatorio) for the complete mapping table.

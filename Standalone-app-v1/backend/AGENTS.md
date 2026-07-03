@@ -620,7 +620,7 @@ Le query del dashboard richiedono join complessi tra `estimates` e `market_data`
 
 **Documentazione:**
 - [docs/ESTIMATE_SUMMARY_VIEW.md](./docs/ESTIMATE_SUMMARY_VIEW.md) - Guida completa all'uso della materialized view
-- [ALEMBIC_SETUP_COMPLETED.md](./ALEMBIC_SETUP_COMPLETED.md) - Setup migrazioni Alembic
+- [docs/ALEMBIC.md](./docs/ALEMBIC.md) - Setup migrazioni Alembic
 
 **Usage:**
 ```bash

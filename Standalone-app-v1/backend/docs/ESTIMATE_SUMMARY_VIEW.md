@@ -229,7 +229,6 @@ LIMIT 10;
 
 ## 📚 Related Documentation
 
-- [Alembic Migrations](./ALEMBIC_SETUP_COMPLETED.md)
-- [Database Schema](./README.md#database-schema)
+- [Alembic Migrations](./ALEMBIC.md)
 - [CQRS Pattern](https://martinfowler.com/bliki/CQRS.html)
 - [PostgreSQL Materialized Views](https://www.postgresql.org/docs/current/rules-materializedviews.html)

@@ -18,6 +18,10 @@ from pathlib import Path
 from typing import Dict, List, Set, Tuple
 from collections import defaultdict
 
+# ID task: numerici (2.1) con eventuale suffisso lettera (4.5b) o slug (4.6-hooks).
+# Il primo carattere deve essere una cifra per escludere i template (TASK X.Y).
+TASK_ID_RE = r'\d+\.\d+[a-z]*(?:-[a-zA-Z][\w-]*)?'
+
 
 class TaskDependencyValidator:
     """Validatore del grafo dipendenze task."""
@@ -25,6 +29,7 @@ class TaskDependencyValidator:
     def __init__(self, root_path: Path):
         self.root = root_path
         self.tasks: Dict[str, Dict] = {}
+        self.tracker_tasks: Set[str] = set()
         self.dependencies: Dict[str, List[str]] = defaultdict(list)
         self.errors: List[str] = []
         self.warnings: List[str] = []
@@ -34,7 +39,7 @@ class TaskDependencyValidator:
         content = file_path.read_text(encoding='utf-8')
         
         # Pattern per task ID
-        task_pattern = re.compile(r'^ID:\s*TASK\s+([\d.]+)', re.MULTILINE)
+        task_pattern = re.compile(rf'^ID:\s*TASK\s+({TASK_ID_RE})', re.MULTILINE)
         # Pattern per dipendenze
         dep_pattern = re.compile(r'^Dipendenze:\s*(.+)$', re.MULTILINE)
         # Pattern per sezione (Area)
@@ -68,13 +73,27 @@ class TaskDependencyValidator:
                 deps_str = dep_match.group(1).strip()
                 if deps_str != '-':
                     # Separa dipendenze multiple (es: "TASK 2.1, TASK 2.2")
-                    deps = re.findall(r'TASK\s+[\d.]+', deps_str)
+                    deps = [f"TASK {m}" for m in
+                            re.findall(rf'TASK\s+({TASK_ID_RE})', deps_str)]
                     self.dependencies[task_id] = deps
+
+    def parse_progress_tracker(self, file_path: Path) -> None:
+        """Estrae i task noti dal Progress Tracker del root AGENTS.md.
+
+        I task completati possono non avere più un blocco `ID:` nei file di
+        track: il tracker resta la fonte canonica della loro esistenza.
+        """
+        content = file_path.read_text(encoding='utf-8')
+        tracker_pattern = re.compile(
+            rf'^\s*-\s*\[[ xX]\]\s*\*\*TASK\s+({TASK_ID_RE})\*\*', re.MULTILINE
+        )
+        for match in tracker_pattern.finditer(content):
+            self.tracker_tasks.add(f"TASK {match.group(1)}")
 
     def validate_all_references(self) -> None:
         """Verifica che tutti i task referenziati esistano."""
-        all_task_ids = set(self.tasks.keys())
-        
+        all_task_ids = set(self.tasks.keys()) | self.tracker_tasks
+
         for task_id, deps in self.dependencies.items():
             for dep in deps:
                 if dep not in all_task_ids:
@@ -90,18 +109,23 @@ class TaskDependencyValidator:
         def has_cycle(task_id: str, path: List[str]) -> bool:
             visited.add(task_id)
             rec_stack.add(task_id)
-            
+            found = False
+
             for dep in self.dependencies.get(task_id, []):
                 if dep not in visited:
                     if has_cycle(dep, path + [task_id]):
-                        return True
+                        found = True
+                        break
                 elif dep in rec_stack:
                     cycle = ' → '.join(path + [task_id, dep])
                     self.errors.append(f"✗ Ciclo rilevato: {cycle}")
-                    return True
-            
+                    found = True
+                    break
+
+            # rec_stack va pulito anche uscendo per ciclo trovato, altrimenti
+            # i nodi rimasti nello stack generano falsi cicli nei DFS successivi
             rec_stack.remove(task_id)
-            return False
+            return found
         
         for task_id in self.tasks:
             if task_id not in visited:
@@ -111,8 +135,8 @@ class TaskDependencyValidator:
         """Verifica la numerazione sequenziale per sezione."""
         sections = defaultdict(list)
         
-        # Raggruppa task per sezione
-        for task_id in self.tasks:
+        # Raggruppa task per sezione (blocchi ID: + Progress Tracker)
+        for task_id in set(self.tasks) | self.tracker_tasks:
             match = re.match(r'TASK (\d+)\.(\d+)', task_id)
             if match:
                 section = int(match.group(1))
@@ -195,18 +219,29 @@ class TaskDependencyValidator:
         """Esegue validazione completa."""
         print("🔍 Scansione file AGENTS.md...\n")
         
-        # Scansiona tutti i file AGENTS.md
-        agents_files = list(self.root.rglob('AGENTS.md'))
-        
+        # Scansiona tutti i file AGENTS.md (esclusi i pacchetti vendorizzati)
+        agents_files = [
+            p for p in self.root.rglob('AGENTS.md')
+            if 'node_modules' not in p.parts
+        ]
+
         if not agents_files:
             print("❌ Nessun file AGENTS.md trovato!")
             return False
-        
+
         for file_path in agents_files:
             print(f"   Analizzando: {file_path.relative_to(self.root)}")
             self.parse_agents_file(file_path)
-        
-        print(f"\n✓ {len(self.tasks)} task caricati\n")
+
+        # Il Progress Tracker nel root AGENTS.md è il ledger canonico: contiene
+        # anche i task completati il cui blocco ID: è stato rimosso dai track
+        root_agents = self.root / 'AGENTS.md'
+        if root_agents.exists():
+            self.parse_progress_tracker(root_agents)
+
+        tracker_only = self.tracker_tasks - set(self.tasks)
+        print(f"\n✓ {len(self.tasks)} task caricati "
+              f"(+{len(tracker_only)} noti solo dal Progress Tracker)\n")
         
         # Esegui validazioni
         print("🔬 Validazione riferimenti...")

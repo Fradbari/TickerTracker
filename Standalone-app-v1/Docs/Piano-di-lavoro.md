@@ -3,7 +3,7 @@
 > **Provenienza:** copia integrale, alla data indicata, del piano approvato in modalità Plan Mode e salvato localmente in `C:\Users\francesco.dilecce\.claude\plans\caveman-using-superpowers-role-programm-mellow-sketch.md`. Questo file **non è** `Docs/HANDOFF.md` (quel file è uno degli oggetti che il piano stesso migra e poi elimina in M5) — è la copia di lavoro persistita nel repo per continuità cross-sessione.
 > **Stato di avanzamento:** vedi `Docs/Stato-avanzamento-pdl.md`, aggiornato ad ogni milestone.
 > **Copiato il:** 2026-07-01, dopo il completamento di M1.
-> **Stato milestone (aggiornato 2026-07-02):** M0–M5 ✅ completate e committate — M1 `a82a3c0` · M2 `20d7f2e` · M3 `6c54bbd` · M4 `670cb21` · M5 `6e9241e`+`15be57c` — **M6 ⏳ prossima** · M7 ⬜. Il corpo sottostante è la copia storica del piano approvato (non riscritta); deviazioni motivate ed eccezioni attive (guard 58 non 56; eccezione M6-step-3 per i 2 file di continuità) vivono in `Stato-avanzamento-pdl.md` §8.
+> **Stato milestone (aggiornato 2026-07-03):** M0–M6 ✅ completate e committate — M1 `a82a3c0` · M2 `20d7f2e` · M3 `6c54bbd` · M4 `670cb21` · M5 `6e9241e`+`15be57c` · M6 `6cda1a3` — **M7 ⏳ prossima (ultima)**. Il corpo sottostante è la copia storica del piano approvato (non riscritta); deviazioni motivate ed eccezioni attive (guard 58 non 56; eccezioni M6 step-1/step-3 per i 2 file di continuità; `validate_dependencies.py` FAIL pre-esistente fuori scope) vivono in `Stato-avanzamento-pdl.md` §8.
 
 ---
 

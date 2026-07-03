@@ -1,9 +1,9 @@
 # Stato di avanzamento — Piano-di-lavoro.md
 
 > **Attenzione:** questo file **non è** `Docs/HANDOFF.md`. `HANDOFF.md` è uno degli oggetti che il Piano-di-lavoro migra e poi elimina (M5) — resta invariato finché M2/M5 non lo toccano secondo il piano. Questo file è la sintesi di continuità cross-sessione richiesta esplicitamente dall'utente, aggiornata ad ogni milestone.
-> **Ultimo aggiornamento:** 2026-07-03, dopo fix e commit (`866a2b7`) di `scripts/validate_dependencies.py` — vedi §8.
+> **Ultimo aggiornamento:** 2026-07-03, dopo completamento e commit di **M7 — PIANO COMPLETO (M0–M7)**.
 > **Branch:** `vibe-claude` (nessun branch nuovo creato, per vincolo esplicito).
-> **HEAD al momento della scrittura:** `6cda1a3` — `docs: fix 5 broken .md links found by M6 final verification`.
+> **HEAD al momento della scrittura:** `f1b83fb` — `chore: pin per-agent models in .claude/agents frontmatter (M7)`.
 
 ---
 
@@ -14,9 +14,9 @@ Sintesi operativa non ridondante; il dettaglio vive nelle sezioni §1–§12 sot
 | Chiave | Valore |
 |---|---|
 | **Obiettivo** | Armonizzare i `.md` in 3 classi: `CLAUDE.md` fonte unica · gerarchia `AGENTS.md` (root + 4 track) come ledger · cleanup conservativo (§1) |
-| **Milestone** | M0–M6 ✅ · **M7 ⏳ prossima** (tuning `model:` agenti, ultima). Commit: M1 `a82a3c0` · M2 `20d7f2e` · M3 `6c54bbd` · M4 `670cb21` · M5 `6e9241e`+`15be57c` · M6 `6cda1a3` (§3) |
+| **Milestone** | **M0–M7 ✅ TUTTE COMPLETE — PIANO CHIUSO.** Commit: M1 `a82a3c0` · M2 `20d7f2e` · M3 `6c54bbd` · M4 `670cb21` · M5 `6e9241e`+`15be57c` · M6 `6cda1a3` · M7 `f1b83fb` (§3) |
 | **Delta file vs baseline M0** | −5 obsoleti (`HANDOFF`, `agents-sprint-fix`, `PROJECT-STATUS`, `SETUP_GUIDE`, `.cursor/plans/…`) · +2 continuità (questo file + `Piano-di-lavoro.md`) · `.md` tracciati **63→58** (§4, §8) |
-| **Prossimo step minimo** | M7: SOLO riga frontmatter `model:` nei 5 `.claude/agents/*.md` (code-reviewer=opus, backend-dev=opus, frontend-dev=sonnet, task-planner=sonnet, docs-dev=haiku) (§12) |
+| **Prossimo step minimo** | Nessuno nel piano (completo). Follow-up fuori piano aperti: blocco metadata `TASK 4.6` in `frontend/AGENTS.md` (chip, §8) · link `../src/...` residui corpo-task `frontend/AGENTS.md` (§8, non bloccanti) (§12) |
 | **Eccezioni attive** | (a) M6-step-3: i 2 file di continuità citano i file rimossi **per definizione** — escluderli case-insensitive, non è incongruenza; (b) guard-conteggio = 58, non 56 (§8); (c) "React 19" residua solo nei 2 file di continuità (§8); (d) baseline `/tmp/tt_md_baseline.txt` non più necessaria (guard M5 già passati); (e) M6-step-1: 4 falsi positivi permanenti in `Piano-di-lavoro.md` (esempi/pattern citati come testo, §8); (f) `validate_dependencies.py` era FAIL per 14 errori **pre-esistenti** al piano — **RISOLTO in thread secondario, ora VERDE e committato** (`866a2b7`, bug nello script non nei dati; §8) |
 | **Regole operative sempre valide** | `rtk proxy git …` per ogni verifica load-bearing · `git -C "$ROOT"` quotato (root con spazio nel nome) · casing SOLO via `git ls-files`, mai `find`/`ls` · milestone-by-milestone con stop per review · branch solo `vibe-claude` (§9) |
 | **Prompt ready-to-paste** | §13 |
@@ -49,9 +49,9 @@ Modalità di esecuzione scelta dall'utente: **milestone-by-milestone** — si es
 | M4 — Gerarchia AGENTS.md + link sweep | ✅ Completata e committata | `670cb21` |
 | M5 — Cleanup (git rm 5 file) | ✅ Completata e committata | `6e9241e` (rm) + `15be57c` (fix ref) |
 | M6 — Verifica finale | ✅ Completata e committata | `6cda1a3` (fix 5 link) + record stato |
-| M7 — Tuning modelli agenti | ⬜ Da iniziare | — |
+| M7 — Tuning modelli agenti | ✅ Completata e committata | `f1b83fb` |
 
-**Prossima milestone da eseguire: M7 (ultima).**
+**Piano COMPLETO (M0–M7). Nessuna milestone residua.**
 
 ## 4. File modificati, creati, eliminati o da verificare
 
@@ -118,8 +118,14 @@ Esecuzione **inline dal thread principale** (verifica load-bearing, regola §9):
 - `Standalone-app-v1/Docs/Piano-di-lavoro.md` (questo passaggio)
 - `Standalone-app-v1/Docs/Stato-avanzamento-pdl.md` (questo file)
 
-**Non ancora toccati (target delle milestone future):**
-- `.claude/agents/*.md` (M7, solo riga `model:`)
+**Modificati e committati (M7, commit `f1b83fb`) — 5 file, 5 ins / 5 del (solo riga frontmatter `model:`, corpo invariato):**
+- `.claude/agents/code-reviewer.md` — `inherit` → `opus`
+- `.claude/agents/backend-dev.md` — `inherit` → `opus`
+- `.claude/agents/frontend-dev.md` — `inherit` → `sonnet`
+- `.claude/agents/task-planner.md` — `inherit` → `sonnet`
+- `.claude/agents/docs-dev.md` — `inherit` → `haiku`
+
+Done-criterion verificato: `grep -H "^model:"` = 5 valori attesi, 0 `inherit`; `git diff --numstat` = 1/1 riga per file; contenuto diff = solo `model:`.
 
 ## 5. Decisioni prese e loro motivazione
 
@@ -202,53 +208,44 @@ Esecuzione **inline dal thread principale** (verifica load-bearing, regola §9):
 12. **M4** eseguita e committata (`670cb21`): gerarchia `AGENTS.md` + link sweep, 13 file. Discovery Progress-Tracker inline (thread principale, comandi del piano) → stato accertato 4.10 `[ ]` / 4.11-4.12-4.16 `[x]`; poi 4 subagent `docs-dev` paralleli su file-set disgiunti (A=root/sonnet, B=track/haiku, C=runbook-backlink/haiku, D=README-sweep/haiku). Dedup root→link CLAUDE, §"Agenti disponibili", banner agente per-track, backtick e `../src` fixati, back-link runbook 4/4, monitoring `/metrics`, React 18 ovunque nei file di progetto, 4 link penzolanti ripuntati all'archivio completion-logs. Ri-verifica indipendente: 14/14 check PASS. Nessun blocco; 2 deviazioni motivate documentate in §8 (React-19 residue nei file M5/continuità; `../src` residui fuori scope).
 13. **M5** eseguita e committata (`6e9241e` + `15be57c`): cleanup — unica milestone distruttiva. Sequenza: baseline verificata (ancora presente in `/tmp/tt_md_baseline.txt`, 61 righe) → discovery completa riferimenti pendenti (grep) → `git rm --ignore-unmatch` dei 5 file via `git -C "$ROOT"` (idempotente, path quotati) → guard-lista (5 `<` esatti, 2 `>` = solo i file di continuità noti) + guard-conteggio (58, delta 56→58 spiegato in §8) → commit rm → 2 subagent `docs-dev`/haiku paralleli per fix riferimenti (S1 root, S2 track) → ri-verifica grep M6-step-3 anticipato = 0 nei file di progetto → commit fix. `temp_estimate_body.json` = no-op confermato. Azioni distruttive e guard eseguiti inline dal thread principale, mai delegati.
 14. **M6** eseguita e committata (`6cda1a3`, 2026-07-03): verifica finale, 6 step nell'ordine vincolante, tutta **inline** (verifica load-bearing — nessun subagent, per regola §9). Esiti: (1) link-validator → 5 rotti reali trovati e **fixati** (dettaglio §4) + 4 falsi positivi permanenti in `Piano-di-lavoro.md` (§8); re-run post-fix pulito; (2) anchor-validator → PASS, incluso nuovo anchor emoji-slug; (3) riferimenti residui ai 5 file rimossi → **0** (esclusi i 2 file di continuità, eccezione §8); (4) `validate_dependencies.py` → **FAIL con 14 errori pre-esistenti** al piano (prova via diff, §8) — loggato come non bloccante, quirk `PYTHONIOENCODING=utf-8` aggiunto a `CLAUDE.md`; (5) spot-check tabella `Docs/AGENTS.md` (ex-BUG-2) → renderizzabile; (6) `git diff --stat` → scope = esattamente i 4 file dei fix + `CLAUDE.md`.
+15. **M7** eseguita e committata (`f1b83fb`, 2026-07-03) — **ultima milestone, piano completo**. Pre-check di riallineamento: verificati e integrati nei doc di continuità i 2 commit del thread secondario ("Exec Plan 3.1": `866a2b7` fix validator, `1609de3` doc update); validator ri-eseguito **indipendentemente** dal thread principale → `EXIT=0` VERDE confermato; corrette 2 righe stale in questo file (HEAD header + vincolo §13 ormai falso "validator FAIL"). Poi M7 inline (5 edit exact-string, non delegata: done-criterion richiede diff chirurgico solo-`model:`): `inherit` → opus/opus/sonnet/sonnet/haiku per code-reviewer/backend-dev/frontend-dev/task-planner/docs-dev. Done-criterion verificato raw (grep 5/5, numstat 1/1 per file, diff-content solo `model:`).
 
 ## 11. Azioni ancora mancanti
 
-Nell'ordine previsto dal piano:
+**Nessuna nel piano — M0–M7 tutte complete e committate.**
 
-- **M7** — Tuning modelli 5 agenti (solo riga frontmatter `model:`). Ultima milestone del piano.
-- *(fuori piano, thread secondario)* Fix `validate_dependencies.py` **completato e committato** (`866a2b7`, §8).
-- *(fuori piano, chip aperto)* Aggiungere blocco metadata `ID:/Dipendenze:` a `## TASK 4.6` in `frontend/AGENTS.md` (~riga 575) — vedi §8 per dipendenze plausibili da verificare.
+Follow-up **fuori piano** (non bloccanti):
+- *(chip aperto)* Aggiungere blocco metadata `ID:/Dipendenze:` a `## TASK 4.6` in `frontend/AGENTS.md` (~riga 575) — vedi §8 per dipendenze plausibili da verificare.
+- *(candidato, §8)* Link `../src/...` residui nei blocchi task di `frontend/AGENTS.md` (mal-risolti ma non intercettati dagli script M6 — solo `.md`).
+- *(completato in thread secondario)* Fix `validate_dependencies.py` (`866a2b7`, §8) — VERDE.
 
 ## 12. Prossimo step minimo
 
-Eseguire **M7** (tuning modelli agenti): modificare **solo** la riga frontmatter `model:` nei 5 file `.claude/agents/*.md` — `code-reviewer=opus`, `backend-dev=opus`, `frontend-dev=sonnet`, `task-planner=sonnet`, `docs-dev=haiku` — corpo invariato. Done criterion (piano §M7): `grep -H "^model:" .claude/agents/*.md` → 5 valori attesi, nessun `inherit` residuo; `git diff` sui 5 file tocca solo la riga `model:`. Mapping tunabile per contenere i costi (§5). Dopo M7 il piano è **completo**: aggiornare questo file (chiusura) e fermarsi.
+**Il piano è completo.** Nessuna milestone residua. Eventuale lavoro successivo = follow-up fuori piano in §11, oppure sviluppo prodotto ordinario via workflow atomico (`CLAUDE.md` + root `AGENTS.md` Progress Tracker — validator ora VERDE e usabile come gate pre-commit).
 
-**Dipendenze pendenti verso M7 (flag):**
-- M2–M6 completate e verificate → precondizione M7 soddisfatta.
-- Conteggio `.md` tracciati corrente: **58** (63−5; delta rispetto al 56 del piano spiegato in §8).
-- M7 pronto: mapping modelli in §5, tutti gli agent-def oggi `model: inherit`.
+**Stato finale (flag):**
+- M0–M7 ✅, commit per-milestone reversibili (§3).
+- Conteggio `.md` tracciati: **58** (63−5; delta vs 56 del piano spiegato in §8).
+- Agent-def: modelli pinnati (opus×2, sonnet×2, haiku×1), mapping tunabile (§5).
 
 ## 13. Prompt consigliato per la nuova finestra/sessione
 
+**Il piano di armonizzazione è CHIUSO (M0–M7 ✅) — non serve più un prompt di ripresa del piano.** Per lavoro futuro sulla repo:
+
 ```
-Riprendi l'armonizzazione documentazione TickerTracker v3.0 — ULTIMA milestone.
+Leggi Standalone-app-v1/CLAUDE.md (onboarding + invarianti + quirks) e
+Standalone-app-v1/Docs/Stato-avanzamento-pdl.md §0/§8/§11 (storico piano doc,
+eccezioni permanenti, follow-up aperti).
 
-Leggi in quest'ordine:
-1. Standalone-app-v1/Docs/Stato-avanzamento-pdl.md — §0 (handoff snapshot),
-   §8 (eccezioni attive) e §12 (prossimo step)
-2. Standalone-app-v1/Docs/Piano-di-lavoro.md — §M7: done-criterion
+Il piano di armonizzazione doc è COMPLETO (M0–M7, ultima M7 = f1b83fb).
+Regole operative permanenti della repo:
+- rtk proxy git ... per ogni verifica load-bearing (il proxy altera l'output git);
+- root repo con spazio nel nome → mai cd non quotato, usa git -C "$ROOT";
+- casing cartelle solo via git ls-files (mai find/ls su Windows);
+- validate_dependencies.py: VERDE (866a2b7), eseguire con PYTHONIOENCODING=utf-8;
+- branch di lavoro: vibe-claude.
 
-Stato: M0–M6 completate e committate su vibe-claude (M6 = 6cda1a3 fix 5 link rotti
-+ commit record stato). 58 file .md tracciati (delta vs piano documentato in §8).
-
-Prossimo step: M7 — nei 5 file .claude/agents/*.md modificare SOLO la riga
-frontmatter `model:` (oggi tutti `model: inherit`):
-  code-reviewer=opus · backend-dev=opus · frontend-dev=sonnet ·
-  task-planner=sonnet · docs-dev=haiku
-Corpo agenti INVARIATO. Done criterion: grep -H "^model:" .claude/agents/*.md →
-5 valori attesi, nessun inherit residuo; git diff sui 5 file tocca solo `model:`.
-
-Vincoli senza eccezioni:
-- Nessun nuovo branch; esegui M7, verifica, committa, poi CHIUDI il piano
-  aggiornando Stato-avanzamento-pdl.md (M7 ✅, piano completo) e FERMATI.
-- Root repo con spazio nel nome ("Ticker Tracker/") → mai cd non quotato;
-  usa git -C "$ROOT".
-- Proxy rtk intercetta git e può alterarne l'output → ogni verifica load-bearing
-  con `rtk proxy git ...`.
-- NON toccare il grafo dipendenze task (validate_dependencies.py fallisce per 14
-  errori PRE-esistenti — follow-up separato fuori piano, vedi §8).
-
-Procedi con M7 senza chiedere conferma, salvo ambiguità reale.
+Follow-up fuori piano aperti (opzionali, §11): blocco metadata TASK 4.6 in
+frontend/AGENTS.md; link ../src/... residui nei blocchi task frontend/AGENTS.md.
+Per sviluppo prodotto: workflow atomico CLAUDE.md + root AGENTS.md Progress Tracker.
 ```

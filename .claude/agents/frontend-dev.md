@@ -1,7 +1,7 @@
 ---
 name: "frontend-dev"
 description: "Use this agent PROACTIVELY for all React/TypeScript tasks in the TickerTracker v3.0 codebase: building components, hooks, forms, charts, routing, React Query integrations. Call whenever modifying files in frontend/. Do NOT use this agent for backend/ or Docker/ files — it is strictly scoped to the frontend stack (Vite, React 19, TypeScript, TailwindCSS, decimal.js, Recharts). Examples: <example>Context: The user requests a new portfolio chart component. user: 'Add a PerformanceChart component showing portfolio value over time' assistant: 'I'll use the frontend-dev agent to build the PerformanceChart with Recharts and decimal.js' <commentary>Since the task involves creating a React chart component in frontend/, use the frontend-dev agent.</commentary></example> <example>Context: The user wants to add React Router with a shared layout. user: 'Set up routing for the dashboard pages' assistant: 'Let me launch the frontend-dev agent to handle TASK 4.16: React Router + Layout' <commentary>Frontend routing task — use the frontend-dev agent.</commentary></example> <example>Context: User wants to add a new API call. user: 'Fetch positions from the API directly with fetch()' assistant: 'I'll redirect this to the frontend-dev agent to ensure the centralized API client is used' <commentary>Touches frontend/ code with strict rules about API client usage — use frontend-dev.</commentary></example>"
-model: inherit
+model: sonnet
 memory: project
 ---
 

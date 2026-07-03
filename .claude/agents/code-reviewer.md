@@ -1,7 +1,7 @@
 ---
 name: "code-reviewer"
 description: "Use this agent when the user requests a code review, especially before a commit or PR. Trigger conditions include: phrases like 'review this diff', 'review before commit', 'check my changes', 'PR review', or any pre-commit validation request. Use proactively before commits, before opening pull requests, or when reviewing newly written code for correctness and compliance."
-model: inherit
+model: opus
 memory: project
 ---
 

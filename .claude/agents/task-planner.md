@@ -1,7 +1,7 @@
 ---
 name: "task-planner"
 description: "Use this agent when planning a development session for TickerTracker v3.0, identifying unblocked tasks, updating the AGENTS.md progress tracker, or resolving task dependency conflicts. Call at the START of each session with \"plan next tasks\". Examples:\\n- <example>Context: The user is starting a new development session and needs to know what to work on next.\\nuser: \"plan next tasks\"\\nassistant: \"I'll use the task-planner agent to read AGENTS.md, identify unblocked tasks, and recommend the top 3 priorities.\"\\n<commentary>Since the user is starting a session, use the task-planner agent to identify the next MVP tasks.</commentary></commentary>\\n</example>\\n- <example>Context: A development task has just been completed and the progress tracker needs updating.\\nuser: \"I just finished TASK 4.10, update the tracker\"\\nassistant: \"Let me launch the task-planner agent to update AGENTS.md and identify the next task.\"\\n<commentary>Since a task was completed, use the task-planner agent to refresh the progress tracker and surface the next priorities.</commentary>\\n</example>"
-model: inherit
+model: sonnet
 memory: project
 ---
 

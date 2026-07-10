@@ -356,6 +356,12 @@ eccezioni storiche M6 (grep step-3 sui 2 file di continuità; 4 falsi positivi s
 normativo). Conteggio `.md` tracciati: invariato a 58 (−2 +2); il docx (binario) esce dal repo ma
 resta in git history.
 
+Blocco riscontrato in esecuzione (2026-07-10): un primo `rtk proxy git add` su file nuovi sotto
+`Docs/` è risultato **no-op silenzioso** (exit 0, file rimasti untracked, mostrati da `git
+status` con `docs/` lowercase); il retry identico ha funzionato registrando il casing corretto.
+Regola pratica aggiunta: **dopo ogni `git add`, verificare lo staging con
+`rtk proxy git status --porcelain` + `git ls-files`** prima di considerare l'azione conclusa.
+
 ### 7.12 [APERTO, minore] `Docs/superpowers/plans/` citata ma non tracciata
 
 La mappa in `Docs/AGENTS.md` cita `superpowers/plans/` come "storico", ma `git ls-files` non

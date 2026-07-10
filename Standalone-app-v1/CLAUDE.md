@@ -24,9 +24,9 @@ Boundary rule: do NOT modify files outside your section unless the change is exp
 2. Spawn `task-planner` to mentally walk the dependency graph and produce a microstep plan; write the microsteps into the section's `AGENTS.md` (`backend/AGENTS.md`, `frontend/AGENTS.md`, etc.).
 3. Execute via the matching track agent (backend-dev / frontend-dev / docker-dev / docs-dev).
 4. Update the `Progress Tracker` emoji legend in root `AGENTS.md` (pending → in-progress → done).
-5. From repo root: `python scripts/validate_dependencies.py` — enforces the graph before you commit. Root `AGENTS.md` does not mention this script; the file lives at `scripts/validate_dependencies.py`.
+5. From repo root: `python scripts/validate_dependencies.py && python scripts/validate_docs.py` — the first enforces the task graph, the second validates all internal `.md` links/anchors. Both must be GREEN before you commit. Root `AGENTS.md` does not mention these scripts; they live in `scripts/`.
 
-Never invent a task ID. Never skip the validator.
+Never invent a task ID. Never skip the validators.
 
 ## Critical Architectural Invariants
 
@@ -76,7 +76,7 @@ These are opinion-level rules, not derivable from the code. Violating them break
 ## Things That Were Wrong Before — Do Not Perpetuate
 
 - No `LICENSE` file at repo root (only sub-package licenses exist).
-- `Docs/Piano-operativo-v1.7.md` does not exist; only `Docs/Piano-operativo-v1.7.docx` does.
+- `Docs/Piano-operativo-v1.7.docx` was removed on 2026-07-10 (recoverable from git history at `feef0f4`); its full text lives in `Docs/archive/Piano-operativo-v1.7-estratto.md` (task numbering there is STALE — never use it as a task-ID source; root `AGENTS.md` is canonical).
 - `AppErrorBoundary` is mounted by `app/providers/index.tsx`, not by `App.tsx` or `main.tsx`.
 - Outbox + dead-letter logic is in `backend/src/infra/outbox/`, not `backend/src/sync/`.
 - The `analytics` bounded context (`backend/src/analytics/`) is scaffolding only: `api/`, `services/`, `repositories/`, `schemas/` contain only an empty `__init__.py` — only `domain/entities.py` has content (the `AiModelRun` model). Do not assume analytics API routes/services exist.
@@ -88,6 +88,7 @@ These are opinion-level rules, not derivable from the code. Violating them break
 - **Root AGENTS.md (task ledger + dependency graph + Progress Tracker):** `AGENTS.md` at repo root.
 - **Per-section agent memory:** `backend/AGENTS.md`, `frontend/AGENTS.md`, `Docker/AGENTS.md`, `Docs/AGENTS.md`. Each section `AGENTS.md` back-links here.
 - **Dependency validator:** `python scripts/validate_dependencies.py` from repo root.
+- **Docs link validator:** `python scripts/validate_docs.py` from repo root (internal `.md` links + anchors).
 
 ## Doc Ownership Map
 
@@ -102,7 +103,7 @@ These are opinion-level rules, not derivable from the code. Violating them break
 | Testing / CI-CD / runbook ownership | docs agent memory | `Docs/AGENTS.md` |
 | Backend deep-dive tech docs (audience: dev) | backend/docs/ | `backend/docs/` |
 | Operational runbooks (audience: ops) | Docs/runbook/ | `Docs/runbook/` |
-| Piano operativo (business plan, docx) | Docs/ | `Docs/Piano-operativo-v1.7.docx` |
-| Doc-harmonization plan + progress (cross-session continuity) | Docs/ | `Docs/Piano-di-lavoro.md` + `Docs/Stato-avanzamento-pdl.md` |
+| Governo fase di sviluppo (roadmap, regole sessione, evidenze) | Docs/ | `Docs/piano-di-lavoro-v2.md` |
+| Piano operativo storico (estratto, non normativo) | Docs/archive/ | `Docs/archive/Piano-operativo-v1.7-estratto.md` |
 
 If something here contradicts a file on disk, the file on disk wins — update this file.

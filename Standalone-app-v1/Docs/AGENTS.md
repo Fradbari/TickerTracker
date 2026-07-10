@@ -30,11 +30,10 @@ Questa sezione contiene i task per il **track docs**: testing, CI/CD, documentaz
 |---|---|---|
 | `runbook/` | 7 procedure operative di produzione (startup, recovery, outage, monitoring, scaling, drive-sync, contacts) | ✅ Attivo (TASK 5.15) |
 | `superpowers/plans/` | Analisi gap repository (storiche) | Storico |
-| `Piano-operativo-v1.7.docx` | Business plan / piano operativo (binario, non editabile come testo) | Riferimento esterno |
-| `Piano-di-lavoro.md` | Piano di armonizzazione doc (copia di lavoro, continuità cross-sessione) | Attivo |
-| `Stato-avanzamento-pdl.md` | Stato di avanzamento del piano di armonizzazione | Attivo |
+| `piano-di-lavoro-v2.md` | Documento unico di governo della fase di sviluppo (snapshot, roadmap, regole di sessione, evidenze) | ✅ Attivo |
+| `archive/Piano-operativo-v1.7-estratto.md` | Estratto testuale del piano operativo storico (docx rimosso, in git history) | Storico, non normativo |
 
-> ⚠️ Non creare `docs/Piano-operativo-v1.7.md`: esiste solo `.docx`.
+> ⚠️ La numerazione task in `archive/` è STALE: mai usarla come fonte di ID — il ledger canonico è root `AGENTS.md`. I file storici `Piano-di-lavoro.md`, `Stato-avanzamento-pdl.md` e `Piano-operativo-v1.7.docx` sono stati rimossi il 2026-07-10 (recuperabili da git history, HEAD di riferimento `feef0f4`).
 
 ---
 

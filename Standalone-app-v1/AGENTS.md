@@ -195,7 +195,8 @@ Standalone-app-v1/
 ├── Docs/
 │   ├── AGENTS.md          ← task Testing/CI-CD/Docs (↩ back-link a CLAUDE.md)
 │   ├── runbook/           ← procedure operative (ops)
-│   └── Piano-operativo-v1.7.docx ← business plan (binario)
+│   ├── piano-di-lavoro-v2.md ← documento unico di governo fase sviluppo
+│   └── archive/           ← estratti storici non normativi
 │
 ├── e2e/                   ← suite Playwright (config alla root)
 ├── scripts/               ← validate_dependencies.py, ...

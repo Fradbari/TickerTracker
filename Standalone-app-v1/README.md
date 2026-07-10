@@ -322,7 +322,7 @@ npm run test           # Vitest
 - **Backend deep-dive (dev)** — [`backend/docs/`](./backend/docs/) (API, SECURITY, PAGINATION, ALEMBIC, ...)
 - **Runbook operativi (ops)** — [`Docs/runbook/`](./Docs/runbook/) (startup, recovery, outage, monitoring)
 - **Backend API Docs** — http://localhost:8000/docs (quando l'app è running)
-- **[Piano Operativo v1.7](./Docs/Piano-operativo-v1.7.docx)** — business plan MVP e Fase 2 (`.docx`)
+- **[Piano di lavoro v2](./Docs/piano-di-lavoro-v2.md)** — documento unico di governo della fase di sviluppo (roadmap MVP residuo + Fase 2); piano operativo storico in [`Docs/archive/`](./Docs/archive/Piano-operativo-v1.7-estratto.md)
 
 ### Guide Rapide
 

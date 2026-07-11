@@ -462,6 +462,8 @@ Dipendenze: TASK 1.1
 
 ## TASK 2.8: Definizione Modello SQLAlchemy - SyncJob
 
+> Alias root tracker: TASK 2.9
+
 **Descrizione:** Creare modello per tracciare i job di sincronizzazione con Google Drive.
 
 **Microstep:**
@@ -489,7 +491,7 @@ Dipendenze: TASK 1.1
 - [x] Indice su `started_at` presente
 - [ ] Documentazione aggiornata
 - [ ] Test di import completati
-- [ ] Migrazione Alembic generata
+- [x] Migrazione Alembic generata (f9f513c6220d:30)
 
 ---
 
@@ -499,6 +501,8 @@ Fase: MVP
 Dipendenze: TASK 1.1
 
 ## TASK 2.9: Definizione Modello SQLAlchemy - AiModelRun
+
+> Alias root tracker: TASK 2.25
 
 **Descrizione:** Creare modello per tracciare esecuzioni dei modelli AI.
 
@@ -985,6 +989,8 @@ Fase: MVP
 Dipendenze: TASK 2.24
 
 ## TASK 2.25: Completa Pattern Outbox per Eventi Drive
+
+> Alias root tracker: TASK 2.26
 
 **Descrizione:** Implementare pattern Outbox per delivery affidabile degli eventi EstimateEvent verso Google Drive con retry logic e dead letter handling.
 

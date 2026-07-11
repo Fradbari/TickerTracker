@@ -140,14 +140,12 @@ docker compose -f docker-compose.base.yml down
 
 ### 4. Avvio Ambiente Completo (Backend + Frontend)
 
-Una volta che PostgreSQL e Redis sono in esecuzione:
+Non serve avviare prima i servizi infrastrutturali: `docker-compose.yml` (entry point
+principale) include già PostgreSQL, Redis, Backend e Frontend.
 
 ```bash
 # Avvia backend, frontend, database e cache
-docker compose \
-  -f docker-compose.base.yml \
-  -f docker-compose.dev.yml \
-  up --build
+docker compose up --build
 ```
 
 L'applicazione sarà disponibile ai seguenti indirizzi:
@@ -222,7 +220,7 @@ Il progetto include pipeline CI configurate con GitHub Actions (vedi `.github/wo
   - Network condivisa: `ticker-network`
   - Volumi persistenti: `postgres-data`, `redis-data`
 
-- **`docker-compose.prod.yml`** (TASK 5.14 — pianificato)
+- **`docker-compose.prod.yml`** (TASK 5.14)
   - Configurazione produzione (no hot-reload, resource limits, Nginx)
 
 ---

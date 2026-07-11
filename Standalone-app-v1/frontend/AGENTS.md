@@ -574,6 +574,13 @@ Dipendenze: TASK 4.5
 
 ## TASK 4.6: Implementazione EstimateList Component
 
+ID: TASK 4.6
+Area: frontend/estimates
+Fase: MVP
+Dipendenze: TASK 4.6-hooks
+
+> Nota: 4.5b NON è prerequisito di 4.6: task completato tramite hook proprio (useEstimates) prima che 4.5b esistesse — dipendenza storica da 4.6-hooks confermata da microstep interni.
+
 **Descrizione:** Componente per visualizzare lista stime con filtri.
 
 **Microstep:**
@@ -1012,6 +1019,45 @@ Dipendenze: TASK 4.6, TASK 4.11
 ### Istruzioni per LLM
 - Non modificare file fuori da [frontend/src/app/router/, frontend/src/app/layout/, frontend/src/App.tsx] se non strettamente necessario.
 - Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati.
+- Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
+- Alla fine, produci un elenco puntato con file modificati e test eseguiti.
+
+---
+
+ID: TASK 4.17
+Area: frontend/shared
+Fase: Fase 2
+Dipendenze: TASK 4.5b
+
+## TASK 4.17: Accessibilità base & i18n
+
+**Descrizione:** Audit di accessibilità base sui componenti interattivi e formalizzazione dell'infrastruttura i18n esistente (italiano = locale base).
+
+**Microstep:**
+
+1. Censire i componenti interattivi reali (form, modal, bottoni, toast) in `frontend/src/shared/components/` e nelle feature (`estimates`, `admin`, `portfolio`)
+2. Audit accessibilità: attributi `aria-*` su input e modal, focus-trap nei modal, `aria-live` per Toast/notifiche
+3. Verificare contrasto colore di testi e stati warning/danger (soglia WCAG AA)
+4. Navigazione da tastiera: tab order coerente, `Esc` chiude i modal, focus visibile
+5. Censire l'infrastruttura esistente in `frontend/src/shared/i18n/` e le stringhe utente hardcoded nei componenti
+6. Formalizzare l'italiano come locale base: stringhe utente centralizzate via `shared/i18n/` (nessuna nuova libreria se già presente)
+7. Documentare le convenzioni a11y/i18n adottate in `frontend/README.md`
+
+**Acceptance Criteria:**
+
+- [ ] Modal con focus-trap e chiusura via `Esc`
+- [ ] Input dei form con label/`aria` associati
+- [ ] Toast/notifiche annunciati via `aria-live`
+- [ ] Contrasto conforme WCAG AA su stati normale/warning/danger
+- [ ] Stringhe utente censite e servite via `shared/i18n/` (locale base: it)
+- [ ] Convenzioni documentate in `frontend/README.md`
+- [ ] `npx tsc --noEmit` verde e `npm run test:coverage` verde
+
+---
+
+### Istruzioni per LLM
+- Non modificare file fuori da [frontend/src/shared/, frontend/src/features/*/components/, frontend/README.md] se non strettamente necessario.
+- Segui i microstep in ordine e non introdurre pattern/tecnologie non menzionati (nessuna nuova libreria i18n se `shared/i18n/` è già presente).
 - Se trovi codice esistente che confligge con queste istruzioni, fermati e proponi una breve nota invece di riscrivere tutto.
 - Alla fine, produci un elenco puntato con file modificati e test eseguiti.
 

@@ -59,9 +59,9 @@ These are opinion-level rules, not derivable from the code. Violating them break
 **Docker surface:**
 - `docker-manage.ps1` / `docker-manage.sh` — thin helpers: `up`, `health`, `logs`, `down`, `clean`. Infra-only; does NOT spawn the backend.
 - `docker-compose.base.yml` — db + redis only.
-- `docker-compose.yml` — adds backend (line 60 `backend:` block), depends on db + redis.
+- `docker-compose.yml` — adds backend (line 60 `backend:` block) AND frontend (line 95 `frontend:` block), both depending on db + redis. There is NO `docker-compose.dev.yml`.
 - `docker-compose.prod.yml` — production overrides.
-- Plain `docker compose up --build` from repo root WILL spawn backend + db + redis.
+- Plain `docker compose up --build` from repo root WILL spawn backend + frontend + db + redis (frontend :3000, backend :8000).
 
 ## Non-obvious Quirks
 
@@ -72,6 +72,7 @@ These are opinion-level rules, not derivable from the code. Violating them break
 - **e2e/ at repo root:** Playwright suite lives at repo root (`playwright.config.ts`) — not under `frontend/`. There is no `test:e2e` npm script; the root `package.json`'s `test` is a stub.
 - **Settings cache:** `get_settings()` is `@lru_cache`-d. Secrets use Pydantic `SecretStr`. Mutate `.env`/restart — never expect a second call to differ.
 - **`validate_dependencies.py` on Windows:** the script prints emoji and crashes with `UnicodeEncodeError` on cp1252 consoles — run it as `PYTHONIOENCODING=utf-8 python scripts/validate_dependencies.py`. GREEN as of 2026-07-03: the 14 "pre-existing task-graph errors" were validator false positives (ID regex truncating suffixed IDs like `4.5b`/`4.6-hooks`, dirty `rec_stack` cascading fake cycles, Progress Tracker not parsed so completed tasks 3.1–3.9 looked non-existent). The validator now also reads the root `AGENTS.md` Progress Tracker checklist as canonical task source and skips `node_modules`.
+- **`git add` silenzioso:** Dopo *ogni* `git add`, verifica lo staging esclusivamente tramite `rtk proxy git ls-files -- <paths>`: è l'unico controllo autorevole. Non utilizzare `git status --porcelain`: il proxy rtk ne riscrive l'output (osservato dal vivo: stringa letterale "ok").
 
 ## Things That Were Wrong Before — Do Not Perpetuate
 

@@ -43,7 +43,7 @@ Le definizioni operative vivono in `.claude/agents/` (5 file): `task-planner`, `
 
 **Legenda**: ✅ Completato | 🚧 In Corso | ⏸️ Bloccato | ⬜ Da Fare
 
-### MVP - Ambiente Locale Single-User (46 task)
+### MVP - Ambiente Locale Single-User (50 task)
 
 ### Sezione 1: Setup & Fondamenta (8/8)
 - [x] **TASK 1.1** - Setup Struttura Layer Backend
@@ -55,7 +55,7 @@ Le definizioni operative vivono in `.claude/agents/` (5 file): `task-planner`, `
 - [x] **TASK 1.7** - Middleware Sicurezza Base & Healthcheck
 - [x] **TASK 1.8** - Setup Wrapper TypeScript per Decimali Frontend
 
-#### Sezione 2: Backend Core & Data (21/21 completati)
+#### Sezione 2: Backend Core & Data (22/22 completati)
 - [x] **TASK 2.1** - Setup Progetto Python con Poetry & Dipendenze Complete
 - [x] **TASK 2.2** - Setup Docker Compose PostgreSQL/Redis *(in Docker/AGENTS.md)*
 - [x] **TASK 2.3** - Setup SQLAlchemy Base + Modello Ticker
@@ -96,23 +96,29 @@ Le definizioni operative vivono in `.claude/agents/` (5 file): `task-planner`, `
 - [x] **TASK 4.12** - Implementazione PerformanceChart Component *(implementato: `portfolio/components/AiPerformanceChart.tsx`)*
 - [x] **TASK 4.16** - Setup React Router e Layout *(implementato in `App.tsx`: 6 route reali `/`, `/admin`, `/insert`, `/portfolio`, `/analysis`, `*` + `RootLayout` montato; i path differiscono dai microstep originali)*
 
-#### Sezione 5: Testing & CI/CD Base (0/5)
-- [ ] **TASK 5.1** - Setup Test Framework Backend
+#### Sezione 5: Testing & CI/CD Base (5/5)
+- [x] **TASK 5.1** - Setup Test Framework Backend *(criteri 3/3 ✓: marker pyproject, coverage Makefile, conftest condiviso)*
 - [x] **TASK 5.2** - Scrivere Unit Test per Value Objects
 - [x] **TASK 5.3** - Scrivere Unit Test per EstimateService
 - [x] **TASK 5.4** - Scrivere Integration Test per API Estimates
   - [x] **TASK 5.6** - Setup Test Framework Frontend
-### Fase 2 - Produzione Multi-User (19 task)
+### Fase 2 - Produzione Multi-User (34 task)
 
-#### Sezione 2: Auth & Advanced Backend (0/6)
+#### Sezione 2: Auth & Advanced Backend (2/6)
 - [ ] **TASK 2.8** - Definizione Modello SQLAlchemy - User e Role RBAC
-- [ ] **TASK 2.9** - Definizione Modello SQLAlchemy - SyncJob
-- [ ] **TASK 2.25** - Definizione Modello SQLAlchemy - AiModelRun
-- [ ] **TASK 2.26** - Implementazione Pattern Outbox per Eventi
+- [ ] **TASK 2.9** - Definizione Modello SQLAlchemy - SyncJob *(track: TASK 2.8 — PARZIALE: modello+repo+migrazione ✓ f9f513c6220d:30; gap: doc + test dedicati)*
+- [x] **TASK 2.25** - Definizione Modello SQLAlchemy - AiModelRun *(track: TASK 2.9 — criteri 4/4 ✓, entity `analytics/domain/entities.py`)*
+- [x] **TASK 2.26** - Implementazione Pattern Outbox per Eventi *(track: TASK 2.25 — criteri ✓, `OutboxProcessor` in `infra/outbox/`, coverage >90%)*
 - [ ] **TASK 2.27** - Creazione API Router Analytics *(da definire)*
 - [ ] **TASK 2.28** - Implementazione AI Prompt Service *(da definire)*
 
-#### Sezione 3: Sicurezza & Observability (7/11)
+#### Sezione 3: Sicurezza & Observability (9/13)
+
+> Il totale 13 include TASK 5.12 e 5.13, elencati in questa
+> sezione (spec in backend/AGENTS.md). Il vecchio contatore
+> "(7/11)" era stale: "11" escludeva 5.12/5.13; "7" era un
+> conteggio non aggiornato.
+
 - [x] **TASK 3.1** - Implementazione Security Middleware
 - [x] **TASK 3.2** - Implementazione Rate Limiting
 - [x] **TASK 3.3** - Implementazione Input Validation Avanzata
@@ -127,12 +133,13 @@ Le definizioni operative vivono in `.claude/agents/` (5 file): `task-planner`, `
 - [ ] **TASK 5.12** - Implementazione Feature Flags *(in backend/AGENTS.md)*
 - [ ] **TASK 5.13** - Implementazione Backup Automatico Database *(in backend/AGENTS.md)*
 
-#### Sezione 4: Frontend Advanced (3/3)
+#### Sezione 4: Frontend Advanced (3/4)
 - [x] **TASK 4.13** - Implementazione Dashboard Portfolio
 - [x] **TASK 4.14** - Implementazione Price Chart
 - [x] **TASK 4.15** - Implementazione ChatAI Component (Gemini)
+- [ ] **TASK 4.17** - Accessibilità base & i18n
 
-#### Sezione 5: Testing & CI/CD Completo (0/9)
+#### Sezione 5: Testing & CI/CD Completo (7/9)
 - [ ] **TASK 5.5** - Implementare Property-Based Testing per P&L
 - [x] **TASK 5.7** - Scrivere Component Test per EstimateForm
 - [x] **TASK 5.8** - Setup E2E Test con Playwright
@@ -153,9 +160,12 @@ Le definizioni operative vivono in `.claude/agents/` (5 file): `task-planner`, `
 
 | Categoria | Completati | Totali | Percentuale |
 |-----------|------------|--------|-----------|
-| **MVP** | 30 | 48 | 63% |
-| **Fase 2** | 0 | 19 | 0% |
-| **TOTALE** | **30** | **67** | 45% |
+| **MVP** | 48 | 50 | 96% |
+| **Fase 2** | 23 | 34 | 68% |
+| **Sprint UX** | 0 | 4 | 0% |
+| **TOTALE** | **71** | **88** | 81% |
+
+> Nota: conteggi derivati dalle checkbox reali (fonte canonica). Sprint UX = sezione dedicata separata, NON inclusa in MVP né in Fase 2 — nessun doppio conteggio.
 
 ---
 

@@ -29,7 +29,6 @@ Questa sezione contiene i task per il **track docs**: testing, CI/CD, documentaz
 | File/Cartella | Scopo | Stato |
 |---|---|---|
 | `runbook/` | 7 procedure operative di produzione (startup, recovery, outage, monitoring, scaling, drive-sync, contacts) | ✅ Attivo (TASK 5.15) |
-| `superpowers/plans/` | Analisi gap repository (storiche) | Storico |
 | `piano-di-lavoro-v2.md` | Documento unico di governo della fase di sviluppo (snapshot, roadmap, regole di sessione, evidenze) | ✅ Attivo |
 | `archive/Piano-operativo-v1.7-estratto.md` | Estratto testuale del piano operativo storico (docx rimosso, in git history) | Storico, non normativo |
 
@@ -77,12 +76,12 @@ Fase: MVP
 Dipendenze: TASK 2.1
 
 ### TASK 5.1: Setup Test Framework Backend
-**Stato:** ⬜ Da fare
+**Stato:** ✅ Completato (verify-first A0, 2026-07-11)
 **Descrizione:** Configurare pytest con marker, fixture e coverage nel `backend/pyproject.toml`.
 **Acceptance Criteria:**
-- [ ] Marker definiti (`unit`, `integration`, `e2e`, `slow`, `chaos`, `properties`)
-- [ ] Coverage reporting configurato
-- [ ] Fixture shared in `conftest.py`
+- [x] Marker definiti (`unit`, `integration`, `e2e`, `slow`, `chaos`, `properties`) — `backend/pyproject.toml` `[tool.pytest.ini_options]`
+- [x] Coverage reporting configurato — `pytest-cov` + `backend/Makefile` target `test-cov` (`--cov=src --cov-report`)
+- [x] Fixture shared in `conftest.py` — `backend/tests/conftest.py` (engine in-memory, session override, test_client, mock provider/drive)
 
 ---
 
